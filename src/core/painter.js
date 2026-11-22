@@ -83,8 +83,9 @@ export class Painter {
       xs.push(X + c * f * lx - s * ly);
       ys.push(Y + s * f * lx + c * ly);
     }
-    for (let sy = Math.floor(Math.min(...ys)); sy <= Math.ceil(Math.max(...ys)); sy++) {
-      for (let sx = Math.floor(Math.min(...xs)); sx <= Math.ceil(Math.max(...xs)); sx++) {
+    const sx0 = Math.floor(Math.min(...xs)), sx1 = Math.ceil(Math.max(...xs)), sy1 = Math.ceil(Math.max(...ys));
+    for (let sy = Math.floor(Math.min(...ys)); sy <= sy1; sy++) {
+      for (let sx = sx0; sx <= sx1; sx++) {
         const dx = sx + 0.5 - X, dy = sy + 0.5 - Y;
         fn(f * (c * dx + s * dy), -s * dx + c * dy, sx, sy);
       }
