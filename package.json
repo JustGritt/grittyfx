@@ -1,0 +1,13 @@
+{
+  "name": "grittyfx",
+  "version": "0.0.0",
+  "description": "Pixel-art effects as code for Godot, Unity and the browser.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test"
+  }
+}
