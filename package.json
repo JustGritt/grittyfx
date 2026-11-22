@@ -12,6 +12,8 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "render": "node tools/render.mjs",
+    "check": "node tools/check.mjs"
   }
 }
