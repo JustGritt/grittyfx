@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [18, 'lts/*']
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+      - run: node --test
+      - run: node tools/check.mjs
+
+  pages:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/configure-pages@v6
+      # The gallery imports ../src/, so the site keeps the repo layout; the root page sends visitors on to gallery/.
+      - run: |
+          mkdir _site
+          cp -r gallery src _site/
+          node tools/list.mjs --json > _site/gallery/fx-list.json
+          echo '<!doctype html><meta http-equiv="refresh" content="0; url=gallery/"><a href="gallery/">gallery</a>' > _site/index.html
+      - uses: actions/upload-pages-artifact@v5
+      - id: deploy
+        uses: actions/deploy-pages@v5
