@@ -4,6 +4,10 @@
   "description": "Pixel-art effects as code for Godot, Unity and the browser.",
   "type": "module",
   "license": "MIT",
+  "exports": {
+    ".": "./src/core/index.js",
+    "./fx/*": "./src/fx/*.js"
+  },
   "engines": {
     "node": ">=18"
   },
