@@ -1,12 +1,48 @@
 # grittyfx
 
-Pixel-art effects written as code, for Godot, Unity and the browser. Each effect is one small JavaScript file.
-grittyfx plays it live on a canvas, or bakes it into sprite sheets you can recolor at runtime: one sheet plays as
-fire, ice or poison, with its glow, hit timing and sound ready for Godot and Unity.
+Pixel-art effects written as code, recolorable at runtime in Godot, Unity and the browser.
 
-**Status: early.** Nothing usable yet.
+Each effect is one small JavaScript file that draws pixels and glow from a palette. Bake it once into a sprite sheet,
+then recolor it in the engine: the same explosion plays as fire, ice or poison, per instance, with no re-export.
 
-Inspired by [pixelfx](https://github.com/patch-gg/pixelfx) and [beanfx](https://github.com/baenv/beanfx).
+> **Status: early development.** Nothing usable yet. Star or watch the repo to follow along.
+
+## Why
+
+Code-drawn pixel effects already exist ([pixelfx](https://github.com/patch-gg/pixelfx) and its Unity and Godot
+ports), but in an engine you pick between baked sheets with fixed colors and live drawing on the CPU. grittyfx bakes
+sheets that stay recolorable.
+
+## What's planned
+
+- **Recolor at runtime.** Sheets store palette indices and a small shader maps them to any color ramp: elements,
+  enemy variants and team colors from one sheet, on the GPU.
+- **Glow included.** Every pixel carries its own light, drawn in the same pass, so effects glow on any background.
+- **Game feel built in.** Each effect comes with its hit timings (freeze, screen shake) and a synthesised sound, as
+  signals in Godot and events in Unity.
+- **Side view and top-down.** Directional effects bake 8 directions, so pixels stay on the grid.
+- **Any engine.** Every effect also exports as a plain sprite sheet with Aseprite-style JSON.
+- **Make your own.** A Claude Code skill drafts new effects, renders them and refines them until they hold up.
+
+## Roadmap
+
+| version | what |
+|---|---|
+| 0.1 | the drawing core, render and check tools, three reference effects |
+| 0.2 | Godot 4 addon, Unity 6 package, browser sheet player |
+| 0.3 | Claude Code skill, gallery, twelve effects |
+| 0.4 | top-down 8 directions, synthesised sound |
+
+## Feedback
+
+Ideas and requests are welcome in the [issues](https://github.com/JustGritt/grittyfx/issues).
+
+## Credits
+
+grittyfx learns from [pixelfx](https://github.com/patch-gg/pixelfx) by Patch and
+[beanfx](https://github.com/baenv/beanfx), and follows Hugo Duprez's method from
+[How to make (good) pixel art effects with Claude](https://www.spritefusion.com/blog/how-to-make-good-pixel-art-effects-with-claude):
+code is clay, trust your eyes, feed your references.
 
 ## License
 
