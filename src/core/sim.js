@@ -72,7 +72,7 @@ export class Particles {
   _draw(p, q) {
     const u = q.age / q.life, h = 1 - u;
     if (q.kind === SPARK) {
-      const ramp = q.ramp ?? this.palette, k = 0.025; // streak length: the last 25 ms of motion
+      const ramp = q.ramp ?? this.palette, k = 0.035; // streak length: the last 35 ms of motion
       const hot = step(ramp, 0.45 + 0.55 * h), warm = step(ramp, 0.3 + 0.55 * h), a = Math.min(1, h / 0.2);
       const tx = q.x - clamp(q.vx * k, -6, 6), ty = q.y - clamp(q.vy * k, -6, 6);
       p.line(tx, ty, q.x, q.y, t => (t > 0.6 ? hot : warm), a);
