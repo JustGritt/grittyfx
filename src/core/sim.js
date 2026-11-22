@@ -82,15 +82,20 @@ export class Particles {
       p.dot(q.x, q.y, step(ramp, 0.35 + 0.6 * h - flicker), Math.min(1, h / 0.3));
       p.light(q.x, q.y, step(ramp, 0.6), 0.4 * h);
     } else if (q.kind === FIRE) {
-      const ramp = q.ramp ?? this.palette, r = q.size * (1 - 0.4 * u);
-      const c = (dx, dy, d) => step(ramp, h * 1.1 - d * 0.35 + (-dx - dy) / (r * 8));
+      // Barely darker at the rim, so neighbouring puffs merge into one body, and never below a third of the ramp: fire
+      // turns to smoke (or fades), not into dark blobs.
+      const ramp = q.ramp ?? this.palette, r = q.size * (1 - 0.4 * u), heat = 0.3 + 0.75 * h;
+      const c = (dx, dy, d) => step(ramp, heat - d * 0.12 + (-dx - dy) / (r * 10));
       p.disc(q.x, q.y, r, c, (dx, dy, d) => smooth(1, 0.6, d) * Math.min(1, h / 0.25));
       p.glow(q.x, q.y, r * 2.2, step(ramp, 0.5 + 0.4 * h), 0.45 * h);
     } else {
-      // SMOKE and DUST: soft volumes that swell and thin, lit from the top left
+      // SMOKE and DUST: soft volumes that swell and thin; a highlight up-left, a shadow rim down-right
       const smoke = q.kind === SMOKE, ramp = q.ramp ?? (smoke ? this.smoke : this.dust);
       const r = q.size * (1 + (smoke ? 1.5 : 0.8) * u), a0 = (smoke ? 0.85 : 0.9) * h ** 1.4 * Math.min(1, q.age / 0.06);
-      const c = (dx, dy) => step(ramp, 0.45 + (-dx - dy) / (r * 1.41) * 0.3);
+      const c = (dx, dy) => {
+        if (Math.hypot(dx + r * 0.3, dy + r * 0.35) < r * 0.6) return step(ramp, 0.62);
+        return step(ramp, Math.hypot(dx + r * 0.2, dy + r * 0.25) > r * 0.92 ? 0.28 : 0.45);
+      };
       p.disc(q.x, q.y, r, c, (dx, dy, d) => a0 * smooth(1, 0.55, d));
     }
   }
@@ -118,10 +123,13 @@ export class Lights {
   }
 }
 
-/** Debris: shards (thin lines) and chunks that tumble, bounce on the ground, come to rest and fade at the end of life. */
+/**
+ * Debris: shards (thin lines) and chunks that tumble, bounce on the ground, come to rest and fade at the end of life.
+ * onLand(bit) runs at each touch of the ground, before the bounce, with the bit's impact velocity (kick up dust there).
+ */
 export class Bits {
-  constructor({ rng, ground = Infinity, gravity = 300 }) {
-    Object.assign(this, { rng, ground, gravity, list: [] });
+  constructor({ rng, ground = Infinity, gravity = 300, onLand }) {
+    Object.assign(this, { rng, ground, gravity, onLand, list: [] });
   }
 
   /** c is a palette index; size the length in px. */
@@ -148,6 +156,7 @@ export class Bits {
       b.angle += b.spin * dt;
       if (b.y >= ground) {
         b.y = ground;
+        this.onLand?.(b);
         if (Math.abs(b.vy) < 35) {
           b.rest = true;
           b.angle = Math.round(b.angle / Math.PI) * Math.PI; // lie flat
