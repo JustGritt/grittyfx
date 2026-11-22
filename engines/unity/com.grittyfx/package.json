@@ -1,0 +1,16 @@
+{
+  "name": "com.grittyfx",
+  "version": "0.0.0",
+  "displayName": "grittyfx",
+  "description": "Plays grittyfx pixel-art effect bundles, recolored at runtime by a palette lookup shader, with their hits and sound.",
+  "unity": "6000.0",
+  "license": "MIT",
+  "author": { "name": "JustGritt", "url": "https://github.com/JustGritt/grittyfx" },
+  "dependencies": {
+    "com.unity.2d.sprite": "1.0.0",
+    "com.unity.render-pipelines.universal": "17.0.3",
+    "com.unity.modules.animation": "1.0.0",
+    "com.unity.modules.audio": "1.0.0",
+    "com.unity.modules.jsonserialize": "1.0.0"
+  }
+}

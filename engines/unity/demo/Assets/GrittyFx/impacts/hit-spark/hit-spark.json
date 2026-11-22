@@ -1,0 +1,372 @@
+{
+  "frames": [
+    {
+      "filename": "0",
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 56,
+        "h": 40
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 56,
+        "h": 40
+      },
+      "sourceSize": {
+        "w": 56,
+        "h": 40
+      },
+      "duration": 33
+    },
+    {
+      "filename": "1",
+      "frame": {
+        "x": 56,
+        "y": 0,
+        "w": 56,
+        "h": 40
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 56,
+        "h": 40
+      },
+      "sourceSize": {
+        "w": 56,
+        "h": 40
+      },
+      "duration": 33
+    },
+    {
+      "filename": "2",
+      "frame": {
+        "x": 112,
+        "y": 0,
+        "w": 56,
+        "h": 40
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 56,
+        "h": 40
+      },
+      "sourceSize": {
+        "w": 56,
+        "h": 40
+      },
+      "duration": 33
+    },
+    {
+      "filename": "3",
+      "frame": {
+        "x": 168,
+        "y": 0,
+        "w": 56,
+        "h": 40
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 56,
+        "h": 40
+      },
+      "sourceSize": {
+        "w": 56,
+        "h": 40
+      },
+      "duration": 33
+    },
+    {
+      "filename": "4",
+      "frame": {
+        "x": 224,
+        "y": 0,
+        "w": 56,
+        "h": 40
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 56,
+        "h": 40
+      },
+      "sourceSize": {
+        "w": 56,
+        "h": 40
+      },
+      "duration": 33
+    },
+    {
+      "filename": "5",
+      "frame": {
+        "x": 280,
+        "y": 0,
+        "w": 56,
+        "h": 40
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 56,
+        "h": 40
+      },
+      "sourceSize": {
+        "w": 56,
+        "h": 40
+      },
+      "duration": 33
+    },
+    {
+      "filename": "6",
+      "frame": {
+        "x": 336,
+        "y": 0,
+        "w": 56,
+        "h": 40
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 56,
+        "h": 40
+      },
+      "sourceSize": {
+        "w": 56,
+        "h": 40
+      },
+      "duration": 33
+    },
+    {
+      "filename": "7",
+      "frame": {
+        "x": 392,
+        "y": 0,
+        "w": 56,
+        "h": 40
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 56,
+        "h": 40
+      },
+      "sourceSize": {
+        "w": 56,
+        "h": 40
+      },
+      "duration": 33
+    },
+    {
+      "filename": "8",
+      "frame": {
+        "x": 0,
+        "y": 40,
+        "w": 56,
+        "h": 40
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 56,
+        "h": 40
+      },
+      "sourceSize": {
+        "w": 56,
+        "h": 40
+      },
+      "duration": 33
+    },
+    {
+      "filename": "9",
+      "frame": {
+        "x": 56,
+        "y": 40,
+        "w": 56,
+        "h": 40
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 56,
+        "h": 40
+      },
+      "sourceSize": {
+        "w": 56,
+        "h": 40
+      },
+      "duration": 33
+    },
+    {
+      "filename": "10",
+      "frame": {
+        "x": 112,
+        "y": 40,
+        "w": 56,
+        "h": 40
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 56,
+        "h": 40
+      },
+      "sourceSize": {
+        "w": 56,
+        "h": 40
+      },
+      "duration": 33
+    },
+    {
+      "filename": "11",
+      "frame": {
+        "x": 168,
+        "y": 40,
+        "w": 56,
+        "h": 40
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 56,
+        "h": 40
+      },
+      "sourceSize": {
+        "w": 56,
+        "h": 40
+      },
+      "duration": 33
+    },
+    {
+      "filename": "12",
+      "frame": {
+        "x": 224,
+        "y": 40,
+        "w": 56,
+        "h": 40
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 56,
+        "h": 40
+      },
+      "sourceSize": {
+        "w": 56,
+        "h": 40
+      },
+      "duration": 33
+    },
+    {
+      "filename": "13",
+      "frame": {
+        "x": 280,
+        "y": 40,
+        "w": 56,
+        "h": 40
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 56,
+        "h": 40
+      },
+      "sourceSize": {
+        "w": 56,
+        "h": 40
+      },
+      "duration": 33
+    }
+  ],
+  "meta": {
+    "app": "grittyfx",
+    "version": "0.0.0",
+    "image": "hit-spark.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 448,
+      "h": 80
+    },
+    "scale": "1",
+    "frameTags": [
+      {
+        "name": "hit-spark",
+        "from": 0,
+        "to": 13,
+        "direction": "forward"
+      }
+    ],
+    "grittyfx": {
+      "id": "impacts/hit-spark",
+      "fps": 30,
+      "frames": 14,
+      "frameSize": [
+        56,
+        40
+      ],
+      "columns": 8,
+      "pivot": [
+        18,
+        22
+      ],
+      "loop": false,
+      "end": "remove",
+      "data": "hit-spark_data.png",
+      "palette": "hit-spark_pal.png",
+      "sheet": "hit-spark.png",
+      "ramps": [
+        {
+          "name": "palette",
+          "from": 1,
+          "steps": 8
+        }
+      ],
+      "light_gain": 1,
+      "view": "side",
+      "directions": 1,
+      "mirror": true,
+      "act": {
+        "windup": 0.12,
+        "hits": [
+          {
+            "frame": 1,
+            "t": 0.03333333333333333,
+            "freeze": 0.08,
+            "shake": 2
+          }
+        ]
+      }
+    }
+  }
+}

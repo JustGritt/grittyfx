@@ -1,0 +1,5 @@
+{
+    "name": "GrittyFx.Editor",
+    "references": ["GrittyFx", "Unity.2D.Sprite.Editor"],
+    "includePlatforms": ["Editor"]
+}

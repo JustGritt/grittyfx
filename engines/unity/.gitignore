@@ -1,0 +1,18 @@
+# Unity generates these when a project is opened.
+**/Library/
+**/Temp/
+**/Logs/
+**/obj/
+**/Build/
+**/Builds/
+**/UserSettings/
+**/MemoryCaptures/
+*.csproj
+*.sln
+*.slnx
+*.pidb
+*.userprefs
+.vs/
+.idea/
+.vscode/
+demo/Packages/packages-lock.json
