@@ -75,7 +75,7 @@ export function makeBundle(id, mod, { fps, opts } = {}) {
   };
   const json = {
     frames: frames.map((_, i) => ({
-      filename: `${name} ${i}`,
+      filename: String(i), // Phaser's createFromAseprite finds frames by index
       frame: { x: (i % columns) * w, y: Math.floor(i / columns) * h, w, h },
       rotated: false,
       trimmed: false,

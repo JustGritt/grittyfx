@@ -21,6 +21,7 @@ const mod = {
 test('bundle JSON: Aseprite array layout plus meta.grittyfx', () => {
   const { json, files } = makeBundle('test/blob', mod);
   assert.equal(json.frames.length, 9);
+  assert.deepEqual(json.frames.map(f => f.filename), ['0', '1', '2', '3', '4', '5', '6', '7', '8']);
   assert.deepEqual(json.frames[1].frame, { x: 8, y: 0, w: 8, h: 6 });
   assert.equal(json.frames[0].duration, 33);
   assert.deepEqual(json.frames[8].frame, { x: 0, y: 6, w: 8, h: 6 });
