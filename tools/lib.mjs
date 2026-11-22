@@ -31,6 +31,9 @@ export function matchIds(patterns) {
 
 export const loadEffect = id => import(new URL(`${id}.js`, FX));
 
+/** Every effect's id and meta: the gallery's fx-list.json. */
+export const manifest = () => Promise.all(listIds().map(async id => ({ id, meta: (await loadEffect(id)).meta })));
+
 /** Steps a live effect to time t and draws its back then front layer into a new frame. */
 export function drawAt(fx, t) {
   const [w, h] = fx.meta.size, [ox, oy] = fx.meta.origin, frame = createFrame(w, h, ox, oy);

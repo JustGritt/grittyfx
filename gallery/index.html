@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="Pixel-art effects as code, playing live: recolor, reseed, flip and feel the hit-stop.">
+<title>grittyfx gallery</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --page: #0e0f14;
+    --panel: #15161e;
+    --raised: #1d1f2a;
+    --line: #2a2d3b;
+    --text: #ebe8e3;
+    --muted: #9b98a6;
+    --accent: #ffa02a;
+    --bad: #ff6b5a;
+    --stage: #1b1d26;
+    --mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--text);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  body[data-bg="mid"] { --stage: #575b6b; }
+  body[data-bg="light"] { --stage: #d8d5cd; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .wrap { max-width: 76rem; margin: 0 auto; padding: 0 16px; }
+
+  header { padding: 28px 0 20px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; }
+  .brand { font: 700 22px/1 var(--mono); text-decoration: none; letter-spacing: -0.02em; }
+  .brand::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 8px; background: var(--accent); box-shadow: 4px 4px 0 #c9380f; }
+  header p { margin: 0; color: var(--muted); flex: 1 1 16rem; }
+  header .src { color: var(--muted); font: 13px var(--mono); }
+
+  .controls {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px;
+    padding: 12px 16px; margin-bottom: 28px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  }
+  .controls label, .controls legend { color: var(--muted); font: 12px var(--mono); text-transform: uppercase; letter-spacing: 0.06em; }
+  .field { display: flex; align-items: center; gap: 8px; }
+  select, input[type="number"], input[type="text"], button {
+    font: 14px var(--mono); color: var(--text); background: var(--raised);
+    border: 1px solid var(--line); border-radius: 6px; min-height: 36px; padding: 0 10px;
+  }
+  select { padding-right: 6px; }
+  input[type="number"] { width: 6.5rem; }
+  input[type="text"] { flex: 0 1 24rem; min-width: 0; }
+  input[type="checkbox"] { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+  .check { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  [aria-invalid="true"] { border-color: var(--bad); }
+  button { cursor: pointer; font-weight: 600; }
+  button:hover, select:hover { border-color: #3d4154; }
+  #replay { background: var(--accent); color: #1f0a12; border-color: var(--accent); }
+  .custom { flex-basis: 100%; flex-wrap: wrap; }
+  .custom[hidden] { display: none; }
+  .ramp { display: flex; height: 18px; min-width: 64px; border-radius: 3px; overflow: hidden; }
+  .ramp span { flex: 1; min-width: 6px; }
+  .ramp:empty { display: none; }
+  fieldset { border: 0; margin: 0; padding: 0; display: flex; align-items: center; gap: 8px; }
+  legend { float: left; margin-right: 8px; }
+  .seg { display: flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .seg label { position: relative; cursor: pointer; }
+  .seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .seg span { display: block; padding: 0 12px; line-height: 34px; font: 13px/34px var(--mono); color: var(--muted); text-transform: none; letter-spacing: 0; }
+  .seg label + label span { border-left: 1px solid var(--line); }
+  .seg input:checked + span { background: var(--raised); color: var(--text); box-shadow: inset 0 -2px 0 var(--accent); }
+  .seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+  h2 { font: 600 12px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin: 0 0 12px; }
+  .grid { list-style: none; margin: 0 0 40px; padding: 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); }
+  .card {
+    position: relative; display: grid; grid-template-rows: 1fr auto;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+    transition: border-color 0.15s;
+  }
+  .card:hover { border-color: #3d4154; }
+  .card:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .card a:focus-visible { outline: none; }
+  .card a::after { content: ""; position: absolute; inset: 0; }
+  .stage { display: grid; place-items: center; min-height: 14rem; padding: 12px; background: var(--stage); overflow: hidden; transition: background-color 0.2s; }
+  canvas { display: block; max-width: 100%; height: auto; image-rendering: pixelated; }
+  .info { padding: 12px 14px 14px; border-top: 1px solid var(--line); }
+  .info h3 { margin: 0; font-size: 16px; }
+  .info a { text-decoration: none; }
+  .desc { margin: 2px 0 8px; color: var(--muted); font-size: 13px; }
+  .facts { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; font: 12px var(--mono); color: var(--muted); }
+  .facts li { padding: 1px 7px; border: 1px solid var(--line); border-radius: 4px; }
+  .facts .kind { color: var(--text); }
+  .error { color: var(--bad); font: 12px/1.4 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; padding: 12px; }
+
+  .preview .back { color: var(--muted); font: 13px var(--mono); text-decoration: none; }
+  .preview .back:hover { color: var(--text); }
+  .preview h1 { margin: 8px 0 0; font-size: 26px; line-height: 1.2; }
+  .preview .desc { font-size: 15px; margin-bottom: 16px; }
+  .preview .stage { min-height: 18rem; border: 1px solid var(--line); border-radius: 10px; }
+  .meta { display: grid; grid-template-columns: max-content 1fr; gap: 6px 20px; margin: 20px 0 40px; font: 13px var(--mono); }
+  .meta dt { color: var(--muted); }
+  .meta dd { margin: 0; overflow-wrap: anywhere; }
+  .note { color: var(--muted); }
+  .note code { color: var(--text); }
+
+  @media (max-width: 600px) {
+    select, input, button { font-size: 16px; } /* iOS zooms into smaller inputs */
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .card, .stage { transition: none; }
+  }
+</style>
+</head>
+<body data-bg="dark">
+<div class="wrap">
+  <header>
+    <a class="brand" href="./">grittyfx</a>
+    <p>Pixel-art effects as code, playing live from their source.</p>
+    <a class="src" href="https://github.com/JustGritt/grittyfx">source</a>
+  </header>
+
+  <form class="controls" id="controls" aria-label="Playback settings">
+    <div class="field">
+      <label for="palette">Palette</label>
+      <select id="palette" name="palette">
+        <option value="">effect's own</option>
+        <option value="custom">custom…</option>
+      </select>
+      <span class="ramp" id="ramp" aria-hidden="true"></span>
+    </div>
+    <div class="field">
+      <label for="seed">Seed</label>
+      <input id="seed" name="seed" type="number" step="1" inputmode="numeric" placeholder="default">
+    </div>
+    <label class="check"><input id="flip" name="flip" type="checkbox"> Flip</label>
+    <fieldset>
+      <legend>Background</legend>
+      <div class="seg">
+        <label><input type="radio" name="bg" value="dark" checked><span>dark</span></label>
+        <label><input type="radio" name="bg" value="mid"><span>mid</span></label>
+        <label><input type="radio" name="bg" value="light"><span>light</span></label>
+      </div>
+    </fieldset>
+    <label class="check"><input id="hitstop" name="hitstop" type="checkbox" checked> Hit-stop</label>
+    <button id="replay" type="button">Replay</button>
+    <div class="field custom" id="custom-field" hidden>
+      <label for="custom">Colors</label>
+      <input id="custom" name="custom" type="text" spellcheck="false" autocomplete="off" aria-describedby="custom-hint">
+      <span class="note" id="custom-hint">hex, space separated, any order</span>
+    </div>
+  </form>
+
+  <main id="main"></main>
+</div>
+
+<template id="card-tpl">
+  <li class="card">
+    <div class="stage"><canvas role="img"></canvas></div>
+    <div class="info">
+      <h3><a></a></h3>
+      <p class="desc"></p>
+      <ul class="facts"></ul>
+    </div>
+  </li>
+</template>
+
+<template id="preview-tpl">
+  <article class="preview">
+    <a class="back" href="./">&larr; all effects</a>
+    <h1></h1>
+    <p class="desc"></p>
+    <div class="stage"><canvas role="img"></canvas></div>
+    <dl class="meta"></dl>
+  </article>
+</template>
+
+<script type="module" src="gallery.js"></script>
+</body>
+</html>
