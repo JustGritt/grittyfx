@@ -1,0 +1,42 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { checkEffect } from '../tools/check.mjs';
+
+const meta = { name: 'T', size: [16, 16], origin: [8, 8], duration: 0.5, fps: 20, ramps: { palette: 4 }, options: { palette: 'fire' } };
+const good = { meta, draw: (p, t, o) => t < 0.5 && p.disc(0, 0, 4 * (1 - t / 0.5), o.palette[2], 0.8) };
+
+test('a clean effect has no problems', () => {
+  assert.deepEqual(checkEffect('t/good', good, 'p.disc(0, 0, 4)'), []);
+});
+
+test('outside writes, non-index colors and a one-shot that does not end empty', () => {
+  const bad = { meta, draw: (p, t, o) => { p.px(20, 0, o.palette[1]); p.px(0, 0, 0xff8800); p.px(1, 1, o.palette[1]); } };
+  const lines = checkEffect('t/bad', bad);
+  assert.equal(lines.length, 3, lines.join('\n'));
+  assert.match(lines[0], /^t\/bad: frame 0: draws outside the 16x16 canvas at \(28, 8\), in 10 of 10 frames$/);
+  assert.match(lines[1], /color 16746496 at \(8, 8\) is not a palette index \(1 to 4\)/);
+  assert.match(lines[2], /one-shot must draw nothing at its end/);
+});
+
+test('not deterministic, Math.random in the source, act out of order', () => {
+  let calls = 0;
+  const mod = { meta: { ...meta, act: { windup: 0.2, hits: [{ t: 0.3 }, { t: 0.1 }, { t: 0.9 }] } }, draw: (p, t, o) => t < 0.5 && p.px(calls++ % 3, 0, o.palette[1]) };
+  const lines = checkEffect('t/flaky', mod, 'const r = Math.random(); // Date in a comment is fine');
+  assert.ok(lines.some(l => /not deterministic/.test(l)), lines.join('\n'));
+  assert.ok(lines.some(l => /uses Math.random/.test(l)));
+  assert.ok(lines.some(l => /hit 1 comes before hit 0/.test(l)));
+  assert.ok(lines.some(l => /hit 2 at t = 0.9 is outside/.test(l)));
+});
+
+test('a loop that jumps back is a seam; a periodic one is not', () => {
+  const loop = { ...meta, loop: true, duration: 1 };
+  const slide = { meta: loop, draw: (p, t, o) => p.disc(-6 + t * 12, 0, 2, o.palette[3]) };
+  const swing = { meta: loop, draw: (p, t, o) => p.disc(Math.sin(t * Math.PI * 2) * 5, 0, 2, o.palette[3]) };
+  assert.match(checkEffect('t/slide', slide).join(), /a seam/);
+  assert.deepEqual(checkEffect('t/swing', swing), []);
+});
+
+test('missing meta and thrown errors are reported, not crashes', () => {
+  assert.match(checkEffect('t/empty', { meta: {} })[0], /meta: missing name/);
+  assert.match(checkEffect('t/throws', { meta, draw: () => { throw new Error('boom'); } })[0], /error: Error: boom/);
+});

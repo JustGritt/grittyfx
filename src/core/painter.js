@@ -20,8 +20,8 @@ export class Painter {
     this.fade = 1; // multiplies every alpha and light; set by the runtime
     this.lightK = 1; // multiplies light; set by the runtime
     this.maxIndex = 255; // the last index of the effect's palette
-    this.outside = 0; // writes that fell outside the frame
-    this.bad = 0; // colors that aren't palette indices (an RGB value, a fraction)
+    this.outside = 0; // writes that fell outside the frame; the first one at outsideAt [x, y]
+    this.bad = 0; // colors that aren't palette indices (an RGB value, a fraction); the first at badAt [x, y, c]
     this.place(frame.ox, frame.oy);
   }
 
@@ -39,9 +39,9 @@ export class Painter {
 
   _put(x, y, c, a) {
     if (!c || !(a >= MIN)) return;
-    if (c !== (c | 0) || c < 0 || c > this.maxIndex) return void this.bad++;
+    if (c !== (c | 0) || c < 0 || c > this.maxIndex) return void (this.bad++ || (this.badAt = [x, y, c]));
     const { w, h, color } = this.frame;
-    if (x < 0 || y < 0 || x >= w || y >= h) return void this.outside++;
+    if (x < 0 || y < 0 || x >= w || y >= h) return void (this.outside++ || (this.outsideAt = [x, y]));
     const i = (y * w + x) * 2, under = (color[i + 1] / 255) * (1 - Math.min(a, 1));
     if (a >= under) color[i] = c; // the layer that contributes more keeps its index
     color[i + 1] = Math.round(Math.min(1, a + under) * 255);
@@ -49,9 +49,9 @@ export class Painter {
 
   _lit(x, y, c, k) {
     if (!c || !(k >= MIN)) return;
-    if (c !== (c | 0) || c < 0 || c > this.maxIndex) return void this.bad++;
+    if (c !== (c | 0) || c < 0 || c > this.maxIndex) return void (this.bad++ || (this.badAt = [x, y, c]));
     const { w, h, light } = this.frame;
-    if (x < 0 || y < 0 || x >= w || y >= h) return void this.outside++;
+    if (x < 0 || y < 0 || x >= w || y >= h) return void (this.outside++ || (this.outsideAt = [x, y]));
     const i = (y * w + x) * 2, under = light[i + 1] / 255;
     if (k >= under) light[i] = c; // the brighter light keeps its index
     light[i + 1] = Math.round(Math.min(1, k + under) * 255);
