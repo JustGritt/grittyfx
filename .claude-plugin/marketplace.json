@@ -1,0 +1,12 @@
+{
+  "name": "grittyfx",
+  "description": "grittyfx: pixel-art effects as code, recolorable at runtime in Godot, Unity and the browser.",
+  "owner": { "name": "JustGritt", "url": "https://github.com/JustGritt" },
+  "plugins": [
+    {
+      "name": "grittyfx",
+      "source": "./",
+      "description": "Find, recolor, export and make pixel-art effects as code: recolorable sprite sheets with glow and hit timing for Godot, Unity and the browser."
+    }
+  ]
+}

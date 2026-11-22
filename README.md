@@ -24,6 +24,19 @@ sheets that stay recolorable.
 - **Any engine.** Every effect also exports as a plain sprite sheet with Aseprite-style JSON.
 - **Make your own.** A Claude Code skill drafts new effects, renders them and refines them until they hold up.
 
+## Install the Claude Code skill
+
+In Claude Code:
+
+```
+/plugin marketplace add JustGritt/grittyfx
+/plugin install grittyfx@grittyfx
+```
+
+Then ask for an effect: "an ice version of the torch", "a hit spark for my Godot game". The skill looks for an
+existing effect first, then recolors or exports it, or draws a new one and refines it by eye. It needs Node 18 or
+later.
+
 ## Roadmap
 
 | version | what |

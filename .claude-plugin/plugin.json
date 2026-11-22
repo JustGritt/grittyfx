@@ -1,0 +1,9 @@
+{
+  "name": "grittyfx",
+  "description": "Find, recolor, export and make pixel-art effects as code: recolorable sprite sheets with glow and hit timing for Godot, Unity and the browser.",
+  "author": { "name": "JustGritt", "url": "https://github.com/JustGritt" },
+  "homepage": "https://github.com/JustGritt/grittyfx",
+  "repository": "https://github.com/JustGritt/grittyfx",
+  "license": "MIT",
+  "keywords": ["pixel-art", "vfx", "sprite-sheet", "gamedev", "godot", "unity"]
+}
