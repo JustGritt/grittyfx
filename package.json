@@ -6,7 +6,8 @@
   "license": "MIT",
   "exports": {
     ".": "./src/core/index.js",
-    "./fx/*": "./src/fx/*.js"
+    "./fx/*": "./src/fx/*.js",
+    "./runtime/*": "./runtime/*.js"
   },
   "engines": {
     "node": ">=18"
