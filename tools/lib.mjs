@@ -124,10 +124,11 @@ const inline = f => readFileSync(new URL(f, import.meta.url), 'utf8').replace(/^
  */
 export function htmlPage(id, meta, b) {
   const b64 = k => Buffer.from(b.png[k]).toString('base64'), [w, h] = meta.size;
+  const sound = b.wav ? `'data:audio/wav;base64,${Buffer.from(b.wav).toString('base64')}'` : 'undefined';
   const script = `${inline('../src/core/color.js')}${inline('../runtime/sheet-player.js')}
 { // the page, in a block so its names can't clash with the inlined modules'
   const B = s => Uint8Array.from(atob(s), c => c.charCodeAt(0)), json = ${JSON.stringify(b.json)};
-  const bundle = { json, data: await decodePng(B('${b64('data')}')), palette: (await decodePng(B('${b64('palette')}'))).rgba };
+  const bundle = { json, data: await decodePng(B('${b64('data')}')), palette: (await decodePng(B('${b64('palette')}'))).rgba, sound: ${sound} };
   const g = json.meta.grittyfx, [w, h] = g.frameSize, f = document.forms[0], cv = document.querySelector('canvas');
   const ctx = cv.getContext('2d'), calm = matchMedia('(prefers-reduced-motion: reduce)');
   const BG = { dark: '#1b1d26', mid: '#575b6b', light: '#d8d5cd' }, GAP = 0.8, SHAKE = 0.2; // as in the gallery
@@ -153,6 +154,7 @@ export function htmlPage(id, meta, b) {
     requestAnimationFrame(tick);
   };
   f.onchange = e => e.target.name !== 'bg' && start();
+  cv.onclick = start; // browsers only play sound after a click, so the first play is silent
   addEventListener('resize', size);
   size();
   start();
@@ -177,7 +179,7 @@ export function htmlPage(id, meta, b) {
   <label><input type="checkbox" name="flip"> Flip</label>
   <label><input type="checkbox" name="hit" checked> Hit-stop</label>
 </form>
-<p><b>${esc(id)}</b>: ${esc(meta.desc ?? '')}</p>
+<p><b>${esc(id)}</b>: ${esc(meta.desc ?? '')}${b.wav ? ' Click it to replay with sound.' : ''}</p>
 <script type="module">
 ${script}
 </script>
