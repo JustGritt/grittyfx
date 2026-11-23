@@ -366,7 +366,8 @@
             "shake": 2
           }
         ]
-      }
+      },
+      "sound": "hit-spark.wav"
     }
   }
 }

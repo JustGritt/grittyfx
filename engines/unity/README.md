@@ -18,10 +18,10 @@ URP: it is pink in the Built-in pipeline.
 ## Add effects
 
 Put bundles anywhere under `Assets/`. `tools/export.mjs` writes them to `Assets/GrittyFx/<category>/<name>/`. A
-bundle is four files: `<name>.json`, `<name>_data.png`, `<name>_pal.png` and `<name>.png`. The importer generates
-three assets next to them:
+bundle is four files: `<name>.json`, `<name>_data.png`, `<name>_pal.png` and `<name>.png`, plus `<name>.wav` when
+the effect has sound. The importer generates three assets next to them:
 
-- `<name>.prefab`: a SpriteRenderer with the palette material, plus `GrittyFxPlayer`
+- `<name>.prefab`: a SpriteRenderer with the palette material, plus `GrittyFxPlayer` with its sound clip
 - `<name>.mat`: the `GrittyFx/Palette` shader with the bundle's palette
 - `<name>.anim`: the frames, with an `OnGrittyFxHit` AnimationEvent at each hit, for Animator and Timeline
 
@@ -44,6 +44,10 @@ torch.Stop();                        // fades out over 0.3 s, then destroys the 
 fire, in order. At the end of a one-shot, `end: "remove"` destroys the GameObject and `"hold"` keeps the last frame.
 Both raise `OnFinished` once. Loops never finish on their own. The player runs on `Time.deltaTime`, so hit-stop
 freezes it too. To drive time yourself, turn off `playOnStart` and call `Play()` and `Step(dt)`.
+
+The sound plays from `Play()` on the object's AudioSource. The player adds one if the object has none, so add your
+own to the prefab to route the sound to a mixer group or make it 3D. A loop's sound loops, and `Stop()` fades it with
+the effect. An AudioSource ignores `Time.timeScale`, so hit-stop doesn't pause the sound.
 
 To use the clip with an Animator instead, turn off `playOnStart` and add an Animator that plays `<name>.anim`. The
 player receives the clip's `OnGrittyFxHit` events and raises `OnHit` from them. A receiver of your own takes an
@@ -80,7 +84,8 @@ intensity, and any processing corrupts those bytes. So the importer sets these o
   would cut off pixels whose A is 0.
 - **16 pixels per unit**, set only the first time. Change it on the texture and the importer keeps your value.
 
-The palette gets sRGB off, point filter, clamp, no compression and Read/Write on (`SetRamp` copies it).
+The palette gets sRGB off, point filter, clamp, no compression and Read/Write on (`SetRamp` copies it). The sound
+gets PCM, decompressed on load: the samples exactly as synthesised, where Vorbis would soften the attacks.
 
 Keep data sheets out of Sprite Atlases: packing would resample or re-pad them.
 

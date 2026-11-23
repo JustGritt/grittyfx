@@ -9,7 +9,8 @@ timings and sound. This folder is also a Godot project holding the addon, a demo
 1. Copy `addons/grittyfx` into your project and enable **grittyfx** in Project Settings > Plugins.
 2. Export bundles into the project from the grittyfx repo:
    `node tools/export.mjs fire/torch impacts --godot path/to/your/project`. Each lands in
-   `res://grittyfx/<category>/<name>/`: `<name>.json`, `<name>_data.png`, `<name>_pal.png`, `<name>.png`.
+   `res://grittyfx/<category>/<name>/`: `<name>.json`, `<name>_data.png`, `<name>_pal.png`, `<name>.png`, and
+   `<name>.wav` when the effect has sound.
 
 Keep a bundle's files together. Move the folder in Godot's FileSystem dock and scenes follow it. The node loads the
 sheets by name from beside the `.json`, so an export that includes only selected scenes needs `grittyfx/*` in its
@@ -35,8 +36,10 @@ add_child(fx)  # plays right away (autoplay)
   hit's position in the bundle's `act.hits`.
 - `light_gain` scales the glow, for bright backgrounds.
 - `play()` restarts; `advance(dt)` steps it by hand (it's what `_process` calls).
-- A bundle with a sound (`meta.grittyfx.sound`) plays it from frame 0 on a child `AudioStreamPlayer2D`, cut off when
-  the node frees itself.
+- A bundle with a sound (`meta.grittyfx.sound`) plays it from frame 0 on a child `AudioStreamPlayer2D` when `play()`
+  runs in the tree. A loop's sound loops: its WAV carries a `smpl` loop chunk, which the default import (Loop Mode:
+  Detect From WAV) reads, so leave that setting alone. `stop()` fades the sound with the effect, and freeing the node
+  stops it. Hit-stop doesn't pause it, because audio ignores `Engine.time_scale`.
 
 ## Recolor
 
@@ -92,6 +95,7 @@ godot --path engines/godot                                             # the dem
 ```
 
 The checks cover the import settings (and that each sheet imports byte for byte), hit and `finished` timing at
-several frame steps, loops, `hold`, `stop()`, recolor (duplicates included) and hit-stop, and fail if a script error
+several frame steps, loops, `hold`, `stop()`, recolor (duplicates included), hit-stop and the sound (its length, loop
+mode, playback and fade), and fail if a script error
 kept any check from running. Rendering itself (the shader, flip, blending) is
 not checked headless.

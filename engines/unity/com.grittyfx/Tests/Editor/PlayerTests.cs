@@ -144,6 +144,32 @@ public class PlayerTests
     }
 
     [Test]
+    public void SoundPlaysWithTheEffectLoopsForALoopAndFadesWithStop()
+    {
+        var clip = AudioClip.Create("s", 22050, 1, 22050, false);
+        var torch = Make(16, 16, EndMode.Loop);
+        torch.sound = clip;
+        torch.Play();
+        var a = torch.GetComponent<AudioSource>();
+        Assert.AreEqual((clip, true, 1f), (a.clip, a.loop, a.volume));
+        torch.Stop();
+        torch.Step(0.15f);
+        Assert.AreEqual(0.5f, a.volume, 1e-4f, "half faded with the effect");
+        torch.Play();
+        Assert.AreEqual(1f, a.volume, "play() restores the volume");
+        Assert.AreEqual(1, torch.GetComponents<AudioSource>().Length, "and reuses its AudioSource");
+
+        var hit = Make(14, 30, EndMode.Remove);
+        hit.sound = clip;
+        hit.Play();
+        Assert.IsFalse(hit.GetComponent<AudioSource>().loop);
+        var silent = Make(14, 30, EndMode.Remove);
+        silent.Play();
+        Assert.IsFalse(silent.GetComponent<AudioSource>(), "no sound, no AudioSource");
+        Object.DestroyImmediate(clip);
+    }
+
+    [Test]
     public void ClipEventsRaiseOnHit()
     {
         var p = Make(2, 10, EndMode.Remove);

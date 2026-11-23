@@ -79,7 +79,9 @@ func _process(delta: float) -> void:
 	advance(delta)
 
 
-## Starts the effect from its first frame (again, if it was playing). Hits on frame 0 fire now.
+## Starts the effect from its first frame (again, if it was playing). Hits on frame 0 fire now. The bundle's sound
+## starts with it, in the tree only; a loop's sound loops (its WAV says so, and Godot's default import reads it).
+## Audio ignores [member Engine.time_scale], so hit-stop doesn't pause it.
 func play() -> void:
 	if _rects.is_empty():
 		push_error("GrittyFx: no bundle to play")
@@ -96,11 +98,12 @@ func play() -> void:
 			_audio = AudioStreamPlayer2D.new()
 			add_child(_audio)
 		_audio.stream = _sound
+		_audio.volume_db = 0.0
 		_audio.play()
 	advance(0.0)
 
 
-## Fades color and light out over 0.3 s, then finishes and frees the node.
+## Fades color, light and sound out over 0.3 s, then finishes and frees the node.
 func stop() -> void:
 	if _playing and _stop_at < 0.0:
 		_stop_at = _t
@@ -121,7 +124,10 @@ func advance(dt: float) -> void:
 				hit.emit(i, float(_hits[i].freeze), float(_hits[i].shake))
 	_shown = maxi(_shown, last)
 	if _stop_at >= 0.0:
-		_mat.set_shader_parameter("fade", maxf(0.0, 1.0 - (_t - _stop_at) / FADE_OUT))
+		var fade := maxf(0.0, 1.0 - (_t - _stop_at) / FADE_OUT)
+		_mat.set_shader_parameter("fade", fade)
+		if _audio:
+			_audio.volume_db = linear_to_db(maxf(fade, 1e-4))  # 0 would be -inf dB
 		if _t - _stop_at >= FADE_OUT - 1e-9:
 			_remove()
 			return

@@ -399,7 +399,8 @@
       "light_gain": 1,
       "view": "side",
       "directions": 1,
-      "mirror": true
+      "mirror": true,
+      "sound": "torch.wav"
     }
   }
 }

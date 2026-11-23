@@ -3,7 +3,8 @@ using UnityEngine;
 
 /// <summary>
 /// Plays a grittyfx bundle on its SpriteRenderer, frame for frame like runtime/sheet-player.js: hits, end modes,
-/// stop with a fade, flip, light gain and per-instance recolor. The importer fills the bundle fields.
+/// stop with a fade, flip, light gain, per-instance recolor and the sound (looped for a loop, on an AudioSource the
+/// player adds unless the object has one). The importer fills the bundle fields.
 /// </summary>
 [RequireComponent(typeof(SpriteRenderer))]
 public sealed class GrittyFxPlayer : MonoBehaviour
@@ -56,6 +57,7 @@ public sealed class GrittyFxPlayer : MonoBehaviour
     float _fade = 1;
     Texture2D _recolor, _own;
     MaterialPropertyBlock _block;
+    AudioSource _audio;
 
     void Start()
     {
@@ -86,8 +88,13 @@ public sealed class GrittyFxPlayer : MonoBehaviour
         Playing = true;
         Show(0);
         Fire(0);
-        // shortcut: the sound stops when the effect is removed; give it its own object if sounds outlive effects (v0.4).
-        if (sound) (TryGetComponent(out AudioSource a) ? a : gameObject.AddComponent<AudioSource>()).PlayOneShot(sound);
+        if (!sound) return;
+        // An AudioSource ignores Time.timeScale, so hit-stop doesn't pause the sound. It lasts as long as the effect.
+        if (!_audio && !TryGetComponent(out _audio)) _audio = gameObject.AddComponent<AudioSource>();
+        _audio.clip = sound;
+        _audio.loop = end == EndMode.Loop;
+        _audio.volume = 1;
+        _audio.Play();
     }
 
     /// <summary>Advances time by dt seconds; Update calls it with Time.deltaTime.</summary>
@@ -102,6 +109,7 @@ public sealed class GrittyFxPlayer : MonoBehaviour
         if (_stopAt >= 0)
         {
             _fade = (float)Math.Max(0, 1 - (Elapsed - _stopAt) / FadeOut);
+            if (_audio) _audio.volume = _fade;
             if (Elapsed - _stopAt >= FadeOut - 1e-9) { Finish(true); return; }
         }
         if (end != EndMode.Loop && f >= n)
@@ -112,7 +120,7 @@ public sealed class GrittyFxPlayer : MonoBehaviour
         Show(end == EndMode.Loop ? f % n : Math.Min(f, n - 1));
     }
 
-    /// <summary>Fades out over 0.3 s, then finishes and removes the effect.</summary>
+    /// <summary>Fades out over 0.3 s, sound included, then finishes and removes the effect.</summary>
     public void Stop()
     {
         if (Playing && _stopAt < 0) _stopAt = Elapsed;

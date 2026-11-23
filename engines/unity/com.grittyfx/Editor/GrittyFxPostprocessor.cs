@@ -8,9 +8,10 @@ using UnityEditor.U2D.Sprites;
 using UnityEngine;
 
 /// <summary>
-/// Imports grittyfx bundles (name.json, name_data.png, name_pal.png): the data sheet and palette as raw data, the
-/// data sheet sliced into frames from the JSON; then generates name.anim, name.mat and name.prefab next to them.
-/// The four files may arrive in any order: each import finds its bundle through the JSON beside it.
+/// Imports grittyfx bundles (name.json, name_data.png, name_pal.png, name.wav when it has sound): the data sheet and
+/// palette as raw data, the data sheet sliced into frames from the JSON, the sound as PCM; then generates name.anim,
+/// name.mat and name.prefab next to them. The files may arrive in any order: each import finds its bundle through the
+/// JSON beside it.
 /// </summary>
 sealed class GrittyFxPostprocessor : AssetPostprocessor
 {
@@ -72,6 +73,17 @@ sealed class GrittyFxPostprocessor : AssetPostprocessor
         if (file == b.meta.grittyfx.data) Slice(ti, b, Path.GetFileNameWithoutExtension(json));
     }
 
+    // PCM, the samples as synthesised: Vorbis would soften the attacks. A bundle's sound is a few dozen KB.
+    void OnPreprocessAudio()
+    {
+        if (FindJson(assetPath) == null) return;
+        var ai = (AudioImporter)assetImporter;
+        var s = ai.defaultSampleSettings;
+        s.compressionFormat = AudioCompressionFormat.PCM;
+        s.loadType = AudioClipLoadType.DecompressOnLoad;
+        ai.defaultSampleSettings = s;
+    }
+
     static void Slice(TextureImporter ti, Bundle b, string name)
     {
         var factories = new SpriteDataProviderFactories();
@@ -99,13 +111,13 @@ sealed class GrittyFxPostprocessor : AssetPostprocessor
         foreach (var group in imported.Concat(moved).GroupBy(FindJson).Where(g => g.Key != null))
         {
             if (Generate(group.Key)) continue;
-            // The JSON arrived after its textures: import them again now that they can be configured and sliced.
+            // The JSON arrived after its textures (and sound): import them again now that they can be configured and sliced.
             if (group.Contains(group.Key))
             {
                 var b = Read(group.Key);
                 var dir = Path.GetDirectoryName(group.Key);
-                foreach (var f in new[] { b.meta.grittyfx.data, b.meta.grittyfx.palette })
-                    if (File.Exists(Path.Combine(dir, f))) AssetDatabase.ImportAsset(Path.Combine(dir, f).Replace('\\', '/'), ImportAssetOptions.ForceUpdate);
+                foreach (var f in new[] { b.meta.grittyfx.data, b.meta.grittyfx.palette, b.meta.grittyfx.sound })
+                    if (!string.IsNullOrEmpty(f) && File.Exists(Path.Combine(dir, f))) AssetDatabase.ImportAsset(Path.Combine(dir, f).Replace('\\', '/'), ImportAssetOptions.ForceUpdate);
             }
         }
     }

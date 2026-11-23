@@ -17,7 +17,7 @@ const RAW := {
 const DT := 1.0 / 60.0
 # The _check calls of a full run. A script error ends only the function it happens in, silently skipping the
 # checks after it there, so fewer than this means failure.
-const CHECKS := 83
+const CHECKS := 94
 
 var _checks := 0
 var _failed := 0
@@ -38,6 +38,7 @@ func _initialize() -> void:
 		_check_loop_hits(bundles["fire/torch"])
 		_check_stop(bundles["impacts/hit-spark"], bundles["fire/torch"])
 		_check_recolor(bundles["impacts/hit-spark"])
+		_check_sound_play(bundles["fire/torch"])
 	_check_fit()
 	var ok := _failed == 0 and _checks == CHECKS
 	print("%s: %d of %d check(s) ran, %d failed" % ["PASS" if ok else "FAIL", _checks, CHECKS, _failed])
@@ -58,6 +59,35 @@ func _check_bundle(id: String, bundle: JSON) -> void:
 		_check_import(bundle.resource_path.get_base_dir().path_join(file))
 	for dt in [DT, 0.05, 2.5 * int(g.frames) / float(g.fps)]:
 		_check_timing(id, bundle, dt)
+	_check_sound(id, bundle)
+
+
+## The sound imports as long as the effect (within half a frame), looping exactly when the effect loops: the WAV's
+## smpl chunk, read by the default import.
+func _check_sound(id: String, bundle: JSON) -> void:
+	var g: Dictionary = bundle.data.meta.grittyfx
+	var path := bundle.resource_path.get_base_dir().path_join(str(g.get("sound", "")))
+	var wav = load(path) if g.has("sound") and ResourceLoader.exists(path) else null
+	if not _check(wav is AudioStreamWAV, "%s: sound %s imports" % [id, path]):
+		return
+	var want := int(g.frames) / float(g.fps)
+	_check(absf(wav.get_length() - want) <= 0.5 / float(g.fps), "%s: sound is %f s long (want %f)" % [id, wav.get_length(), want])
+	var mode: int = AudioStreamWAV.LOOP_FORWARD if g.loop or g.end == "loop" else AudioStreamWAV.LOOP_DISABLED
+	_check(wav.loop_mode == mode, "%s: sound loop mode is %d (want %d)" % [id, wav.loop_mode, mode])
+
+
+## In the tree, play() starts the sound on a child AudioStreamPlayer2D; stop() fades it with the effect.
+func _check_sound_play(torch: JSON) -> void:
+	var fx: Fx = Fx.new()
+	fx.bundle = torch
+	root.add_child(fx)  # autoplay
+	var audio: AudioStreamPlayer2D = fx._audio
+	_check(audio != null and audio.stream != null and audio.playing, "sound: plays from play()")
+	fx.stop()
+	_run(fx, DT, 9)
+	var db: float = audio.volume_db if audio else 0.0
+	_check(absf(db - linear_to_db(0.5)) < 0.01, "sound: half faded after 0.15 s of stop() (%f dB)" % db)
+	_free(fx)
 
 
 ## The import settings, and the imported texture equals the PNG byte for byte.

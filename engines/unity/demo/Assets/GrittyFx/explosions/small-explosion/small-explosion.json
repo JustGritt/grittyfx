@@ -1128,7 +1128,8 @@
             "shake": 4
           }
         ]
-      }
+      },
+      "sound": "small-explosion.wav"
     }
   }
 }

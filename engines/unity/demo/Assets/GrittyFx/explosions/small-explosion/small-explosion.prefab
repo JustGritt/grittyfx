@@ -174,7 +174,7 @@ MonoBehaviour:
     steps: 4
   palette: {fileID: 2800000, guid: 7e49f5485a71a56409a8e8696a8af7fb, type: 3}
   lightGain: 1
-  sound: {fileID: 0}
+  sound: {fileID: 8300000, guid: 2062c6349a50e574184f1bbe0eeeb051, type: 3}
   playOnStart: 1
   flip: 0
   gain: 1
