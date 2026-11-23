@@ -6,11 +6,12 @@
 // - loadBundle(url): fetches the JSON, the data sheet and the palette, decoded with decodePng (never a 2D canvas,
 //   which would premultiply the data sheet's bytes away wherever the light channel is 0).
 // - createPlayer(bundle, opts) -> player:
-//   play()            starts at t = 0; hits on frame 0 fire now
+//   play()            starts at t = 0; hits on frame 0 fire now. The bundle's sound, if any, plays from its start
+//                     (looping for a loop) on an Audio element with its own clock, so hit-stop doesn't pause it
 //   update(dt)        advances; fires onHit(index, freeze, shake) for each hit frame shown or skipped over, in order;
 //                     onFinished() fires once, at the end of a one-shot ("remove" stops drawing, "hold" keeps the
-//                     last frame) or when a stop() fade is over
-//   stop()            fades out over 0.3 s, then finishes and stops drawing
+//                     last frame) or when a stop() fade is over, and stops the sound
+//   stop()            fades out over 0.3 s, sound included, then finishes and stops drawing
 //   recolor(v)        a whole 256-entry RGBA palette (1024 bytes), or ramps by name ({ palette: 'ice', smoke: [...] })
 //                     resampled like fit(); affects this player only
 //   draw(ctx, x, y)   color layer (source-over) then light layer ('lighter'), nearest filtering, mirrored about the
@@ -76,11 +77,12 @@ export async function loadBundle(url) {
 export function createPlayer(bundle, { flip = false, gain = 1, onHit = null, onFinished = null } = {}) {
   const { json, data } = bundle, g = json.meta.grittyfx, n = g.frames, hits = g.act?.hits ?? [];
   const loops = g.loop || g.end === 'loop', [w, h] = g.frameSize;
-  let shown = -1, stopAt = null, cache = {};
+  let shown = -1, stopAt = null, cache = {}, audio = null;
 
   const frameAt = () => Math.floor(p.t * g.fps + 1e-6); // the epsilon absorbs float sums like 10 x 0.1 < 1
   const finish = remove => {
     if (remove) p.active = false;
+    audio?.pause();
     if (!p.finished) (p.finished = true), p.onFinished?.();
   };
   // Fires the hits of every frame reached since the last call (one cycle at most for a loop), then the end.
@@ -117,7 +119,12 @@ export function createPlayer(bundle, { flip = false, gain = 1, onHit = null, onF
       Object.assign(p, { t: 0, active: true, finished: false });
       shown = -1;
       stopAt = null;
-      if (bundle.sound && globalThis.Audio) new Audio(bundle.sound).play().catch(() => {});
+      if (bundle.sound && globalThis.Audio) {
+        // shortcut: an <audio> loop may gap for a few ms at its seam in some browsers; use Web Audio if that shows.
+        audio ??= Object.assign(new Audio(bundle.sound), { loop: loops });
+        Object.assign(audio, { currentTime: 0, volume: 1 });
+        audio.play().catch(() => {}); // refused until the page has had a click or key press
+      }
       step();
       return p;
     },
@@ -125,6 +132,7 @@ export function createPlayer(bundle, { flip = false, gain = 1, onHit = null, onF
       if (!p.active) return;
       p.t += dt;
       step();
+      if (audio) audio.volume = p.fade;
     },
     stop() {
       if (p.active) stopAt ??= p.t;

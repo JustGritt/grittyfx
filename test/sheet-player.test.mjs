@@ -98,6 +98,45 @@ function pixels() {
   return Object.assign(b, { data: { w, h, rgba }, palette });
 }
 
+test('the sound plays from the start on play(), loops with a loop, fades with stop() and stops at the finish', () => {
+  const made = [];
+  globalThis.Audio = class {
+    constructor(src) {
+      Object.assign(this, { src, plays: 0, paused: false, volume: 1, currentTime: 0 });
+      made.push(this);
+    }
+    play() {
+      Object.assign(this, { plays: this.plays + 1, paused: false });
+      return Promise.resolve();
+    }
+    pause() {
+      this.paused = true;
+    }
+  };
+  try {
+    const torch = createPlayer({ ...fake({ loop: true }), sound: 'torch.wav' }).play(), [a] = made;
+    assert.deepEqual([a.src, a.loop, a.plays], ['torch.wav', true, 1]);
+    torch.update(0.5);
+    torch.stop();
+    torch.update(0.15);
+    assert.ok(Math.abs(a.volume - 0.5) < 1e-9 && !a.paused, `half faded: ${a.volume}`);
+    torch.update(0.2);
+    assert.ok(torch.finished && a.paused);
+    Object.assign(a, { currentTime: 0.7 });
+    torch.play();
+    assert.deepEqual([made.length, a.plays, a.currentTime, a.volume, a.paused], [1, 2, 0, 1, false], 'replays the same element');
+
+    const hit = createPlayer({ ...fake(), sound: 'hit.wav' }).play();
+    assert.equal(made[1].loop, false);
+    hit.update(1);
+    assert.ok(made[1].paused && made[1].volume === 1, 'stopped at the end, not faded');
+    createPlayer(fake()).play();
+    assert.equal(made.length, 2, 'no sound, no Audio');
+  } finally {
+    delete globalThis.Audio;
+  }
+});
+
 test('flip mirrors about the pivot: local x lands on -x - 1', () => {
   const p = createPlayer(pixels()).play(), plain = p.frame();
   p.flip = true;
@@ -189,6 +228,7 @@ test('loadBundle fetches the JSON and both PNGs next to it', async () => {
     assert.deepEqual(got.json, b.json);
     assert.deepEqual(got.data, decodeNode(b.png.data));
     assert.deepEqual(got.palette, decodeNode(b.png.palette).rgba);
+    assert.equal(got.sound, 'https://example.test/fx/hit-spark.wav');
     delete files['hit-spark_pal.png'];
     await assert.rejects(loadBundle('https://example.test/fx/hit-spark.json'), /hit-spark_pal.png: HTTP 404/);
   } finally {
