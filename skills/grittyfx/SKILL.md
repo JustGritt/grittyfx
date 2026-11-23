@@ -11,7 +11,7 @@ description: >-
 
 # grittyfx
 
-Each effect is one file, `src/fx/<category>/<name>.js`, that draws **palette indices**, not colors. Its colors come
+An effect lives in `src/fx/<category>/<name>.js` and paints **palette indices** rather than colors. The colors come
 from ramps (`palette`, `smoke`, ...), so one effect is fire, ice or poison by changing an option, in the browser or
 per instance in an engine.
 
@@ -22,7 +22,7 @@ replaced on every update.
 
 ## 1. Find first
 
-Most requests are an existing effect with another palette, seed or option.
+Usually what someone asks for already exists and only needs another palette, seed or option.
 
 1. `node <gfx>/tools/list.mjs <word>`: search by what it is (`torch`, `hit`, `explosion`), not by color: "ice torch"
    is `torch` with the `ice` palette. No words lists everything.
@@ -69,9 +69,10 @@ bundle (`<name>.json`, `_data.png`, `_pal.png`, `.png`) to `<project>/grittyfx/<
 reaches `t`, pause the game for `freeze` seconds and shake the camera by `shake` px; `windup` is how long the
 attacker winds up before the effect starts. Engines raise these as signals or events.
 
-**Recolor**: live, pass ramp options to `createFx`. In an engine, recolor per instance with the ramp setter in its
-README, or bake a palette: `render.mjs <id> --sheet --opts '{"palette":"ice"}'` writes an ice `<name>_pal.png` to load
-as the instance's palette.
+**Recolor**: live, pass ramp options to `createFx`. In an engine, call `set_ramp` (Godot) or `SetRamp` (Unity) per
+instance with the colors of a ramp from `src/core/color.js`. To bake a palette instead, `render.mjs <id> --sheet --opts
+'{"palette":"ice"}'` writes `<name>_pal.png` over the default bundle in `records/<id>/`: copy it under a new name
+(`<name>_ice_pal.png`) and, in Unity, give it the `_pal.png` import settings (engine README), or its colors come out wrong.
 
 ## 3. Make
 
@@ -101,11 +102,12 @@ closest to yours. The contract:
    fine: compare against the reference effect and ask what a pixel artist would change.
 5. `node tools/check.mjs <id>` until it prints nothing but the count.
 6. Recolor check: render with two other palettes (e.g. `ice`, `poison`); it must read in each.
-7. `node --test`, then export (section 2).
+7. `node --test`, then export with the clone's tools, not `<gfx>`'s (they only see their own effects):
+   `node tools/export.mjs <id> --godot <project> --unity <project>` or `node tools/render.mjs <id> --sheet`.
 
-## What you see, and the usual fix
+## Symptoms
 
-| you see | usual fix |
+| symptom | try |
 |---|---|
 | check: draws outside the canvas (glows count) | grow `size` and move `origin`, or cut speeds, lifetimes and glow radii |
 | check: the last frame jumps to the first | whole cycles per loop: `sin(TAU * k * t / duration)` with integer k, `loopNoise`, `tileFbm` scrolled by whole tiles, particles on `(phase * k + rand(i)) % 1` |
@@ -116,7 +118,7 @@ closest to yours. The contract:
 | dark rims or halos where puffs overlap | the dominant layer keeps its index: `FIRE` particles merge, `SMOKE` and `DUST` have round highlights; keep a volume's rim one step from its body |
 | a flat blob, a sticker | a darker rim, a hotter core, a glow around it, a broken silhouette (noise or tongues) |
 | mush or noise at 1x | fewer, bigger shapes; dither (`dot`) only for falloff |
-| floaty, no punch | a hero frame on frame 1 or 2, then ease out; overshoot then settle; add `act.hits` |
+| the hit lands softly | make the contact frame (1 or 2) the biggest and brightest and decelerate from there; let shapes swing past their rest pose and come back; add `act.hits` for freeze and shake |
 | elements pop off at full size | shrink to a dot or step down the ramp before they go |
 | elements land on each other | give each its own slot (a sector of the ring, a lane) instead of a free random spot |
 | a loop that pulses as one | give each element its own phase or speed from `rand(i, seed)` |
