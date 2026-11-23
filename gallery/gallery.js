@@ -90,7 +90,7 @@ function player(mod, canvas, big) {
       }
       frame = createFrame(w, h, (ox = v.origin[0]), v.origin[1]);
       fx = createFx(mod, { ...options(), view });
-      fx.angle = view === 'top' ? (f.view.value * Math.PI) / 4 : 0;
+      fx.angle = v.directions > 1 ? (f.view.value * Math.PI) / 4 : 0; // a radial top view has one heading
       clock = base = next = freeze = 0;
       shake = null;
       shown = -1;
