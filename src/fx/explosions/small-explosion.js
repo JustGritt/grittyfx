@@ -9,7 +9,8 @@ export const meta = {
   duration: 1.6,
   loop: false,
   fps: 30,
-  views: ['side'],
+  views: ['side', 'top'],
+  top: { size: [96, 96] },
   ramps: { palette: 8, smoke: 6, dust: 5, debris: 4 },
   options: { palette: 'fire', smoke: 'smoke', dust: 'dust', debris: 'stone', seed: 1 },
   act: { hits: [{ t: 0, freeze: 0.05, shake: 4 }] },
@@ -19,6 +20,7 @@ const TAU = Math.PI * 2;
 const CY = -12; // the fireball's center, above the ground at 0
 
 export function create(o) {
+  if (o.view === 'top') return createTop(o);
   const rng = new Rng(o.seed), C = o.palette, S = o.smoke, D = o.debris;
   const parts = new Particles({ rng, palette: C, smoke: S, dust: o.dust, ground: 0 });
   const lights = new Lights();
@@ -76,6 +78,65 @@ export function create(o) {
       if (floor > 0) p.glowLine(-30, -1, 30, -1, 6, C[5], 0.5 * floor);
       if (t < 0.07) p.circle(0, CY, 11 + t * 60, C[7]); // the white frame
       bits.draw(p);
+      parts.draw(p);
+    },
+  };
+}
+
+// Seen from above: the blast on the floor plane. Fire and smoke billow up toward the eye, so they swell where they
+// are; sparks, debris and a ring of dust are thrown out all round and skid to a stop.
+function createTop(o) {
+  const rng = new Rng(o.seed), C = o.palette, S = o.smoke, D = o.debris;
+  const parts = new Particles({ rng, palette: C, smoke: S, dust: o.dust, top: true });
+  const lights = new Lights(), bits = new Bits({ rng, top: true });
+
+  lights.add(0, 0, 30, C[7], 1, 0.14);
+  lights.add(0, 0, 28, C[5], 0.8, 0.9, { delay: 0.04 });
+  for (let i = 0; i < 16; i++) { // each in its own sector, so the fireball is round
+    const a = ((i + rng.range(0, 1)) / 16) * TAU, d = rng.range(0, 7), v = rng.range(15, 55);
+    parts.spawn(FIRE, Math.cos(a) * d, Math.sin(a) * d, Math.cos(a) * v, Math.sin(a) * v, rng.range(0.35, 0.6), {
+      size: rng.range(5, 9), delay: 0.03, smoke: rng.range(0.7, 0.9),
+    });
+  }
+  for (let i = 0; i < 5; i++) {
+    const a = rng.range(0, TAU), d = rng.range(2, 8);
+    parts.spawn(SMOKE, Math.cos(a) * d, Math.sin(a) * d, Math.cos(a) * 15, Math.sin(a) * 15, rng.range(0.8, 1.1), { size: rng.range(5, 8), delay: rng.range(0.15, 0.3) });
+  }
+  for (let i = 0; i < 16; i++) {
+    const a = rng.range(0, TAU), v = rng.range(60, 110);
+    parts.spawn(SPARK, 0, 0, Math.cos(a) * v, Math.sin(a) * v, rng.range(0.25, 0.45), { delay: 0.03 });
+  }
+  for (let i = 0; i < 8; i++) {
+    parts.spawn(EMBER, rng.range(-8, 8), rng.range(-8, 8), rng.range(-20, 20), rng.range(-20, 20), rng.range(0.6, 1.1), { delay: rng.range(0.05, 0.3) });
+  }
+  for (let i = 0; i < 24; i++) { // a ragged ring of dust the blast pushes along the floor, out past the fireball
+    const a = ((i + rng.range(0, 1)) / 24) * TAU, d = rng.range(6, 12), v = rng.range(45, 110);
+    parts.spawn(DUST, Math.cos(a) * d, Math.sin(a) * d, Math.cos(a) * v, Math.sin(a) * v, rng.range(0.45, 0.8), { size: rng.range(2.5, 4.5), delay: 0.04, back: true });
+  }
+  for (let i = 0; i < 10; i++) {
+    const a = rng.range(0, TAU), v = rng.range(55, 100);
+    bits.spawn(0, 0, Math.cos(a) * v, Math.sin(a) * v, { c: i < 2 ? C[5] : D[rng.int(1, 2)], size: rng.range(2, 3.5), life: rng.range(1, 1.3), delay: 0.03 });
+  }
+
+  let t = 0;
+  return {
+    update(dt) {
+      t += dt;
+      parts.update(dt);
+      lights.update(dt);
+      bits.update(dt);
+    },
+    drawBack(p) {
+      lights.draw(p);
+      const floor = Math.min(1, Math.max(0, (t - 0.1) / 0.06)) * Math.max(0, 1 - (t - 0.1) / 1) ** 2; // after the flash, as in the side view
+      if (floor > 0) p.glow(0, 0, 30, C[5], 0.5 * floor);
+      const u = (t - 0.03) / 0.3, W = o.dust; // the shock ring racing out over the floor
+      if (u > 0 && u < 1) p.ring(0, 0, 10 + 28 * (1 - (1 - u) ** 2), 3 - 2 * u, W[u < 0.3 ? 4 : 3], 1 - u * u);
+      parts.draw(p, 'back');
+      bits.draw(p);
+    },
+    draw(p) {
+      if (t < 0.07) p.circle(0, 0, 11 + t * 60, C[7]); // the white frame
       parts.draw(p);
     },
   };
