@@ -12,6 +12,11 @@ export const meta = {
   views: ['side'],
   ramps: { palette: 8 },
   options: { palette: 'dust', seed: 1 },
+  sound: [
+    { t: 0, kind: 'thump', gain: 0.6, pitch: 0.8 }, // the feet
+    { t: 0, kind: 'whoosh', gain: 0.4, pitch: 0.8 }, // the dust kicked out
+    { t: 0.14, kind: 'crack', gain: 0.12, pitch: 2.5 }, // grit landing
+  ],
 };
 
 const out = (t, k) => 1 - Math.exp(-t / k); // fast out, slow settle

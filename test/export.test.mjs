@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { ROOT } from '../tools/lib.mjs';
 
 const run = (...args) => spawnSync(process.execPath, ['tools/export.mjs', ...args], { cwd: ROOT, encoding: 'utf8' });
-const FILES = ['torch.json', 'torch_data.png', 'torch_pal.png', 'torch.png'];
+const FILES = ['torch.json', 'torch_data.png', 'torch_pal.png', 'torch.png', 'torch.wav'];
 
 test('export writes the bundle into Godot and Unity projects and leaves other files alone', () => {
   const dir = mkdtempSync(join(tmpdir(), 'grittyfx-export-')), godot = join(dir, 'godot'), unity = join(dir, 'unity');
@@ -21,7 +21,8 @@ test('export writes the bundle into Godot and Unity projects and leaves other fi
     const g = join(godot, 'grittyfx', 'fire', 'torch'), u = join(unity, 'Assets', 'GrittyFx', 'fire', 'torch');
     const imports = ['torch_data.png.import', 'torch_pal.png.import'];
     assert.deepEqual(r.stdout.trim().split(/\r?\n/), [...[...FILES, ...imports].map(f => join(g, f)), ...FILES.map(f => join(u, f))]);
-    assert.equal(JSON.parse(readFileSync(join(u, 'torch.json'), 'utf8')).meta.grittyfx.id, 'fire/torch');
+    const { id, sound } = JSON.parse(readFileSync(join(u, 'torch.json'), 'utf8')).meta.grittyfx;
+    assert.deepEqual([id, sound], ['fire/torch', 'torch.wav']);
     for (const f of FILES) assert.deepEqual(readFileSync(join(g, f)), readFileSync(join(u, f)), f);
     for (const f of imports) assert.match(readFileSync(join(g, f), 'utf8'), /process\/fix_alpha_border=false/);
 

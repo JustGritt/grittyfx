@@ -13,6 +13,15 @@ export const meta = {
   ramps: { palette: 8 },
   options: { palette: 'ice', seed: 1 },
   act: { hits: [{ t: 0.12, freeze: 0.05, shake: 2 }] },
+  sound: [
+    { t: 0, kind: 'whoosh', gain: 0.35, pitch: 1.1 }, // cold gathering
+    { t: 0.12, kind: 'crack', gain: 0.9, pitch: 1.3 }, // the spikes burst out
+    { t: 0.12, kind: 'thump', gain: 0.6, pitch: 0.9 },
+    { t: 0.12, kind: 'chime', gain: 0.35, pitch: 1.5 },
+    { t: 0.5, kind: 'crack', gain: 0.45, pitch: 2 }, // they shatter
+    { t: 0.5, kind: 'chime', gain: 0.25, pitch: 2.25 },
+    { t: 0.56, kind: 'crack', gain: 0.3, pitch: 2.4 },
+  ],
 };
 
 const TAU = Math.PI * 2;

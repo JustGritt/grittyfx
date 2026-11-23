@@ -13,6 +13,13 @@ export const meta = {
   ramps: { palette: 8, debris: 4, dust: 5 },
   options: { palette: 'fire', debris: 'stone', dust: 'dust', seed: 1 },
   act: { windup: 0.2, hits: [{ t: 1 / 30, freeze: 0.14, shake: 4 }] },
+  sound: [
+    { t: 1 / 30, kind: 'thump', pitch: 0.7 },
+    { t: 1 / 30, kind: 'crack', gain: 0.8, pitch: 0.8 },
+    { t: 0.08, kind: 'crack', gain: 0.4, pitch: 0.45 }, // the floor splitting
+    { t: 0.4, kind: 'crack', gain: 0.12, pitch: 2.4 }, // debris landing
+    { t: 0.55, kind: 'crack', gain: 0.08, pitch: 2.8 },
+  ],
 };
 
 const HERO = 1 / 30; // the white frame, where the hit lands

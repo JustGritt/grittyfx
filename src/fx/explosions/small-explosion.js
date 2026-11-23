@@ -13,6 +13,13 @@ export const meta = {
   ramps: { palette: 8, smoke: 6, dust: 5, debris: 4 },
   options: { palette: 'fire', smoke: 'smoke', dust: 'dust', debris: 'stone', seed: 1 },
   act: { hits: [{ t: 0, freeze: 0.05, shake: 4 }] },
+  sound: [
+    { t: 0, kind: 'crack', pitch: 0.3 }, // the blast's rumble
+    { t: 0, kind: 'thump', pitch: 0.6 },
+    { t: 0, kind: 'crack', gain: 0.5, pitch: 1.2 }, // its sharp front
+    { t: 0.5, kind: 'crack', gain: 0.15, pitch: 2.5 }, // chunks landing
+    { t: 0.66, kind: 'crack', gain: 0.1, pitch: 2.8 },
+  ],
 };
 
 const TAU = Math.PI * 2;

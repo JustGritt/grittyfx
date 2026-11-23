@@ -13,6 +13,14 @@ export const meta = {
   ramps: { palette: 8 },
   options: { palette: 'electric', seed: 1 },
   act: { hits: [{ t: 0.2, freeze: 0.07, shake: 3 }] },
+  sound: [
+    { t: 0.08, kind: 'zap', gain: 0.3, pitch: 1.6 }, // the leader creeping down
+    { t: 0.2, kind: 'crack' }, // the bolt
+    { t: 0.2, kind: 'zap', gain: 0.6 },
+    { t: 0.2, kind: 'thump', gain: 0.8, pitch: 0.5 },
+    { t: 0.22, kind: 'crack', gain: 0.5, pitch: 0.4 }, // thunder
+    { t: 0.3, kind: 'crack', gain: 0.5, pitch: 1.3 }, // the re-strike
+  ],
 };
 
 const TAU = Math.PI * 2;

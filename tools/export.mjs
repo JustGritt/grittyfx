@@ -1,7 +1,8 @@
 // node tools/export.mjs <id | category | glob>... [--godot <project dir>] [--unity <project dir>]
 // Renders each effect's bundle into the projects: <godot>/grittyfx/<id>/ and <unity>/Assets/GrittyFx/<id>/.
-// Re-export overwrites the four bundle files only; .import, .meta, prefabs and anything else stay untouched.
-// Godot also gets .import files for the two data PNGs, written once (Godot then keeps the file's uid in them).
+// Re-export overwrites the bundle files only (four, and the .wav with sound); .import, .meta, prefabs and anything
+// else stay untouched. Godot also gets .import files for the two data PNGs, written once (Godot then keeps the file's
+// uid in them). A loop's .wav needs none: its smpl chunk tells Godot's default import to loop it.
 import { parseArgs } from 'node:util';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -40,7 +41,7 @@ if (a.unity) {
 
 for (const id of matchIds(positionals)) {
   const b = makeBundle(id, await loadEffect(id));
-  const out = { [b.files.json]: `${JSON.stringify(b.json, null, 2)}\n`, [b.files.data]: b.png.data, [b.files.palette]: b.png.palette, [b.files.sheet]: b.png.sheet };
+  const out = { [b.files.json]: `${JSON.stringify(b.json, null, 2)}\n`, [b.files.data]: b.png.data, [b.files.palette]: b.png.palette, [b.files.sheet]: b.png.sheet, ...(b.wav && { [b.files.sound]: b.wav }) };
   for (const { root, godot } of roots) {
     const dir = join(root, ...id.split('/'));
     mkdirSync(dir, { recursive: true });

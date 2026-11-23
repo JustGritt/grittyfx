@@ -1,8 +1,9 @@
 // Shared by the tools: finding effects, rendering their frames, building bundles.
 import { readdirSync, existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { createFx, createFrame, composite } from '../src/core/index.js';
+import { createFx, createFrame, composite, synth } from '../src/core/index.js';
 import { encodePng } from './png.mjs';
+import { encodeWav } from './sfx.mjs';
 
 export const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const FX = new URL('../src/fx/', import.meta.url);
@@ -59,7 +60,8 @@ export function blit(dst, dw, src, w, h, x, y, zoom = 1) {
   }
 }
 
-/** The bundle: data sheet, palette, baked sheet (PNG buffers) and the Aseprite JSON with meta.grittyfx. */
+/** The bundle: data sheet, palette, baked sheet (PNG buffers), sound (a WAV buffer, null when silent) and the
+ * Aseprite JSON with meta.grittyfx. */
 export function makeBundle(id, mod, { fps, opts } = {}) {
   const { meta } = mod, r = renderFrames(mod, { fps, opts }), { fx, frames } = r;
   const name = id.split('/').pop(), [w, h] = meta.size, n = frames.length;
@@ -71,7 +73,8 @@ export function makeBundle(id, mod, { fps, opts } = {}) {
     blit(data, W, rgba, w, h, x, y);
     blit(baked, W, composite(f, fx.palette), w, h, x, y);
   });
-  const files = { data: `${name}_data.png`, palette: `${name}_pal.png`, sheet: `${name}.png`, json: `${name}.json` };
+  const sound = synth(meta, fx.o.seed);
+  const files = { data: `${name}_data.png`, palette: `${name}_pal.png`, sheet: `${name}.png`, json: `${name}.json`, ...(sound && { sound: `${name}.wav` }) };
   const act = meta.act && {
     ...meta.act,
     hits: (meta.act.hits ?? []).map(hit => ({ frame: Math.min(n - 1, Math.round(hit.t * r.fps)), ...hit })),
@@ -100,6 +103,7 @@ export function makeBundle(id, mod, { fps, opts } = {}) {
         data: files.data, palette: files.palette, sheet: files.sheet, ramps: fx.ramps, light_gain: 1,
         view: 'side', directions: 1, mirror: meta.mirror ?? true,
         ...(act && { act }),
+        ...(sound && { sound: files.sound }),
       },
     },
   };
@@ -107,6 +111,7 @@ export function makeBundle(id, mod, { fps, opts } = {}) {
     files,
     json,
     png: { data: encodePng(W, H, data), palette: encodePng(256, 1, fx.palette), sheet: encodePng(W, H, baked) },
+    wav: sound && encodeWav(sound, meta.loop),
   };
 }
 

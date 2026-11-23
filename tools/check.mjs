@@ -3,7 +3,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { performance } from 'node:perf_hooks';
-import { createFx, composite } from '../src/core/index.js';
+import { createFx, composite, soundCues, synth, SOUNDS } from '../src/core/index.js';
 import { listIds, matchIds, loadEffect, drawAt } from './lib.mjs';
 
 const BUDGET_MS = 2;
@@ -89,6 +89,24 @@ export function checkEffect(id, mod, source = '') {
       if (i && hit.t < hits[i - 1].t) say('act', `hit ${i} comes before hit ${i - 1}: hits must be in time order`);
       if (hit.freeze < 0 || hit.shake < 0) say('act', `hit ${i} has a negative freeze or shake`);
     });
+
+    if (![undefined, false].includes(meta.sound) && !Array.isArray(meta.sound)) say('sound', 'must be a list of cues, or false for silence');
+    const cues = Array.isArray(meta.sound) || meta.sound === undefined ? soundCues(meta) : [];
+    cues.forEach((cue, i) => {
+      if (!SOUNDS[cue.kind]) say('sound', `cue ${i} has an unknown kind "${cue.kind}" (${Object.keys(SOUNDS).join(', ')})`);
+      if (meta.sound && !(cue.t >= 0 && cue.t <= duration)) say('sound', `cue ${i} at t = ${cue.t} is outside the effect (0 to ${duration})`);
+      if (!(cue.gain >= 0 && cue.pitch > 0)) say('sound', `cue ${i} needs a gain of 0 or more and a pitch over 0`);
+    });
+    if (cues.length && cues.every(cue => SOUNDS[cue.kind] && cue.pitch > 0)) {
+      const s = synth(meta), n = s.length, step = i => Math.abs(s[(i + 1) % n] - s[i]);
+      if (!s.every(Number.isFinite)) say('sound', 'has samples that are not numbers');
+      if (loop) {
+        // A click is a jump the samples around the seam (10 ms either side) never make.
+        let near = 0;
+        for (let i = n - 221; i < n + 220; i++) if (i !== n - 1) near = Math.max(near, step((i + n) % n));
+        if (step(n - 1) > 1.5 * near + 1e-3) say('sound', `the end jumps to the start by ${step(n - 1).toFixed(3)} (at most ${near.toFixed(3)} nearby): a click at every loop`);
+      }
+    }
   } catch (e) {
     say('error', e.stack.split('\n').slice(0, 2).join(' '));
   }

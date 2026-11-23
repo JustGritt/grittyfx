@@ -12,6 +12,7 @@ export const meta = {
   views: ['side'],
   ramps: { palette: 8 },
   options: { palette: 'fire', seed: 1 },
+  sound: [{ t: 0, kind: 'crackle', pitch: 0.55 }], // a low roar
 };
 
 const TAU = Math.PI * 2;

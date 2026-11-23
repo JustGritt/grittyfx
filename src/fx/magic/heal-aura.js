@@ -12,6 +12,15 @@ export const meta = {
   views: ['side'],
   ramps: { palette: 8 },
   options: { palette: 'heal', seed: 1 },
+  sound: [
+    // a soft rising major chord each time a ripple leaves the ring
+    { t: 0.05, kind: 'chime', gain: 0.3, pitch: 0.75 },
+    { t: 0.2, kind: 'chime', gain: 0.26, pitch: 0.945 },
+    { t: 0.35, kind: 'chime', gain: 0.22, pitch: 1.125 },
+    { t: 1.05, kind: 'chime', gain: 0.3, pitch: 0.75 },
+    { t: 1.2, kind: 'chime', gain: 0.26, pitch: 0.945 },
+    { t: 1.35, kind: 'chime', gain: 0.22, pitch: 1.125 },
+  ],
 };
 
 const TAU = Math.PI * 2;

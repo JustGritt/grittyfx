@@ -12,6 +12,15 @@ export const meta = {
   views: ['side'],
   ramps: { palette: 8 },
   options: { palette: 'gold', seed: 1 },
+  sound: [
+    // one glint every quarter second, on a pentatonic scale
+    { t: 0, kind: 'chime', gain: 0.3, pitch: 1.5 },
+    { t: 0.25, kind: 'chime', gain: 0.25, pitch: 1.88 },
+    { t: 0.5, kind: 'chime', gain: 0.3, pitch: 2.25 },
+    { t: 0.75, kind: 'chime', gain: 0.22, pitch: 1.69 },
+    { t: 1, kind: 'chime', gain: 0.3, pitch: 2.5 },
+    { t: 1.25, kind: 'chime', gain: 0.25, pitch: 3 },
+  ],
 };
 
 const TAU = Math.PI * 2;

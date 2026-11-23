@@ -13,6 +13,12 @@ export const meta = {
   ramps: { palette: 8 },
   options: { palette: 'gold', seed: 1 },
   act: { windup: 0.12, hits: [{ t: 1 / 30, freeze: 0.08, shake: 2 }] },
+  sound: [
+    { t: 1 / 30, kind: 'crack', gain: 0.9, pitch: 1.6 },
+    { t: 1 / 30, kind: 'thump', gain: 0.6, pitch: 1.3 },
+    { t: 0.2, kind: 'crack', gain: 0.1, pitch: 3 }, // sparks bouncing
+    { t: 0.29, kind: 'crack', gain: 0.07, pitch: 3.2 },
+  ],
 };
 
 const TAU = Math.PI * 2;

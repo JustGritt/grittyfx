@@ -1,8 +1,7 @@
 // node tools/render.mjs <id | category | glob>... [--all] [--sheet] [--html] [--gif] [--mp4] [--zoom N] [--seed N]
 //   [--opts '<json>'] [--fps N] [--bg '#hex']
-// Writes records/<id>/contact.png (sampled frames; --all for every frame), the bundle with --sheet, a page that plays
-// it with --html (opens from disk), and a gif or mp4
-// through ffmpeg.
+// Writes records/<id>/contact.png (sampled frames; --all for every frame), the bundle with --sheet (its .wav too when
+// the effect has sound), a page that plays it with --html (opens from disk), and a gif or mp4 through ffmpeg.
 import { parseArgs } from 'node:util';
 import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
@@ -66,6 +65,7 @@ for (const id of matchIds(positionals)) {
   }
   if (a.sheet) {
     for (const key of ['data', 'palette', 'sheet']) writeFileSync(join(dir, b.files[key]), b.png[key]);
+    if (b.wav) writeFileSync(join(dir, b.files.sound), b.wav);
     writeFileSync(join(dir, b.files.json), `${JSON.stringify(b.json, null, 2)}\n`);
     console.log(Object.values(b.files).map(f => join(dir, f)).join('\n'));
   }

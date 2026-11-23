@@ -12,6 +12,11 @@ export const meta = {
   views: ['side'],
   ramps: { palette: 8 },
   options: { palette: 'smoke', seed: 1 },
+  sound: [
+    { t: 0, kind: 'crack', gain: 0.5, pitch: 0.6 }, // the pop
+    { t: 0, kind: 'thump', gain: 0.3, pitch: 1.4 },
+    { t: 0, kind: 'whoosh', gain: 0.5, pitch: 0.9 }, // the puffs rolling out
+  ],
 };
 
 const TAU = Math.PI * 2;
