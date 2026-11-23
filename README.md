@@ -27,7 +27,8 @@ sheets that stay recolorable.
 - **Glow included.** Every pixel carries its own light, drawn in the same pass, so effects glow on any background.
 - **Game feel built in.** Each effect comes with its hit timings (freeze, screen shake) and a synthesised sound, as
   signals in Godot and events in Unity.
-- **Side view and top-down.** Directional effects bake 8 directions, so pixels stay on the grid.
+- **Side view and top-down.** Directional effects bake 8 headings turned before rasterising, so pixels stay on the
+  grid; radial ones get their own drawing from above. Players pick the row from the game's heading.
 - **Any engine.** Every effect also exports as a plain sprite sheet with Aseprite-style JSON.
 - **Make your own.** A Claude Code skill drafts new effects, renders them and refines them until they hold up.
 

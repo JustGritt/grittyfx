@@ -21,10 +21,11 @@ export async function catalog() {
   for (const id of ids) {
     const { meta } = await loadEffect(id), cat = id.split('/')[0];
     if (cat !== category) {
-      out.push('', `## ${(category = cat)}`, '', '| effect | kind | size | duration | ramps | tags | description |', '|---|---|---|---|---|---|---|');
+      out.push('', `## ${(category = cat)}`, '', '| effect | kind | views | size | duration | ramps | tags | description |', '|---|---|---|---|---|---|---|---|');
     }
     const ramps = Object.entries(meta.ramps ?? {}).map(([name, steps]) => `${name}: ${meta.options?.[name]} (${steps})`);
-    const row = [`\`${id}\``, meta.loop ? 'loop' : 'one-shot', meta.size.join('x'), `${meta.duration} s`, ramps.join(', '), (meta.tags ?? []).join(', '), meta.desc ?? ''];
+    const views = (meta.views ?? ['side']).map(v => (v === 'top' && meta.top?.directions > 1 ? `top (${meta.top.directions} headings)` : v));
+    const row = [`\`${id}\``, meta.loop ? 'loop' : 'one-shot', views.join(', '), meta.size.join('x'), `${meta.duration} s`, ramps.join(', '), (meta.tags ?? []).join(', '), meta.desc ?? ''];
     out.push(`| ${row.map(cell).join(' | ')} |`);
   }
   return `${out.join('\n')}\n`;
