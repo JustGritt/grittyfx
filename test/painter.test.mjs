@@ -40,6 +40,13 @@ test('a line turned 45 degrees is a clean diagonal', () => {
   assert.ok(c.every(([x, y]) => x === y), c.join(' '));
 });
 
+test('shade turned 45 degrees samples the exact position, like the shapes do, so no pixel doubles', () => {
+  const a = fresh().place(O, O, false, Math.PI / 4), b = fresh().place(O, O, false, Math.PI / 4);
+  a.circle(0, 0, 5, 1);
+  b.shade(-6, -6, 12, 12, (x, y) => (Math.hypot(x + 0.5, y + 0.5) <= 5 ? 1 : 0));
+  assert.deepEqual(cells(b), cells(a));
+});
+
 test('dot dithers: half alpha over a 4 x 4 block lights half the cells', () => {
   const p = fresh();
   for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) p.dot(x, y, 1, 0.5);

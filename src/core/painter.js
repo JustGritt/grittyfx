@@ -206,11 +206,14 @@ export class Painter {
     });
   }
 
-  /** Every pixel of the w x h box at (x, y), at true alpha. c and a: (x, y) of the local pixel. */
+  /**
+   * Every pixel of the w x h box at (x, y), at true alpha. c and a: (x, y) of the local pixel; turned off the axes
+   * (a diagonal heading) the exact position minus 0.5, not a whole number, so the shape is sampled, not its pixels.
+   */
   shade(x, y, w, h, c, a = 1) {
     this._area(x, y, x + w, y + h, (lx, ly, X, Y) => {
-      const px = Math.floor(lx), py = Math.floor(ly);
-      if (px >= x && py >= y && px < x + w && py < y + h) this._blend(X, Y, val(c, px, py), val(a, px, py));
+      const px = lx - 0.5, py = ly - 0.5; // whole numbers when the painter is turned by a multiple of 90 degrees
+      if (Math.floor(lx) >= x && Math.floor(ly) >= y && Math.floor(lx) < x + w && Math.floor(ly) < y + h) this._blend(X, Y, val(c, px, py), val(a, px, py));
     });
   }
 
