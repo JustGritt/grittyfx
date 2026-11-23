@@ -67,7 +67,8 @@ of the effect's palette. Index 0 or any falsy value draws nothing and never eras
 
 The runtime steps a simulation at a fixed 120 Hz (`STEP = 1 / 120`) whatever the frame rate, so it looks the same at
 any fps. Only `create` and `update` draw random numbers; `draw` may run any number of times and must not change state.
-A simulation that needs the time keeps it: `t += dt` in `update`. `drawBack` is the layer behind a character; for now
+A simulation that needs the time counts it: `t = ++n * dt` in `update`, not `t += dt`, whose sum of 1/120 steps
+drifts just below some frame times and puts a `t < HIT` test one frame late. `drawBack` is the layer behind a character; for now
 the tools draw it first into the same frame as the front.
 
 ### Local coordinates

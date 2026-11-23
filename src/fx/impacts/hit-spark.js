@@ -56,10 +56,10 @@ export function create(o) {
     const v = back ? rng.range(30, 55) : rng.range(55, 95);
     parts.spawn(SPARK, Math.cos(a) * 2, Math.sin(a) * 2, Math.cos(a) * v, Math.sin(a) * v, rng.range(0.16, back ? 0.26 : 0.4), { delay: HERO });
   }
-  let t = 0;
+  let t = 0, n = 0;
   return {
     update(dt) {
-      t += dt;
+      t = ++n * dt; // counted, not summed: a sum of 1/120 steps drifts below the frame times
       parts.update(dt);
       lights.update(dt);
     },

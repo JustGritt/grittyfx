@@ -61,10 +61,10 @@ export function create(o) {
     bits.spawn(0, CY, Math.cos(a) * v, Math.sin(a) * v, { c: i < 2 ? C[5] : D[rng.int(1, 2)], size: rng.range(2, 3.5), life: rng.range(1, 1.3), delay: 0.03 });
   }
 
-  let t = 0;
+  let t = 0, n = 0;
   return {
     update(dt) {
-      t += dt;
+      t = ++n * dt; // counted, not summed: a sum of 1/120 steps drifts below the frame times
       parts.update(dt);
       lights.update(dt);
       bits.update(dt);

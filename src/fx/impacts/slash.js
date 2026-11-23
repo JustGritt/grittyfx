@@ -33,10 +33,10 @@ export function create(o) {
     parts.spawn(SPARK, R, 0, Math.cos(a) * v, Math.sin(a) * v, rng.range(0.1, 0.2), { delay: HIT });
   }
 
-  let t = 0;
+  let t = 0, n = 0;
   return {
     update(dt) {
-      t += dt;
+      t = ++n * dt; // counted, not summed: a sum of 1/120 steps drifts below the frame times
       parts.update(dt);
     },
     draw(p) {
