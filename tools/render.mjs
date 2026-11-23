@@ -1,6 +1,7 @@
-// node tools/render.mjs <id | category | glob>... [--all] [--sheet] [--gif] [--mp4] [--zoom N] [--seed N]
+// node tools/render.mjs <id | category | glob>... [--all] [--sheet] [--html] [--gif] [--mp4] [--zoom N] [--seed N]
 //   [--opts '<json>'] [--fps N] [--bg '#hex']
-// Writes records/<id>/contact.png (sampled frames; --all for every frame), the bundle with --sheet, and a gif or mp4
+// Writes records/<id>/contact.png (sampled frames; --all for every frame), the bundle with --sheet, a page that plays
+// it with --html (opens from disk), and a gif or mp4
 // through ffmpeg.
 import { parseArgs } from 'node:util';
 import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
@@ -8,18 +9,18 @@ import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { composite } from '../src/core/index.js';
 import { encodePng } from './png.mjs';
-import { ROOT, matchIds, loadEffect, renderFrames, makeBundle, blit } from './lib.mjs';
+import { ROOT, matchIds, loadEffect, renderFrames, makeBundle, htmlPage, blit } from './lib.mjs';
 
 const { values: a, positionals } = parseArgs({
   allowPositionals: true,
   options: {
-    all: { type: 'boolean' }, sheet: { type: 'boolean' }, gif: { type: 'boolean' }, mp4: { type: 'boolean' },
+    all: { type: 'boolean' }, sheet: { type: 'boolean' }, html: { type: 'boolean' }, gif: { type: 'boolean' }, mp4: { type: 'boolean' },
     zoom: { type: 'string', default: '3' }, seed: { type: 'string' }, opts: { type: 'string' }, fps: { type: 'string' },
     bg: { type: 'string', default: '#1b1d26' },
   },
 });
 if (!positionals.length) {
-  console.error('usage: node tools/render.mjs <id | category | glob>... [--all] [--sheet] [--gif] [--mp4] [--zoom N] [--seed N] [--opts json] [--fps N] [--bg #hex]');
+  console.error('usage: node tools/render.mjs <id | category | glob>... [--all] [--sheet] [--html] [--gif] [--mp4] [--zoom N] [--seed N] [--opts json] [--fps N] [--bg #hex]');
   process.exit(1);
 }
 const zoom = Number(a.zoom), fps = a.fps && Number(a.fps);
@@ -57,8 +58,13 @@ for (const id of matchIds(positionals)) {
   const { fx, frames, fps: rate } = renderFrames(mod, { fps, opts });
   writeFileSync(join(dir, 'contact.png'), contact(frames, fx, a.all));
   console.log(join(dir, 'contact.png'));
+  const b = (a.sheet || a.html) && makeBundle(id, mod, { fps, opts });
+  if (a.html) {
+    const page = join(dir, `${id.split('/').pop()}.html`);
+    writeFileSync(page, htmlPage(id, mod.meta, b));
+    console.log(page);
+  }
   if (a.sheet) {
-    const b = makeBundle(id, mod, { fps, opts });
     for (const key of ['data', 'palette', 'sheet']) writeFileSync(join(dir, b.files[key]), b.png[key]);
     writeFileSync(join(dir, b.files.json), `${JSON.stringify(b.json, null, 2)}\n`);
     console.log(Object.values(b.files).map(f => join(dir, f)).join('\n'));

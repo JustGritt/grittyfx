@@ -109,3 +109,73 @@ export function makeBundle(id, mod, { fps, opts } = {}) {
     png: { data: encodePng(W, H, data), palette: encodePng(256, 1, fx.palette), sheet: encodePng(W, H, baked) },
   };
 }
+
+const esc = s => String(s).replace(/[&<>"]/g, c => `&#${c.charCodeAt(0)};`);
+const inline = f => readFileSync(new URL(f, import.meta.url), 'utf8').replace(/^import .*$/gm, '').replace(/^export /gm, '');
+
+/**
+ * A bundle as one HTML page that opens from disk and plays it with the sheet player. file:// pages can't import
+ * modules, so the player, color.js and the bundle are all inlined.
+ */
+export function htmlPage(id, meta, b) {
+  const b64 = k => Buffer.from(b.png[k]).toString('base64'), [w, h] = meta.size;
+  const script = `${inline('../src/core/color.js')}${inline('../runtime/sheet-player.js')}
+{ // the page, in a block so its names can't clash with the inlined modules'
+  const B = s => Uint8Array.from(atob(s), c => c.charCodeAt(0)), json = ${JSON.stringify(b.json)};
+  const bundle = { json, data: await decodePng(B('${b64('data')}')), palette: (await decodePng(B('${b64('palette')}'))).rgba };
+  const g = json.meta.grittyfx, [w, h] = g.frameSize, f = document.forms[0], cv = document.querySelector('canvas');
+  const ctx = cv.getContext('2d'), calm = matchMedia('(prefers-reduced-motion: reduce)');
+  const BG = { dark: '#1b1d26', mid: '#575b6b', light: '#d8d5cd' }, GAP = 0.8, SHAKE = 0.2; // as in the gallery
+  for (const name of Object.keys(PAL)) f.pal.add(new Option(name));
+  let fx, wait = 0, freeze = 0, shake = 0, amp = 0, n = 0, last;
+  const start = () => {
+    const onHit = (i, s, px) => f.hit.checked && ((freeze = s ?? 0), (amp = px ?? 0), (shake = SHAKE));
+    fx = createPlayer(bundle, { flip: f.flip.checked, onHit });
+    if (f.pal.value) fx.recolor({ palette: f.pal.value });
+    fx.play();
+  };
+  const size = () => (cv.style.width = w * Math.max(1, Math.min(6, Math.floor((innerWidth - 32) / w))) + 'px');
+  const tick = now => {
+    const dt = Math.min(0.1, (now - (last ?? now)) / 1000);
+    last = now;
+    if (freeze > 0) freeze -= dt; // hit-stop: the effect waits, the shake goes on
+    else if (!fx.finished) fx.update(dt);
+    else if ((wait += dt) >= GAP) (wait = 0), start();
+    ctx.fillStyle = BG[f.bg.value];
+    ctx.fillRect(0, 0, w, h);
+    const k = shake > 0 && !calm.matches ? Math.ceil((amp * (shake -= dt)) / SHAKE) * (n++ % 2 ? 1 : -1) : 0;
+    fx.draw(ctx, (fx.flip ? w - g.pivot[0] : g.pivot[0]) + k, g.pivot[1]); // a flipped frame fills the canvas too
+    requestAnimationFrame(tick);
+  };
+  f.onchange = e => e.target.name !== 'bg' && start();
+  addEventListener('resize', size);
+  size();
+  start();
+  requestAnimationFrame(tick);
+}`.replace(/<\/script/gi, '<\\/script');
+  return `<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${esc(meta.name)} · grittyfx</title>
+<style>
+  body { margin: 0; min-height: 100vh; box-sizing: border-box; padding: 16px; display: grid; place-content: center; gap: 12px;
+    background: #101117; color: #c9c7c1; font: 14px/1.4 system-ui, sans-serif; }
+  canvas { justify-self: center; image-rendering: pixelated; }
+  form { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 16px; }
+  p { margin: 0; max-width: 60ch; text-align: center; }
+</style>
+<canvas width="${w}" height="${h}" aria-label="${esc(meta.name)}"></canvas>
+<form>
+  <label>Palette <select name="pal"><option value="">default</option></select></label>
+  <label>Background <select name="bg"><option>dark</option><option>mid</option><option>light</option></select></label>
+  <label><input type="checkbox" name="flip"> Flip</label>
+  <label><input type="checkbox" name="hit" checked> Hit-stop</label>
+</form>
+<p><b>${esc(id)}</b>: ${esc(meta.desc ?? '')}</p>
+<script type="module">
+${script}
+</script>
+</html>
+`;
+}

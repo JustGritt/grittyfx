@@ -1,7 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { composite } from 'grittyfx';
-import { makeBundle, renderFrames } from '../tools/lib.mjs';
+import { spawnSync } from 'node:child_process';
+import { writeFileSync, mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { makeBundle, renderFrames, htmlPage } from '../tools/lib.mjs';
 import { decodePng } from '../tools/png.mjs';
 
 const mod = {
@@ -59,4 +63,15 @@ test('decoding the data sheet through the palette gives the same pixels as compo
     assert.deepEqual(baked, want, `frame ${i} baked`);
   });
   assert.ok(frames.some(f => f.color.some(v => v)), 'the test effect draws something');
+});
+
+test('the --html page inlines its modules and its script parses', () => {
+  const html = htmlPage('t/page', { ...mod.meta, name: 'A <b>' }, makeBundle('t/page', mod));
+  assert.match(html, /<title>A &#60;b&#62; · grittyfx<\/title>/);
+  const script = html.match(/<script type="module">\n([\s\S]*)<\/script>/)[1];
+  assert.doesNotMatch(script, /^(import|export) /m); // file:// pages can't import
+  const file = join(mkdtempSync(join(tmpdir(), 'gfx-')), 'page.mjs');
+  writeFileSync(file, script);
+  const r = spawnSync(process.execPath, ['--check', file], { encoding: 'utf8' });
+  assert.equal(r.status, 0, r.stderr);
 });

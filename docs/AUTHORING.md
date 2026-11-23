@@ -14,7 +14,7 @@ drawing API, the workflow and the bar an effect has to clear. The code in `src/c
 | look, fix | | Open the contact sheet and judge it against the [quality bar](#the-quality-bar). Fix the worst thing, render again. **Three rounds minimum**: the first draft never holds up. |
 | check | `node tools/check.mjs magic/frost-nova` | The gate. No output but the summary line means it passes. |
 | recolor | `node tools/render.mjs magic/frost-nova --opts '{"palette":"poison"}'` | It must still read in another ramp, and on a light `--bg`. |
-| bake | `node tools/render.mjs magic/frost-nova --sheet` | The bundle: data sheet, palette, baked sheet, JSON. |
+| bake | `node tools/render.mjs magic/frost-nova --sheet` | The bundle: data sheet, palette, baked sheet, JSON. `--html` also writes `<name>.html`, which plays it with recolor, flip and hit-stop when opened from disk. |
 | catalog | `node tools/catalog.mjs` | Regenerates `docs/CATALOG.md`; `--check` fails when it is stale. |
 
 `records/` is gitignored: renders are for looking, not for committing.
