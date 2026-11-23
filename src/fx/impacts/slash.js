@@ -9,7 +9,8 @@ export const meta = {
   duration: 0.3,
   loop: false,
   fps: 30,
-  views: ['side'],
+  views: ['side', 'top'],
+  top: { size: [80, 80], directions: 8 },
   ramps: { palette: 8 },
   options: { palette: 'ice', seed: 1 },
   act: { windup: 0.1, hits: [{ t: 2 / 30, freeze: 0.05, shake: 1 }] },
@@ -27,7 +28,7 @@ const head = t => A0 + (A1 - A0) * (1 - (1 - clamp01((t + PRE) / SWING)) ** 2);
 
 export function create(o) {
   const rng = new Rng(o.seed), C = o.palette;
-  const parts = new Particles({ rng, palette: C });
+  const parts = new Particles({ rng, palette: C, top: o.view === 'top' }); // from above, sparks fly flat, not falling
   for (let i = 0; i < 8; i++) {
     const a = i < 6 ? rng.range(0.1, 1.2) : rng.range(-0.9, -0.4), v = rng.range(50, 90);
     parts.spawn(SPARK, R, 0, Math.cos(a) * v, Math.sin(a) * v, rng.range(0.1, 0.2), { delay: HIT });
@@ -43,7 +44,7 @@ export function create(o) {
       const h = head(t), tail = head(t - LAG), back = head(t - 2 * LAG), cool = clamp01((t - HIT) / 0.22);
       // the afterimage: the blade's path, lingering as a thin line after the crescent has gone
       if (h - back > 0.03 && cool < 1) p.arc(0, 0, R - 0.5, back, h, 1, C[4], 1 - cool);
-      if (h - tail > 0.03) {
+      if (h - tail > 0.03 && cool < 1) {
         // the outer edge is the blade's path; the crescent grows inward, white at the edge and toward the head, frays
         // into streaks toward its tail, and thins as the tail catches up
         const k = 2 * W * Math.min(1, (h - tail) / 1.4), w = s => k * Math.sin(Math.PI * s ** 1.5);
