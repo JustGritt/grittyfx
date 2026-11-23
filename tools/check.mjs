@@ -7,6 +7,7 @@ import { createFx, composite } from '../src/core/index.js';
 import { listIds, matchIds, loadEffect, drawAt } from './lib.mjs';
 
 const BUDGET_MS = 2;
+const SEEDS = 16; // seeds swept for crashes, drawing outside the canvas and one-shots that don't end
 
 const lit = f => f.color.some((v, i) => i % 2 && v) || f.light.some((v, i) => i % 2 && v);
 const same = (f, g) => f.color.every((v, i) => v === g.color[i]) && f.light.every((v, i) => v === g.light[i]);
@@ -63,6 +64,20 @@ export function checkEffect(id, mod, source = '') {
       const imgs = a.frames.map(f => rgb(f.frame, a.fx.palette)), steps = imgs.slice(1).map((img, i) => diff(imgs[i], img));
       const wrap = diff(imgs[n - 1], imgs[0]), most = Math.max(...steps);
       if (wrap > most * 1.5 + 255) say('loop', `the last frame jumps to the first (change ${wrap}, other frames at most ${most}): a seam`);
+    }
+
+    // Users pick seeds: one more render per seed for what a seed can break. Only the first broken seed is reported,
+    // and only when the default seed is clean, so one bug isn't reported twice.
+    for (let seed = 1; seed <= SEEDS && !out.length; seed++) {
+      if (seed === meta.options?.seed) continue;
+      try {
+        const fx = createFx(mod, { seed });
+        const at = Array.from({ length: n }, (_, i) => drawAt(fx, i / fps).painters.find(p => p.outside)).findIndex(Boolean);
+        if (at >= 0) say(`seed ${seed}`, `frame ${at}: draws outside the ${w}x${h} canvas (try seeds 1 to ${SEEDS} with --seed)`);
+        else if (!loop && lit(drawAt(fx, duration).frame)) say(`seed ${seed}`, 'a one-shot must draw nothing at its end');
+      } catch (e) {
+        say(`seed ${seed}`, `error: ${e.stack.split('\n').slice(0, 2).join(' ')}`);
+      }
     }
 
     if (/Math\.random|\bDate\b/.test(source.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, ''))) say('source', 'uses Math.random or Date; use the seeded Rng');

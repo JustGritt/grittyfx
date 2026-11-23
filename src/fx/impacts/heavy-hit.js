@@ -4,8 +4,8 @@ export const meta = {
   name: 'Heavy hit',
   desc: 'A crushing blow: a white hero frame, a broken shock ring, then a glowing crack splits the floor under the target and throws up debris and dust',
   tags: ['impact', 'hit', 'heavy', 'melee', 'crack', 'debris'],
-  size: [96, 64],
-  origin: [36, 38],
+  size: [104, 64],
+  origin: [48, 38],
   duration: 0.9,
   loop: false,
   fps: 30,
@@ -41,7 +41,7 @@ function crack(rng) {
   for (const base of [0, Math.PI]) {
     const main = grow(0, 0, base + rng.range(-0.3, 0.3), rng.range(18, 26), 0);
     for (let i = 0; i < 2; i++) {
-      const k = rng.int(1 + i * 3, 3 + i * 3);
+      const k = Math.min(rng.int(1 + i * 3, 3 + i * 3), main.pts.length - 1); // a short crack has as few as 5 points
       grow(...main.pts[k], base + rng.pick([-1, 1]) * rng.range(0.8, 1.3), rng.range(4, 8), main.at[k]);
     }
   }

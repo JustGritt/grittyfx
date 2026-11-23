@@ -36,6 +36,14 @@ test('a loop that jumps back is a seam; a periodic one is not', () => {
   assert.deepEqual(checkEffect('t/swing', swing), []);
 });
 
+test('other seeds are swept: drawing outside the canvas or crashing on a seed is reported once', () => {
+  const m = { ...meta, options: { ...meta.options, seed: 1 } };
+  const drift = { meta: m, draw: (p, t, o) => t < 0.5 && p.px(o.seed * 2, 0, o.palette[1]) }; // seed 4 reaches x = 8 + 8
+  assert.deepEqual(checkEffect('t/drift', drift), ['t/drift: seed 4: frame 0: draws outside the 16x16 canvas (try seeds 1 to 16 with --seed)']);
+  const fragile = { meta: m, draw: (p, t, o) => { if (o.seed === 3) throw new Error('seed 3'); } };
+  assert.match(checkEffect('t/fragile', fragile).join(), /^t\/fragile: seed 3: error: Error: seed 3/);
+});
+
 test('missing meta and thrown errors are reported, not crashes', () => {
   assert.match(checkEffect('t/empty', { meta: {} })[0], /meta: missing name/);
   assert.match(checkEffect('t/throws', { meta, draw: () => { throw new Error('boom'); } })[0], /error: Error: boom/);
