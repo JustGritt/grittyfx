@@ -12,9 +12,10 @@ drawing API, the workflow and the bar an effect has to clear. The code in `src/c
 | new | `node tools/new.mjs magic/frost-nova [--loop]` | A simulated one-shot, or a pure loop with `--loop`, that renders and passes the check as generated. |
 | render | `node tools/render.mjs magic/frost-nova` | Writes `records/<id>/contact.png`: 12 sampled frames at 3x. `--all` for every frame, `--gif` / `--mp4` (ffmpeg), `--zoom`, `--fps`, `--seed`, `--bg '#hex'`, `--opts '<json>'`. |
 | look, fix | | Open the contact sheet and judge it against the [quality bar](#the-quality-bar). Fix the worst thing, render again. **Three rounds minimum**: the first draft never holds up. |
+| sound | `node tools/sfx.mjs magic/frost-nova` | Writes `records/<id>/<name>.wav` from the [sound cues](#sound) and prints its length, peak and RMS. Listen to it with the contact sheet open. `--seed`. |
 | check | `node tools/check.mjs magic/frost-nova` | The gate. No output but the summary line means it passes. |
 | recolor | `node tools/render.mjs magic/frost-nova --opts '{"palette":"poison"}'` | It must still read in another ramp, and on a light `--bg`. |
-| bake | `node tools/render.mjs magic/frost-nova --sheet` | The bundle: data sheet, palette, baked sheet, JSON. `--html` also writes `<name>.html`, which plays it with recolor, flip and hit-stop when opened from disk. |
+| bake | `node tools/render.mjs magic/frost-nova --sheet` | The bundle: data sheet, palette, baked sheet, JSON, and the `.wav` when it has sound. `--html` also writes `<name>.html`, which plays it with recolor, flip and hit-stop when opened from disk. |
 | catalog | `node tools/catalog.mjs` | Regenerates `docs/CATALOG.md`; `--check` fails when it is stale. |
 
 `records/` is gitignored: renders are for looking, not for committing.
@@ -37,6 +38,7 @@ export const meta = {
   ramps: { palette: 8, smoke: 6 },                    // the ramp options and their step counts
   options: { palette: 'fire', smoke: 'smoke', seed: 1 }, // defaults; any option the effect reads goes here
   act: { hits: [{ t: 0, freeze: 0.05, shake: 4 }] },  // only when it hits, see Act timing
+  sound: [{ t: 0, kind: 'crack', pitch: 0.3 }, { t: 0, kind: 'thump', pitch: 0.6 }], // see Sound
 };
 ```
 
@@ -97,7 +99,8 @@ gives particle j the same value on every frame). Noise is `noise2`, `fbm`, `loop
 
 Drawing outside the canvas, glow included; writes that are not palette indices; a one-shot that does not end empty; a
 loop whose last frame jumps to its first; two renders that differ; a frame over 2 ms; `Math.random` or `Date` in the
-source; `act` hits outside `[0, duration]`, out of order or negative.
+source; `act` hits outside `[0, duration]`, out of order or negative; sound cues of an unknown kind, outside
+`[0, duration]` or with a pitch of 0 or less; a loop's sound that clicks where its end joins its start.
 
 ## The painter
 
@@ -202,6 +205,38 @@ with the hit's index, freeze and shake. The game answers with hit-stop (time sca
 timed by a clock that ignores the time scale) and a short camera shake. The effect itself never freezes or shakes:
 timing is data, the game decides.
 
+## Sound
+
+`meta.sound` is a list of cues, `{ t, kind, gain = 1, pitch = 1 }`. `src/core/sound.js` synthesises them into one
+mono sound at 22050 Hz, as long as the effect and starting at frame 0. The bundle carries it as `<name>.wav`
+(`meta.grittyfx.sound`), and the players start it with the effect. Hit-stop doesn't pause it. Without `meta.sound`,
+each act hit plays a `thump`. `sound: false` is silence, and the bundle has no `.wav`.
+
+| kind | what it is | for |
+|---|---|---|
+| `thump` | a sine dropping from 160 to 45 Hz under a noise click, soft-clipped | impacts and landings, the low end of a blast |
+| `crack` | a bright noise snap over a gritty body | hits, cuts, shattering, debris landing. At a low pitch, a blast's rumble or thunder |
+| `whoosh` | noise through a band-pass that sweeps up and back down, loudest a third of the way in | swings, poofs, gathering magic |
+| `crackle` | a flickering low roar, a little hiss and random pops. It lasts to the end of a one-shot, or all of a loop | fire |
+| `zap` | a pulse wave jumping between random pitches, ring-modulated by noise and stuttering | electricity |
+| `chime` | a struck bell at 880 Hz with inharmonic partials | magic, sparkles, pickups |
+
+- `t` is seconds from frame 0. Put an impact's cues on its hit's `t`. A `whoosh` peaks a third of the way into its
+  length, so start it that much before what it leads to.
+- `pitch` is a playback rate, as on a sampler: frequencies times `pitch`, lengths divided by it. 0.5 is an octave down
+  and twice as long. At pitch 1: thump 0.4 s, crack 0.45 s, whoosh 0.36 s, zap 0.4 s, chime 1 s.
+- `gain`: each cue's sound peaks at 0.8 times its gain. Where cues add up past 0.9, the whole sound is turned down to
+  fit, so the balance between cues holds.
+- Layer for weight: a thump under a crack is a heavy hit, a low crack (pitch 0.3) under a thump is a blast. Keep idle
+  loops quiet, with gains of 0.2 to 0.4: they play for minutes.
+- Noise, pops and stutter come from the effect's seed (`new Rng(o.seed)`): the same cues and seed give the same bytes.
+- A one-shot cuts what rings past its end with a 10 ms fade: if the cut shows, start the cue earlier or raise its
+  pitch. A loop wraps it round to its start instead, so the sound repeats seamlessly at its period, and the WAV
+  carries a `smpl` loop chunk (Godot's default import loops it).
+
+`node tools/sfx.mjs <id>` writes `records/<id>/<name>.wav` and prints its length, peak and RMS. Listen to it with the
+contact sheet open.
+
 ## The quality bar
 
 | | what it means | how |
@@ -216,6 +251,7 @@ timing is data, the game decides.
 | **Reads at 1x** | The silhouette and value steps hold at native size, not only zoomed. | Render `--zoom 1`; fewer, larger parts beat noise. |
 | **Original** | No effect copied from another library or game; generic motifs are fine. | Draw from reference, not from someone's sprites. |
 | **Clean** | No stray pixels, nothing clipped at the canvas edge, no seam, an empty last frame. | `check.mjs`, and look at `--all`. |
+| **Heard** | A sound on every hit, on its frame, as heavy as it looks. | `meta.sound` cues, layered; `sfx.mjs` to listen. |
 
 ## Lessons
 

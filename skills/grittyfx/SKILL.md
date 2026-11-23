@@ -56,7 +56,7 @@ const frame = createFrame(w, h, ox, oy), img = new ImageData(w, h);
 header comment is the API.
 
 **Godot 4 / Unity 6**: `node <gfx>/tools/export.mjs <ids or category> --godot <project> --unity <project>` writes the
-bundle (`<name>.json`, `_data.png`, `_pal.png`, `.png`) to `<project>/grittyfx/<category>/<name>/` (Godot) and
+bundle (`<name>.json`, `_data.png`, `_pal.png`, `.png`, and `.wav` when it has sound) to `<project>/grittyfx/<category>/<name>/` (Godot) and
 `<project>/Assets/GrittyFx/<category>/<name>/` (Unity). Re-export overwrites only those files. The engine side
 (install, the `GrittyFx` node or prefab, signals, hit-stop helper, recolor per instance) is in
 `<gfx>/engines/godot/README.md` and `<gfx>/engines/unity/README.md`: read the one you need.
@@ -64,6 +64,7 @@ bundle (`<name>.json`, `_data.png`, `_pal.png`, `.png`) to `<project>/grittyfx/<
 **Anything else** (Phaser, Aseprite, another engine): `node <gfx>/tools/render.mjs <id> --sheet` writes the bundle to
 `<gfx>/records/<id>/`; copy `<name>.png` and `<name>.json` into the game: a plain sheet in Aseprite's array layout
 (Phaser: `load.aseprite` then `anims.createFromAseprite`). Its colors are baked: add `--opts` for a recolor.
+`<name>.wav`, when there is one, is its sound from frame 0: play it with the animation (looped for a loop).
 
 **Hit timing**: `meta.act.hits` is `[{ t, freeze, shake }]` (the bundle adds each hit's `frame`). When the effect
 reaches `t`, pause the game for `freeze` seconds and shake the camera by `shake` px; `windup` is how long the
@@ -77,14 +78,15 @@ instance with the colors of a ramp from `src/core/color.js`. To bake a palette i
 ## 3. Make
 
 **Brief.** Ask, in one short message, only what the request leaves open: role (hit, projectile, pickup, ambient
-prop...), view (side only for now), size in px, length and loop, palette, glow, density, sound (not synthesised yet:
-say so). If they say "you pick", pick and state your picks.
+prop...), view (side only for now), size in px, length and loop, palette, glow, density, sound (synthesised from
+cues: thump, crack, whoosh, crackle, zap, chime). If they say "you pick", pick and state your picks.
 
 **Read** before drafting: `src/core/painter.js` and `src/core/sim.js` (short, documented), and the existing effect
 closest to yours. The contract:
 
 - `meta`: name, desc, tags (what `list.mjs` searches), size [w, h], origin [x, y] (the anchor inside the canvas),
-  duration, loop, fps, views, ramps (`{ palette: 8, smoke: 6 }`: slot and steps), options (defaults), act (hits).
+  duration, loop, fps, views, ramps (`{ palette: 8, smoke: 6 }`: slot and steps), options (defaults), act (hits),
+  sound (cues `{ t, kind, gain, pitch }`; without it each hit thumps; see the Sound section of `docs/AUTHORING.md`).
 - Pure: `draw(p, t, o)` (and `drawBack`), the frame from `t` alone. Simulated: `create(o)` returns
   `{ update(dt), draw(p), drawBack? }`, stepped at 120 Hz.
 - (0, 0) is the anchor, x right, y down; directional effects face right. Colors are `C[i]` with `C = o.palette`:
@@ -100,9 +102,11 @@ closest to yours. The contract:
    (`--zoom 1`) and on a light background (`--bg '#c8c8d0'`).
 4. Name what is wrong (the table below), fix it, render again. **Three rounds minimum**, even when round one looks
    fine: compare against the reference effect and ask what a pixel artist would change.
-5. `node tools/check.mjs <id>` until it prints nothing but the count.
-6. Recolor check: render with two other palettes (e.g. `ice`, `poison`); it must read in each.
-7. `node --test`, then export with the clone's tools, not `<gfx>`'s (they only see their own effects):
+5. Sound: cue `meta.sound` on what the frames show (impacts on the hit, a whoosh leading into a swing, crackle under
+   fire). `node tools/sfx.mjs <id>` writes the WAV and prints its length, peak and RMS.
+6. `node tools/check.mjs <id>` until it prints nothing but the count.
+7. Recolor check: render with two other palettes (e.g. `ice`, `poison`); it must read in each.
+8. `node --test`, then export with the clone's tools, not `<gfx>`'s (they only see their own effects):
    `node tools/export.mjs <id> --godot <project> --unity <project>` or `node tools/render.mjs <id> --sheet`.
 
 ## Symptoms
