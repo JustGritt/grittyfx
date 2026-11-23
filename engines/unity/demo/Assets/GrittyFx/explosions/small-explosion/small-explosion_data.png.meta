@@ -114,11 +114,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 400
-        width: 96
-        height: 80
+        y: 420
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -135,12 +135,12 @@ TextureImporter:
       name: small-explosion_1
       rect:
         serializedVersion: 2
-        x: 96
-        y: 400
-        width: 96
-        height: 80
+        x: 124
+        y: 420
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -157,12 +157,12 @@ TextureImporter:
       name: small-explosion_2
       rect:
         serializedVersion: 2
-        x: 192
-        y: 400
-        width: 96
-        height: 80
+        x: 248
+        y: 420
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -179,12 +179,12 @@ TextureImporter:
       name: small-explosion_3
       rect:
         serializedVersion: 2
-        x: 288
-        y: 400
-        width: 96
-        height: 80
+        x: 372
+        y: 420
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -201,12 +201,12 @@ TextureImporter:
       name: small-explosion_4
       rect:
         serializedVersion: 2
-        x: 384
-        y: 400
-        width: 96
-        height: 80
+        x: 496
+        y: 420
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -223,12 +223,12 @@ TextureImporter:
       name: small-explosion_5
       rect:
         serializedVersion: 2
-        x: 480
-        y: 400
-        width: 96
-        height: 80
+        x: 620
+        y: 420
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -245,12 +245,12 @@ TextureImporter:
       name: small-explosion_6
       rect:
         serializedVersion: 2
-        x: 576
-        y: 400
-        width: 96
-        height: 80
+        x: 744
+        y: 420
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -267,12 +267,12 @@ TextureImporter:
       name: small-explosion_7
       rect:
         serializedVersion: 2
-        x: 672
-        y: 400
-        width: 96
-        height: 80
+        x: 868
+        y: 420
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -290,11 +290,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 320
-        width: 96
-        height: 80
+        y: 336
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -311,12 +311,12 @@ TextureImporter:
       name: small-explosion_9
       rect:
         serializedVersion: 2
-        x: 96
-        y: 320
-        width: 96
-        height: 80
+        x: 124
+        y: 336
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -333,12 +333,12 @@ TextureImporter:
       name: small-explosion_10
       rect:
         serializedVersion: 2
-        x: 192
-        y: 320
-        width: 96
-        height: 80
+        x: 248
+        y: 336
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -355,12 +355,12 @@ TextureImporter:
       name: small-explosion_11
       rect:
         serializedVersion: 2
-        x: 288
-        y: 320
-        width: 96
-        height: 80
+        x: 372
+        y: 336
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -377,12 +377,12 @@ TextureImporter:
       name: small-explosion_12
       rect:
         serializedVersion: 2
-        x: 384
-        y: 320
-        width: 96
-        height: 80
+        x: 496
+        y: 336
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -399,12 +399,12 @@ TextureImporter:
       name: small-explosion_13
       rect:
         serializedVersion: 2
-        x: 480
-        y: 320
-        width: 96
-        height: 80
+        x: 620
+        y: 336
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -421,12 +421,12 @@ TextureImporter:
       name: small-explosion_14
       rect:
         serializedVersion: 2
-        x: 576
-        y: 320
-        width: 96
-        height: 80
+        x: 744
+        y: 336
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -443,12 +443,12 @@ TextureImporter:
       name: small-explosion_15
       rect:
         serializedVersion: 2
-        x: 672
-        y: 320
-        width: 96
-        height: 80
+        x: 868
+        y: 336
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -466,11 +466,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 240
-        width: 96
-        height: 80
+        y: 252
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -487,12 +487,12 @@ TextureImporter:
       name: small-explosion_17
       rect:
         serializedVersion: 2
-        x: 96
-        y: 240
-        width: 96
-        height: 80
+        x: 124
+        y: 252
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -509,12 +509,12 @@ TextureImporter:
       name: small-explosion_18
       rect:
         serializedVersion: 2
-        x: 192
-        y: 240
-        width: 96
-        height: 80
+        x: 248
+        y: 252
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -531,12 +531,12 @@ TextureImporter:
       name: small-explosion_19
       rect:
         serializedVersion: 2
-        x: 288
-        y: 240
-        width: 96
-        height: 80
+        x: 372
+        y: 252
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -553,12 +553,12 @@ TextureImporter:
       name: small-explosion_20
       rect:
         serializedVersion: 2
-        x: 384
-        y: 240
-        width: 96
-        height: 80
+        x: 496
+        y: 252
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -575,12 +575,12 @@ TextureImporter:
       name: small-explosion_21
       rect:
         serializedVersion: 2
-        x: 480
-        y: 240
-        width: 96
-        height: 80
+        x: 620
+        y: 252
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -597,12 +597,12 @@ TextureImporter:
       name: small-explosion_22
       rect:
         serializedVersion: 2
-        x: 576
-        y: 240
-        width: 96
-        height: 80
+        x: 744
+        y: 252
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -619,12 +619,12 @@ TextureImporter:
       name: small-explosion_23
       rect:
         serializedVersion: 2
-        x: 672
-        y: 240
-        width: 96
-        height: 80
+        x: 868
+        y: 252
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -642,11 +642,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 160
-        width: 96
-        height: 80
+        y: 168
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -663,12 +663,12 @@ TextureImporter:
       name: small-explosion_25
       rect:
         serializedVersion: 2
-        x: 96
-        y: 160
-        width: 96
-        height: 80
+        x: 124
+        y: 168
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -685,12 +685,12 @@ TextureImporter:
       name: small-explosion_26
       rect:
         serializedVersion: 2
-        x: 192
-        y: 160
-        width: 96
-        height: 80
+        x: 248
+        y: 168
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -707,12 +707,12 @@ TextureImporter:
       name: small-explosion_27
       rect:
         serializedVersion: 2
-        x: 288
-        y: 160
-        width: 96
-        height: 80
+        x: 372
+        y: 168
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -729,12 +729,12 @@ TextureImporter:
       name: small-explosion_28
       rect:
         serializedVersion: 2
-        x: 384
-        y: 160
-        width: 96
-        height: 80
+        x: 496
+        y: 168
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -751,12 +751,12 @@ TextureImporter:
       name: small-explosion_29
       rect:
         serializedVersion: 2
-        x: 480
-        y: 160
-        width: 96
-        height: 80
+        x: 620
+        y: 168
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -773,12 +773,12 @@ TextureImporter:
       name: small-explosion_30
       rect:
         serializedVersion: 2
-        x: 576
-        y: 160
-        width: 96
-        height: 80
+        x: 744
+        y: 168
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -795,12 +795,12 @@ TextureImporter:
       name: small-explosion_31
       rect:
         serializedVersion: 2
-        x: 672
-        y: 160
-        width: 96
-        height: 80
+        x: 868
+        y: 168
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -818,11 +818,11 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 80
-        width: 96
-        height: 80
+        y: 84
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -839,12 +839,12 @@ TextureImporter:
       name: small-explosion_33
       rect:
         serializedVersion: 2
-        x: 96
-        y: 80
-        width: 96
-        height: 80
+        x: 124
+        y: 84
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -861,12 +861,12 @@ TextureImporter:
       name: small-explosion_34
       rect:
         serializedVersion: 2
-        x: 192
-        y: 80
-        width: 96
-        height: 80
+        x: 248
+        y: 84
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -883,12 +883,12 @@ TextureImporter:
       name: small-explosion_35
       rect:
         serializedVersion: 2
-        x: 288
-        y: 80
-        width: 96
-        height: 80
+        x: 372
+        y: 84
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -905,12 +905,12 @@ TextureImporter:
       name: small-explosion_36
       rect:
         serializedVersion: 2
-        x: 384
-        y: 80
-        width: 96
-        height: 80
+        x: 496
+        y: 84
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -927,12 +927,12 @@ TextureImporter:
       name: small-explosion_37
       rect:
         serializedVersion: 2
-        x: 480
-        y: 80
-        width: 96
-        height: 80
+        x: 620
+        y: 84
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -949,12 +949,12 @@ TextureImporter:
       name: small-explosion_38
       rect:
         serializedVersion: 2
-        x: 576
-        y: 80
-        width: 96
-        height: 80
+        x: 744
+        y: 84
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -971,12 +971,12 @@ TextureImporter:
       name: small-explosion_39
       rect:
         serializedVersion: 2
-        x: 672
-        y: 80
-        width: 96
-        height: 80
+        x: 868
+        y: 84
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -995,10 +995,10 @@ TextureImporter:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 96
-        height: 80
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -1015,12 +1015,12 @@ TextureImporter:
       name: small-explosion_41
       rect:
         serializedVersion: 2
-        x: 96
+        x: 124
         y: 0
-        width: 96
-        height: 80
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -1037,12 +1037,12 @@ TextureImporter:
       name: small-explosion_42
       rect:
         serializedVersion: 2
-        x: 192
+        x: 248
         y: 0
-        width: 96
-        height: 80
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -1059,12 +1059,12 @@ TextureImporter:
       name: small-explosion_43
       rect:
         serializedVersion: 2
-        x: 288
+        x: 372
         y: 0
-        width: 96
-        height: 80
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -1081,12 +1081,12 @@ TextureImporter:
       name: small-explosion_44
       rect:
         serializedVersion: 2
-        x: 384
+        x: 496
         y: 0
-        width: 96
-        height: 80
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -1103,12 +1103,12 @@ TextureImporter:
       name: small-explosion_45
       rect:
         serializedVersion: 2
-        x: 480
+        x: 620
         y: 0
-        width: 96
-        height: 80
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -1125,12 +1125,12 @@ TextureImporter:
       name: small-explosion_46
       rect:
         serializedVersion: 2
-        x: 576
+        x: 744
         y: 0
-        width: 96
-        height: 80
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -1147,12 +1147,12 @@ TextureImporter:
       name: small-explosion_47
       rect:
         serializedVersion: 2
-        x: 672
+        x: 868
         y: 0
-        width: 96
-        height: 80
+        width: 124
+        height: 84
       alignment: 9
-      pivot: {x: 0.5, y: 0.25}
+      pivot: {x: 0.48387095, y: 0.23809524}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
