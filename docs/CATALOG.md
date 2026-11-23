@@ -1,6 +1,6 @@
 # Catalog
 
-16 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
+17 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
 Ramps read `option: default (steps)`; pass another ramp name or a list of colors to recolor.
 
 ## explosions
@@ -18,6 +18,12 @@ Ramps read `option: default (steps)`; pass another ramp name or a list of colors
 | `fire/campfire` | loop | side | 56x64 | 1.5 s | palette: fire (8), smoke: smoke (6), wood: dust (5) | fire, light, prop, camp | Two crossed logs charring under licking flames, rising embers, a thin column of smoke and a warm pool of light |
 | `fire/fireball` | loop | side, top (8 headings) | 50x28 | 0.5 s | palette: fire (8) | fire, projectile, magic | A flying fireball: a white-hot core, flame tails streaming back, licks that tear off and sparks left behind |
 | `fire/torch` | loop | side | 32x48 | 1 s | palette: fire (8) | fire, light, prop | A wall torch: a flame licking up in tongues, white-hot core, drifting embers, a warm pool of light |
+
+## holy
+
+| effect | kind | views | size | duration | ramps | tags | description |
+|---|---|---|---|---|---|---|---|
+| `holy/light-pillar` | one-shot | side | 84x116 | 1.1 s | palette: holy (8) | impact, hit, holy, light, beam, spell, strike | A thin ray picks out the target, then a column of light slams down on it: a white hero frame, a flare racing over the ground, sparks rising as the beam thins and lifts away |
 
 ## impacts
 
