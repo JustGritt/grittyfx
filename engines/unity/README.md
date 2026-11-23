@@ -49,6 +49,23 @@ To use the clip with an Animator instead, turn off `playOnStart` and add an Anim
 player receives the clip's `OnGrittyFxHit` events and raises `OnHit` from them. A receiver of your own takes an
 `AnimationEvent` with `intParameter` = hit index, `floatParameter` = freeze and `stringParameter` = shake.
 
+## Top-down
+
+Effects with a top view export a second bundle beside the side one, `<name>_top.json` (and its sheets), which
+imports like any other into `<name>_top.prefab`. A directional one (`fire/fireball`, `impacts/slash`) has a row per
+heading, E, SE, S, SW, W, NW, N, NE, and gets a clip per heading, `<name>_top_E.anim` to `<name>_top_NE.anim`, in
+place of `<name>_top.anim`. A radial one (`explosions/small-explosion`) has one row drawn from above.
+
+```csharp
+var fx = Instantiate(fireballTopPrefab, position, Quaternion.identity);
+fx.direction = rb.linearVelocity;    // world space, y up: (0, -1) is south
+```
+
+`direction` is a world-space `Vector2` with y up; only its angle counts. The player maps it to the bundle's screen
+space (y down) and shows row `round(angle / 45 degrees) mod 8` (`fx.Row`). Don't rotate the transform: rotated pixel
+art smears, which is why the headings are baked. A bundle with one row ignores `direction`. Top bundles have
+`mirror: false`: leave `flip` off, every heading is already there.
+
 ## Recolor
 
 Recoloring one instance leaves the others alone: the colors go through a MaterialPropertyBlock.

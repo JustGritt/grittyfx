@@ -9,13 +9,15 @@ using UnityEngine;
 
 /// <summary>
 /// Imports grittyfx bundles (name.json, name_data.png, name_pal.png): the data sheet and palette as raw data, the
-/// data sheet sliced into frames from the JSON; then generates name.anim, name.mat and name.prefab next to them.
+/// data sheet sliced into frames from the JSON; then generates name.anim, name.mat and name.prefab next to them (a
+/// top-down bundle with 8 directions gets a clip per heading, name_E.anim to name_NE.anim, instead of name.anim).
 /// The four files may arrive in any order: each import finds its bundle through the JSON beside it.
 /// </summary>
 sealed class GrittyFxPostprocessor : AssetPostprocessor
 {
     public const string HitFunction = "OnGrittyFxHit";
     const string ShaderPath = "Packages/com.grittyfx/Shaders/GrittyFxPalette.shader";
+    static readonly string[] Headings = { "E", "SE", "S", "SW", "W", "NW", "N", "NE" };
 
     [Serializable] class Bundle { public Frame[] frames; public Meta meta; }
     [Serializable] class Frame { public Box frame; }
@@ -30,6 +32,7 @@ sealed class GrittyFxPostprocessor : AssetPostprocessor
     {
         public string id, end, data, palette, sound;
         public float fps, light_gain;
+        public int directions;
         public float[] pivot;
         public bool loop;
         public Ramp[] ramps;
@@ -125,24 +128,30 @@ sealed class GrittyFxPostprocessor : AssetPostprocessor
 
         var hits = g.act?.hits ?? Array.Empty<Hit>();
         var loops = g.loop || g.end == "loop";
-        var clip = LoadOrCreate($"{dir}/{name}.anim", () => new AnimationClip());
-        clip.frameRate = g.fps;
-        AnimationUtility.SetObjectReferenceCurve(clip, EditorCurveBinding.PPtrCurve("", typeof(SpriteRenderer), "m_Sprite"),
-            sprites.Select((s, i) => new ObjectReferenceKeyframe { time = i / g.fps, value = s }).ToArray());
-        var settings = AnimationUtility.GetAnimationClipSettings(clip);
-        settings.loopTime = loops;
-        AnimationUtility.SetAnimationClipSettings(clip, settings);
-        AnimationUtility.SetAnimationEvents(clip, hits.Select((h, i) => new AnimationEvent
+        // One clip, or one per heading of a top-down bundle (name_E.anim ... name_NE.anim), its row of the frames.
+        var dirs = Math.Max(1, g.directions);
+        var n = sprites.Length / dirs;
+        for (int d = 0; d < dirs; d++)
         {
-            time = h.frame / g.fps, functionName = HitFunction, intParameter = i, floatParameter = h.freeze,
-            stringParameter = h.shake.ToString(CultureInfo.InvariantCulture),
-        }).ToArray());
+            var clip = LoadOrCreate(dirs > 1 ? $"{dir}/{name}_{Headings[d]}.anim" : $"{dir}/{name}.anim", () => new AnimationClip());
+            clip.frameRate = g.fps;
+            AnimationUtility.SetObjectReferenceCurve(clip, EditorCurveBinding.PPtrCurve("", typeof(SpriteRenderer), "m_Sprite"),
+                sprites.Skip(d * n).Take(n).Select((s, i) => new ObjectReferenceKeyframe { time = i / g.fps, value = s }).ToArray());
+            var settings = AnimationUtility.GetAnimationClipSettings(clip);
+            settings.loopTime = loops;
+            AnimationUtility.SetAnimationClipSettings(clip, settings);
+            AnimationUtility.SetAnimationEvents(clip, hits.Select((h, i) => new AnimationEvent
+            {
+                time = h.frame / g.fps, functionName = HitFunction, intParameter = i, floatParameter = h.freeze,
+                stringParameter = h.shake.ToString(CultureInfo.InvariantCulture),
+            }).ToArray());
+            AssetDatabase.SaveAssetIfDirty(clip);
+        }
 
         var material = LoadOrCreate($"{dir}/{name}.mat", () => new Material(shader));
         material.shader = shader;
         material.SetTexture("_Palette", palette);
         material.SetFloat("_Gain", g.light_gain);
-        AssetDatabase.SaveAssetIfDirty(clip);
         AssetDatabase.SaveAssetIfDirty(material);
 
         var path = $"{dir}/{name}.prefab";
@@ -159,6 +168,7 @@ sealed class GrittyFxPostprocessor : AssetPostprocessor
         p.ramps = (g.ramps ?? Array.Empty<Ramp>()).Select(r => new GrittyFxPlayer.Ramp { name = r.name, from = r.from, steps = r.steps }).ToArray();
         p.palette = palette;
         p.lightGain = g.light_gain;
+        p.directions = dirs;
         p.sound = string.IsNullOrEmpty(g.sound) ? null : AssetDatabase.LoadAssetAtPath<AudioClip>($"{dir}/{g.sound}");
         PrefabUtility.SaveAsPrefabAsset(root, path);
         if (exists) PrefabUtility.UnloadPrefabContents(root);

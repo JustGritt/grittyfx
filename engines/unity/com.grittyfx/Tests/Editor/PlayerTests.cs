@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using EndMode = GrittyFxPlayer.EndMode;
@@ -141,6 +142,33 @@ public class PlayerTests
         p.Step(0.15f);
         CollectionAssert.AreEqual(new[] { "finished" }, _log);
         Assert.IsFalse(p);
+    }
+
+    [Test]
+    public void DirectionPicksTheRowOfATopDownBundle()
+    {
+        var tex = new Texture2D(16, 1);
+        var p = Make(16, 10, EndMode.Loop, new Hit { frame = 1 });
+        p.frames = Enumerable.Range(0, 16).Select(i => Sprite.Create(tex, new Rect(i, 0, 1, 1), Vector2.zero)).ToArray();
+        p.directions = 8; // 2 frames per heading
+        var sr = p.GetComponent<SpriteRenderer>();
+        p.direction = new Vector2(0, -1); // world space, y up: south
+        p.Play();
+        Assert.AreSame(p.frames[2 * 2], sr.sprite);
+        p.Step(0.1f);
+        Assert.AreSame(p.frames[2 * 2 + 1], sr.sprite);
+        CollectionAssert.AreEqual(new[] { "hit 0 0 0" }, _log, "hits count frames per heading");
+        p.Step(0.1f);
+        Assert.AreEqual(0, p.Frame, "the loop wraps after 2 frames, not 16");
+        var rows = new[] { (1f, 0f, 0), (1f, -1f, 1), (-1f, -1f, 3), (-1f, 0f, 4), (-1f, 1f, 5), (0f, 1f, 6), (1f, 1f, 7), (1f, 0.4f, 0), (1f, 0.42f, 7) };
+        foreach (var (x, y, row) in rows)
+        {
+            p.direction = new Vector2(x, y);
+            Assert.AreEqual(row, p.Row, $"({x}, {y})");
+        }
+        p.Step(0.1f);
+        Assert.AreSame(p.frames[7 * 2 + 1], sr.sprite);
+        Object.DestroyImmediate(tex);
     }
 
     [Test]

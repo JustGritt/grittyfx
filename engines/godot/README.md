@@ -38,6 +38,24 @@ add_child(fx)  # plays right away (autoplay)
 - A bundle with a sound (`meta.grittyfx.sound`) plays it from frame 0 on a child `AudioStreamPlayer2D`, cut off when
   the node frees itself.
 
+## Top-down
+
+Effects with a top view export a second bundle beside the side one, `<name>_top.json` (and its sheets). A
+directional one (`fire/fireball`, `impacts/slash`) has a row per heading, E, SE, S, SW, W, NW, N, NE; a radial one
+(`explosions/small-explosion`) has one row drawn from above. Set `direction` to the heading and the node shows the
+nearest row:
+
+```gdscript
+var fx := GrittyFx.new()
+fx.bundle = preload("res://grittyfx/fire/fireball/fireball_top.json")
+fx.direction = velocity  # y down like the screen: Vector2.DOWN is south
+add_child(fx)
+```
+
+The row is `round(direction.angle() / 45 degrees) mod 8`, so any vector works and only its angle counts. Don't
+rotate the node: rotated pixel art smears, which is why the headings are baked. A bundle with one row ignores
+`direction`. Top bundles have `mirror: false`: leave `flip` off, every heading is already there.
+
 ## Recolor
 
 Per instance, other instances keep their colors:
@@ -92,6 +110,6 @@ godot --path engines/godot                                             # the dem
 ```
 
 The checks cover the import settings (and that each sheet imports byte for byte), hit and `finished` timing at
-several frame steps, loops, `hold`, `stop()`, recolor (duplicates included) and hit-stop, and fail if a script error
-kept any check from running. Rendering itself (the shader, flip, blending) is
+several frame steps, loops, `hold`, `stop()`, top-down rows picked by `direction`, recolor (duplicates included)
+and hit-stop, and fail if a script error kept any check from running. Rendering itself (the shader, flip, blending) is
 not checked headless.

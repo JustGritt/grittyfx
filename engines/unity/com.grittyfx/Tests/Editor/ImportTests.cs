@@ -90,6 +90,36 @@ public class ImportTests
         Assert.AreEqual(spriteId, againId);
     }
 
+    [Test]
+    public void TopDownBundleGetsEveryRowAndAClipPerHeading()
+    {
+        // 2 frames x 8 headings of 4 x 3, one row per heading; the hit is on frame 1 of every row.
+        Directory.CreateDirectory(Dir);
+        var frames = string.Join(",", Enumerable.Range(0, 16).Select(k => $@"{{""filename"":""{k}"",""frame"":{{""x"":{k % 2 * 4},""y"":{k / 2 * 3},""w"":4,""h"":3}}}}"));
+        File.WriteAllText($"{Dir}/t_top.json", @"{""frames"":[" + frames + @"],""meta"":{""size"":{""w"":8,""h"":24},""grittyfx"":{""id"":""test/t"",
+            ""fps"":10,""frames"":2,""frameSize"":[4,3],""columns"":2,""pivot"":[2,1],""loop"":false,""end"":""remove"",""data"":""t_top_data.png"",
+            ""palette"":""t_top_pal.png"",""sheet"":""t_top.png"",""ramps"":[],""light_gain"":1,""view"":""top"",""directions"":8,""mirror"":false,
+            ""act"":{""hits"":[{""frame"":1,""t"":0.1,""freeze"":0.05,""shake"":3}]}}}}");
+        File.WriteAllBytes($"{Dir}/t_top_data.png", Png(8, 24));
+        File.WriteAllBytes($"{Dir}/t_top_pal.png", Png(256, 1));
+        AssetDatabase.Refresh();
+
+        var sprites = AssetDatabase.LoadAllAssetsAtPath($"{Dir}/t_top_data.png").OfType<Sprite>().ToDictionary(s => s.name);
+        Assert.AreEqual(new Rect(4, 15, 4, 3), sprites["t_top_5"].rect, "frame 5 is row SW's second, 6 px down from the top");
+        var p = AssetDatabase.LoadAssetAtPath<GameObject>($"{Dir}/t_top.prefab").GetComponent<GrittyFxPlayer>();
+        Assert.AreEqual(8, p.directions);
+        CollectionAssert.AreEqual(Enumerable.Range(0, 16).Select(k => sprites[$"t_top_{k}"]), p.frames);
+        Assert.IsFalse(File.Exists($"{Dir}/t_top.anim"));
+        var headings = new[] { "E", "SE", "S", "SW", "W", "NW", "N", "NE" };
+        for (int d = 0; d < 8; d++)
+        {
+            var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>($"{Dir}/t_top_{headings[d]}.anim");
+            var keys = AnimationUtility.GetObjectReferenceCurve(clip, AnimationUtility.GetObjectReferenceCurveBindings(clip).Single());
+            CollectionAssert.AreEqual(new Object[] { sprites[$"t_top_{2 * d}"], sprites[$"t_top_{2 * d + 1}"] }, keys.Select(k => k.value), headings[d]);
+            Assert.AreEqual(0.1f, AnimationUtility.GetAnimationEvents(clip).Single().time, 1e-6f);
+        }
+    }
+
     static byte[] Png(int w, int h)
     {
         var t = new Texture2D(w, h, TextureFormat.RGBA32, false, true);

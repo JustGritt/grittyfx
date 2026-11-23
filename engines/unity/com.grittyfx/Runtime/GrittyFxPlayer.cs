@@ -3,7 +3,8 @@ using UnityEngine;
 
 /// <summary>
 /// Plays a grittyfx bundle on its SpriteRenderer, frame for frame like runtime/sheet-player.js: hits, end modes,
-/// stop with a fade, flip, light gain and per-instance recolor. The importer fills the bundle fields.
+/// stop with a fade, flip, light gain, per-instance recolor and, for a top-down bundle, the row of the heading. The
+/// importer fills the bundle fields.
 /// </summary>
 [RequireComponent(typeof(SpriteRenderer))]
 public sealed class GrittyFxPlayer : MonoBehaviour
@@ -36,11 +37,15 @@ public sealed class GrittyFxPlayer : MonoBehaviour
     public Texture2D palette;
     public float lightGain = 1;
     public AudioClip sound;
+    /// <summary>Rows of a top-down bundle, one per heading (E, SE, S, SW, W, NW, N, NE); frames holds them row by row.</summary>
+    public int directions = 1;
 
     [Header("Instance")]
     public bool playOnStart = true;
     public bool flip;
     public float gain = 1;
+    /// <summary>The heading in world space (y up, so (0, -1) is south); a top-down bundle shows the nearest of its rows.</summary>
+    public Vector2 direction = Vector2.right;
 
     /// <summary>(index in act.hits, freeze seconds, shake pixels) when a hit's frame is first shown.</summary>
     public event Action<int, float, float> OnHit;
@@ -49,6 +54,18 @@ public sealed class GrittyFxPlayer : MonoBehaviour
     public double Elapsed { get; private set; }
     public bool Playing { get; private set; }
     public int Frame { get; private set; }
+
+    /// <summary>The row `direction` picks: round(screen angle / 45 degrees) mod 8, the screen's y down like the bundle's.</summary>
+    public int Row
+    {
+        get
+        {
+            int d = Math.Max(1, directions), r = (int)Math.Floor(Math.Atan2(-direction.y, direction.x) * d / (2 * Math.PI) + 0.5) % d; // JS Math.round
+            return r < 0 ? r + d : r;
+        }
+    }
+
+    int Count => frames.Length / Math.Max(1, directions); // frames per direction
 
     int _shown;
     double _stopAt = -1;
@@ -95,7 +112,7 @@ public sealed class GrittyFxPlayer : MonoBehaviour
     {
         if (!Playing) return;
         Elapsed += dt;
-        int n = frames.Length, f = (int)Math.Floor(Elapsed * fps + 1e-6);
+        int n = Count, f = (int)Math.Floor(Elapsed * fps + 1e-6);
         int last = end == EndMode.Loop ? f : Math.Min(f, n - 1);
         for (int g = Math.Max(_shown + 1, last - n + 1); g <= last; g++) Fire(g); // a loop fires its latest cycle at most
         _shown = Math.Max(_shown, last);
@@ -141,7 +158,7 @@ public sealed class GrittyFxPlayer : MonoBehaviour
     void Fire(int g)
     {
         for (int i = 0; i < hits.Length; i++)
-            if (hits[i].frame == g % frames.Length) OnHit?.Invoke(i, hits[i].freeze, hits[i].shake);
+            if (hits[i].frame == g % Count) OnHit?.Invoke(i, hits[i].freeze, hits[i].shake);
     }
 
     void Finish(bool remove)
@@ -167,7 +184,7 @@ public sealed class GrittyFxPlayer : MonoBehaviour
     {
         Frame = i;
         var sr = GetComponent<SpriteRenderer>();
-        sr.sprite = frames[i];
+        sr.sprite = frames[Row * Count + i];
         sr.flipX = flip;
         var c = sr.color;
         c.a = _fade; // the shader multiplies color alpha and light by it

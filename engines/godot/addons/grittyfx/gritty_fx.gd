@@ -35,6 +35,12 @@ static var _hitstop: SceneTreeTimer
 	set(value):
 		flip = value
 		queue_redraw()
+## The heading, y down like the screen (Vector2.DOWN is south): a top-down bundle shows the nearest of its rows (E, SE,
+## S, SW, W, NW, N, NE). Set it from the velocity; don't rotate the node, which would smear the pixels.
+@export var direction := Vector2.RIGHT:
+	set(value):
+		direction = value
+		queue_redraw()
 ## Plays when the node enters the tree.
 @export var autoplay := true
 
@@ -48,6 +54,8 @@ var _default_palette: Texture2D
 var _sound: AudioStream
 var _audio: AudioStreamPlayer2D
 var _fps := 30.0
+var _n := 0  # frames per direction
+var _dirs := 1
 var _pivot := Vector2.ZERO
 var _loop := false
 var _end := "remove"
@@ -111,7 +119,7 @@ func advance(dt: float) -> void:
 	if not _playing:
 		return
 	_t += dt
-	var n := _rects.size()
+	var n := _n
 	var f := floori(_t * _fps + 1e-6)  # the epsilon absorbs float sums like 10 x 0.1 < 1
 	var last := f if _loop else mini(f, n - 1)
 	# Every hit frame reached since the last call, in order; one cycle at most for a loop.
@@ -216,6 +224,8 @@ func _load() -> void:
 	var sound = g.get("sound")
 	_sound = load(dir.path_join(sound)) if sound is String and ResourceLoader.exists(dir.path_join(sound)) else null
 	_fps = float(g.fps)
+	_n = int(g.frames)
+	_dirs = maxi(1, int(g.get("directions", 1)))
 	_pivot = Vector2(g.pivot[0], g.pivot[1])
 	_loop = g.loop or g.end == "loop"
 	_end = g.end
@@ -248,9 +258,15 @@ func _remove() -> void:
 	queue_free()
 
 
+## The row [member direction] picks: round(angle / 45 degrees) mod 8, rounding halves up like the browser player.
+func _row() -> int:
+	return posmod(floori(direction.angle() * _dirs / TAU + 0.5), _dirs)
+
+
 func _draw() -> void:
-	if not _playing or frame >= _rects.size():
+	var i := _row() * _n + frame
+	if not _playing or i >= _rects.size():
 		return
 	# Mirroring with a -1 scale keeps it about the pivot: local pixel x lands on -x - 1.
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(-1.0 if flip else 1.0, 1.0))
-	draw_texture_rect_region(_data, Rect2(-_pivot, _rects[frame].size), _rects[frame])
+	draw_texture_rect_region(_data, Rect2(-_pivot, _rects[i].size), _rects[i])
