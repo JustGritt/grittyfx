@@ -9,7 +9,8 @@ export const meta = {
   duration: 0.5,
   loop: true,
   fps: 16,
-  views: ['side'],
+  views: ['side', 'top'],
+  top: { directions: 8 },
   ramps: { palette: 8 },
   options: { palette: 'fire', seed: 1 },
 };
