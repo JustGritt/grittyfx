@@ -1,6 +1,6 @@
 // Plays a grittyfx bundle on a 2D canvas. The reference playback the Godot and Unity players match.
 //
-//   const fx = createPlayer(await loadBundle('fx/hit-spark.json'), { flip, gain, onHit, onFinished }).play();
+//   const fx = createPlayer(await loadBundle('fx/hit-spark.json'), { flip, gain, angle, onHit, onFinished }).play();
 //   each frame: fx.update(dt); fx.draw(ctx, x, y);   // the pivot lands on (x, y)
 //
 // - loadBundle(url): fetches the JSON, the data sheet and the palette, decoded with decodePng (never a 2D canvas,
@@ -18,7 +18,10 @@
 //                     pivot when `flip` is set. Exact over an opaque background; on a transparent canvas light
 //                     becomes color with alpha like composite(), a little more opaque where it falls on color
 //   frame()           the current frame as { w, h, ox, oy, color, light } RGBA layers (DOM-free), or null
-//   index, fade, t, active, finished, flip, gain, palette, onHit, onFinished
+//   angle             the heading in radians, screen space (y down: Math.atan2(dy, dx), south is +PI/2). A top-down
+//                     bundle with `directions` rows shows the nearest: round(angle / 45 degrees) mod 8, rows E, SE,
+//                     S, SW, W, NW, N, NE. One-direction bundles ignore it
+//   index, fade, t, active, finished, flip, gain, angle, palette, onHit, onFinished
 import { fit } from '../src/core/color.js';
 
 const FADE_OUT = 0.3;
@@ -74,8 +77,8 @@ export async function loadBundle(url) {
   return { json, data, palette: palette.rgba, sound: g.sound && new URL(g.sound, base).href };
 }
 
-export function createPlayer(bundle, { flip = false, gain = 1, onHit = null, onFinished = null } = {}) {
-  const { json, data } = bundle, g = json.meta.grittyfx, n = g.frames, hits = g.act?.hits ?? [];
+export function createPlayer(bundle, { flip = false, gain = 1, angle = 0, onHit = null, onFinished = null } = {}) {
+  const { json, data } = bundle, g = json.meta.grittyfx, n = g.frames, hits = g.act?.hits ?? [], dirs = g.directions ?? 1;
   const loops = g.loop || g.end === 'loop', [w, h] = g.frameSize;
   let shown = -1, stopAt = null, cache = {}, audio = null;
 
@@ -112,7 +115,7 @@ export function createPlayer(bundle, { flip = false, gain = 1, onHit = null, onF
   };
 
   const p = {
-    bundle, flip, gain, onHit, onFinished,
+    bundle, flip, gain, angle, onHit, onFinished,
     palette: Uint8Array.from(bundle.palette),
     t: 0, active: false, finished: false,
     play() {
@@ -163,7 +166,8 @@ export function createPlayer(bundle, { flip = false, gain = 1, onHit = null, onF
       const i = p.index;
       if (i < 0) return null;
       if (cache.palette !== p.palette || cache.gain !== p.gain || cache.flip !== p.flip) cache = { palette: p.palette, gain: p.gain, flip: p.flip, frames: [] };
-      return (cache.frames[i] ??= build(i));
+      const k = (((Math.round((p.angle * dirs) / (2 * Math.PI)) % dirs) + dirs) % dirs) * n + i; // row by row in the sheet
+      return (cache.frames[k] ??= build(k));
     },
     draw(ctx, x, y) {
       const f = p.frame();

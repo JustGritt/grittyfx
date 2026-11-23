@@ -1,14 +1,15 @@
 // node tools/render.mjs <id | category | glob>... [--all] [--sheet] [--html] [--gif] [--mp4] [--zoom N] [--seed N]
 //   [--opts '<json>'] [--fps N] [--bg '#hex']
 // Writes records/<id>/contact.png (sampled frames; --all for every frame), the bundle with --sheet (its .wav too when
-// the effect has sound), a page that plays it with --html (opens from disk), and a gif or mp4 through ffmpeg.
+// the effect has sound), a page that plays it with --html (opens from disk), and a gif or mp4 through ffmpeg. An
+// effect with a top view also gets contact_top.png (a row per direction) and its _top bundle.
 import { parseArgs } from 'node:util';
 import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { composite } from '../src/core/index.js';
 import { encodePng } from './png.mjs';
-import { ROOT, matchIds, loadEffect, renderFrames, makeBundle, htmlPage, blit } from './lib.mjs';
+import { ROOT, matchIds, loadEffect, renderFrames, makeBundle, htmlPage, blit, views } from './lib.mjs';
 
 const { values: a, positionals } = parseArgs({
   allowPositionals: true,
@@ -25,13 +26,16 @@ if (!positionals.length) {
 const zoom = Number(a.zoom), fps = a.fps && Number(a.fps);
 const opts = { ...(a.opts && JSON.parse(a.opts)), ...(a.seed && { seed: Number(a.seed) }) };
 
-function contact(frames, fx, all) {
-  const { w, h } = frames[0], n = frames.length, k = all ? n : Math.min(n, 12);
+// Sampled frames; with several directions, one row per direction (n frames each) with the same samples.
+function contact(frames, fx, all, n = frames.length) {
+  const { w, h } = frames[0], dirs = frames.length / n, k = all ? n : Math.min(n, 12);
   const picks = [...new Set(Array.from({ length: k }, (_, i) => Math.round((i * (n - 1)) / Math.max(1, k - 1))))];
-  const cols = Math.min(picks.length, Math.max(1, Math.floor(1600 / (w * zoom)))), rows = Math.ceil(picks.length / cols), gap = 2 * zoom;
+  const cols = dirs > 1 ? picks.length : Math.min(picks.length, Math.max(1, Math.floor(1600 / (w * zoom))));
+  const cells = Array.from({ length: dirs }, (_, d) => picks.map(f => d * n + f)).flat();
+  const rows = Math.ceil(cells.length / cols), gap = 2 * zoom;
   const W = cols * (w * zoom + gap) + gap, H = rows * (h * zoom + gap) + gap, out = new Uint8Array(W * H * 4);
   for (let i = 0; i < W * H; i++) out.set([70, 70, 78, 255], i * 4);
-  picks.forEach((f, i) => {
+  cells.forEach((f, i) => {
     const x = gap + (i % cols) * (w * zoom + gap), y = gap + Math.floor(i / cols) * (h * zoom + gap);
     blit(out, W, composite(frames[f], fx.palette, undefined, a.bg), w, h, x, y, zoom);
   });
@@ -54,21 +58,25 @@ function video(dir, frames, fx, fps, ext) {
 for (const id of matchIds(positionals)) {
   const mod = await loadEffect(id), dir = join(ROOT, 'records', id);
   mkdirSync(dir, { recursive: true });
-  const { fx, frames, fps: rate } = renderFrames(mod, { fps, opts });
-  writeFileSync(join(dir, 'contact.png'), contact(frames, fx, a.all));
-  console.log(join(dir, 'contact.png'));
-  const b = (a.sheet || a.html) && makeBundle(id, mod, { fps, opts });
-  if (a.html) {
-    const page = join(dir, `${id.split('/').pop()}.html`);
-    writeFileSync(page, htmlPage(id, mod.meta, b));
-    console.log(page);
+  for (const view of views(mod.meta)) {
+    const { fx, frames, fps: rate, n } = renderFrames(mod, { fps, opts, view }), top = view === 'top' ? '_top' : '';
+    writeFileSync(join(dir, `contact${top}.png`), contact(frames, fx, a.all, n));
+    console.log(join(dir, `contact${top}.png`));
+    const b = (a.sheet || (a.html && !top)) && makeBundle(id, mod, { fps, opts, view });
+    // shortcut: the page plays the side view only; give it a heading control if someone needs top views there.
+    if (a.html && !top) {
+      const page = join(dir, `${id.split('/').pop()}.html`);
+      writeFileSync(page, htmlPage(id, mod.meta, b));
+      console.log(page);
+    }
+    if (a.sheet) {
+      for (const key of ['data', 'palette', 'sheet']) writeFileSync(join(dir, b.files[key]), b.png[key]);
+      if (b.wav) writeFileSync(join(dir, b.files.sound), b.wav);
+      writeFileSync(join(dir, b.files.json), `${JSON.stringify(b.json, null, 2)}\n`);
+      console.log(Object.values(b.files).map(f => join(dir, f)).join('\n'));
+    }
+    // shortcut: videos show the side view only; tile the top rows into them if someone needs a top-down video.
+    if (a.gif && !top) video(dir, frames, fx, rate, 'gif');
+    if (a.mp4 && !top) video(dir, frames, fx, rate, 'mp4');
   }
-  if (a.sheet) {
-    for (const key of ['data', 'palette', 'sheet']) writeFileSync(join(dir, b.files[key]), b.png[key]);
-    if (b.wav) writeFileSync(join(dir, b.files.sound), b.wav);
-    writeFileSync(join(dir, b.files.json), `${JSON.stringify(b.json, null, 2)}\n`);
-    console.log(Object.values(b.files).map(f => join(dir, f)).join('\n'));
-  }
-  if (a.gif) video(dir, frames, fx, rate, 'gif');
-  if (a.mp4) video(dir, frames, fx, rate, 'mp4');
 }

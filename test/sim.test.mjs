@@ -49,6 +49,17 @@ test('bits bounce, come to rest on the ground and fade out', () => {
   assert.equal(bits.list.length, 0);
 });
 
+test('seen from above, nothing rises or falls, and bits skid to a stop', () => {
+  const rng = new Rng(3), ps = new Particles({ rng, palette: ramp, top: true }), bits = new Bits({ rng, top: true });
+  for (const kind of [SPARK, SMOKE, FIRE, DUST]) ps.spawn(kind, 0, 0, 0, 0, 1, { size: 3 });
+  bits.spawn(0, 0, 60, -80, { c: 1, life: 3 });
+  run(ps, 0.5);
+  run(bits, 2.5);
+  assert.ok(ps.list.every(q => q.x === 0 && q.y === 0), JSON.stringify(ps.list));
+  const [b] = bits.list;
+  assert.ok(b.rest && b.x > 10 && b.x < 30 && b.y < -10 && b.y > -40, `${b.x}, ${b.y}`);
+});
+
 test('lights flare and die off', () => {
   const lights = new Lights();
   lights.add(0, 0, 4, 1, 1, 0.2, { delay: 0.05 });

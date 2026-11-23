@@ -10,12 +10,12 @@ drawing API, the workflow and the bar an effect has to clear. The code in `src/c
 |---|---|---|
 | find | `node tools/list.mjs spark` | Most requests are an existing effect with another palette, seed or option. |
 | new | `node tools/new.mjs magic/frost-nova [--loop]` | A simulated one-shot, or a pure loop with `--loop`, that renders and passes the check as generated. |
-| render | `node tools/render.mjs magic/frost-nova` | Writes `records/<id>/contact.png`: 12 sampled frames at 3x. `--all` for every frame, `--gif` / `--mp4` (ffmpeg), `--zoom`, `--fps`, `--seed`, `--bg '#hex'`, `--opts '<json>'`. |
+| render | `node tools/render.mjs magic/frost-nova` | Writes `records/<id>/contact.png`: 12 sampled frames at 3x, and `contact_top.png` (a row per heading) for a top view. `--all` for every frame, `--gif` / `--mp4` (ffmpeg, side view), `--zoom`, `--fps`, `--seed`, `--bg '#hex'`, `--opts '<json>'`. |
 | look, fix | | Open the contact sheet and judge it against the [quality bar](#the-quality-bar). Fix the worst thing, render again. **Three rounds minimum**: the first draft never holds up. |
 | sound | `node tools/sfx.mjs magic/frost-nova` | Writes `records/<id>/<name>.wav` from the [sound cues](#sound) and prints its length, peak and RMS. Listen to it with the contact sheet open. `--seed`. |
-| check | `node tools/check.mjs magic/frost-nova` | The gate. No output but the summary line means it passes. |
+| check | `node tools/check.mjs magic/frost-nova` | The gate. No output but the summary line means it passes. It tries seeds 2 to 16 too; `--seeds N` changes how many. |
 | recolor | `node tools/render.mjs magic/frost-nova --opts '{"palette":"poison"}'` | It must still read in another ramp, and on a light `--bg`. |
-| bake | `node tools/render.mjs magic/frost-nova --sheet` | The bundle: data sheet, palette, baked sheet, JSON, and the `.wav` when it has sound. `--html` also writes `<name>.html`, which plays it with recolor, flip and hit-stop when opened from disk. |
+| bake | `node tools/render.mjs magic/frost-nova --sheet` | The bundle: data sheet, palette, baked sheet, JSON, the `.wav` when it has sound, and the `_top` bundle for a top view. `--html` also writes `<name>.html`, which plays the side view with recolor, flip and hit-stop when opened from disk. |
 | catalog | `node tools/catalog.mjs` | Regenerates `docs/CATALOG.md`; `--check` fails when it is stale. |
 
 `records/` is gitignored: renders are for looking, not for committing.
@@ -34,7 +34,8 @@ export const meta = {
   duration: 1.6,     // seconds; one period for a loop
   loop: false,
   fps: 30,           // frames per second of the baked sheet (30 when left out)
-  views: ['side'],
+  views: ['side', 'top'],  // 'top' also bakes a top-down bundle, see Top-down
+  top: { size: [96, 96] }, // the top view's canvas; { directions: 8 } for a directional effect
   ramps: { palette: 8, smoke: 6 },                    // the ramp options and their step counts
   options: { palette: 'fire', smoke: 'smoke', seed: 1 }, // defaults; any option the effect reads goes here
   act: { hits: [{ t: 0, freeze: 0.05, shake: 4 }] },  // only when it hits, see Act timing
@@ -83,6 +84,39 @@ Single-cell calls (`px`, `dot`, `blend`, `light`, line ends) take the cell a pos
 whose center is inside them: `circle(0, 0, 2)` is 4 px wide and has no center pixel, `circle(0.5, 0.5, 2)` is 5 px wide
 and centered on pixel (0, 0).
 
+### Top-down
+
+Top-down games need an effect per heading, and rotating pixel art in the engine smears it, so the headings are baked.
+`views: ['side', 'top']` bakes a second bundle, `<name>_top`, seen from above; an effect without `'top'` is side view
+only. There are two kinds:
+
+| kind | `meta.top` | the top view |
+|---|---|---|
+| directional: projectiles, beams, slashes, dashes | `{ directions: 8 }` | the side drawing turned by the painter, one row per 45 degrees: E, SE, S, SW, W, NW, N, NE. Nothing new to draw. |
+| radial: novas, explosions, ground effects | `{ size: [w, h] }` | one row, drawn by the effect itself when `o.view === 'top'` |
+
+- **The view is an option.** The tools create the effect with `view: 'top'` or `'side'`, so `draw(p, t, o)` and
+  `create(o)` see `o.view` (live, `createFx(mod, { view: 'top' })`; undefined means side). A radial effect branches on
+  it, usually `if (o.view === 'top') return createTop(o);` in `create` (see `explosions/small-explosion`). A
+  directional effect may use it for small fixes: the slash's sparks fly flat instead of falling.
+- **Seen from above** there is no gravity and no ground line: the floor is the whole canvas. Rings are circles, not
+  flattened ellipses; sparks, debris and dust spread over the floor plane; fire and smoke billow up toward the eye, so
+  they swell where they are instead of rising. `new Particles({ ..., top: true })` and `new Bits({ ..., top: true })`
+  do that (leave `ground` out).
+- **The canvas**: `top.size` and `top.origin` (centered when left out). Without a size, it is a square around the
+  origin that holds the side canvas turned to any heading, which is safe but often generous: measure what the top view
+  draws and set a tighter one (`impacts/slash` uses 80 x 80 instead of 108 x 108).
+- **Angles** are screen space, y down, so S is +90 degrees and headings turn clockwise; heading `d` (0 to 7) is the
+  painter turned `d * 45` degrees. Players pick row `round(angle / 45 degrees) mod 8` from the game's heading.
+- **Diagonals stay on the grid** because the painter turns geometry before rasterising: lines turn their offsets and
+  round once, shapes sample each pixel's exact position. `shade` does too, so on a diagonal its `x, y` are not whole
+  numbers: shade from positions, not pixel parity.
+- **The bundle** is `<name>_top.json`, `_top.png`, `_top_data.png`, `_top_pal.png`, beside the side one, which keeps
+  its layout and names. Its `meta.grittyfx` has `view: 'top'`, `directions` (8 or 1), `mirror: false` (a mirrored
+  top view would swing the other way) and `frames` counted per direction. The sheet has one row per direction, one
+  column per frame; the JSON `frames` list them row by row (frame `i` of direction `d` is `d * frames + i`), and
+  `frameTags` name each row `E` ... `NE`. Hits keep their per-frame `frame`, the same in every row.
+
 ### One-shots end empty, loops are periodic
 
 A one-shot draws nothing, no color and no light, at `t = duration`: every particle, light and bit has died by then.
@@ -100,7 +134,9 @@ gives particle j the same value on every frame). Noise is `noise2`, `fbm`, `loop
 Drawing outside the canvas, glow included; writes that are not palette indices; a one-shot that does not end empty; a
 loop whose last frame jumps to its first; two renders that differ; a frame over 2 ms; `Math.random` or `Date` in the
 source; `act` hits outside `[0, duration]`, out of order or negative; sound cues of an unknown kind, outside
-`[0, duration]` or with a pitch of 0 or less; a loop's sound that clicks where its end joins its start.
+`[0, duration]` or with a pitch of 0 or less; a loop's sound that clicks where its end joins its start. Every view is
+checked, a top view at each of its headings (`top SW frame 4: ...`), and seeds 2 to 16 for crashes, drawing outside,
+bad colors and the one-shot end (`(seed 3)`, or `seed 3: error`); only the first broken seed is reported.
 
 ## The painter
 
@@ -121,7 +157,7 @@ an intensity `k` instead of an alpha and write the light buffer, which is added 
 | `disc(cx, cy, r, c, a)` | a translucent volume (smoke, fire, mist) at true alpha | `dx, dy, d` |
 | `ring(cx, cy, r, w, c, a)` | a circle outline `w` px wide | `dx, dy`, `e` across the band, -1 inside to 1 outside |
 | `arc(cx, cy, r, a0, a1, w, c, a)` | part of a ring, `a0` to `a1` radians clockwise from +x (`a1 < a0` runs the other way). A number `w` makes a crescent `w * sin(pi t)` wide; a function `w(t)` sets the width | `t` along, `e` across |
-| `shade(x, y, w, h, c, a)` | every pixel of a box at true alpha: a per-pixel shader | `x, y` of the pixel; return 0 to skip it |
+| `shade(x, y, w, h, c, a)` | every pixel of a box at true alpha: a per-pixel shader | `x, y` of the pixel (not whole numbers on a diagonal heading); return 0 to skip it |
 | `light(x, y, c, k)` | one cell of light | |
 | `glow(cx, cy, r, c, k)` | a pool of light, `k * (1 - d)^2`, or `k(d)` | `c(d)` |
 | `glowLine(x0, y0, x1, y1, r, c, k)` | light around a segment, falling off over `r` px | `c(t, d)`, `k(t, d)` |
@@ -150,10 +186,12 @@ holds one color index and one light index, so overlaps pick:
 `src/core/sim.js`. Units are px, px/s and px/s². Each class has `update(dt)` and `draw(p)`; call them from the
 effect's own `update` and `draw`.
 
-**`new Particles({ rng, palette, smoke = palette, dust = smoke, ground = Infinity, gravity = 300 })`**, with
+**`new Particles({ rng, palette, smoke = palette, dust = smoke, ground = Infinity, gravity = 300, top = false })`**, with
 `spawn(kind, x, y, vx, vy, life, { size, delay, back, ramp, smoke })`. `size` is a volume's radius, `delay` the
 seconds before it appears, `back: true` puts it on the layer drawn by `draw(p, 'back')`, `ramp` replaces the kind's
 own ramp, and `smoke` (FIRE only) is the seconds of smoke it turns into when it burns out. `ground` is the floor's y.
+`top: true` is the view from above: nothing falls, rises or sinks (embers wander both ways), so motion stays on the
+floor plane; leave `ground` out.
 
 | kind | moves | looks | ramp |
 |---|---|---|---|
@@ -168,10 +206,12 @@ They draw volumes under bright bits: smoke, dust, fire, embers, sparks.
 **`new Lights()`**, with `add(x, y, r, c, k = 1, life = 0.2, { delay })`: a glow at full strength at once, then
 `k * (1 - age / life)^2`.
 
-**`new Bits({ rng, ground = Infinity, gravity = 300, onLand })`**, with
+**`new Bits({ rng, ground = Infinity, gravity = 300, onLand, top = false })`**, with
 `spawn(x, y, vx, vy, { c, size = 2, life = 1, shard = false, delay })`: debris, a chunk or a thin `shard` line `size`
 px long, that tumbles, bounces, comes to rest lying flat and fades over the last 20% of its life. `onLand(bit)` runs
-at every touch of the ground, before the bounce, with the impact velocity in `bit.vy`: kick up dust there.
+at every touch of the ground, before the bounce, with the impact velocity in `bit.vy`: kick up dust there. With
+`top: true` bits skid across the floor plane, slowing until they lie still (`v / 3` px from where they start); no
+gravity, ground or `onLand`.
 
 ```js
 export function create(o) {

@@ -17,7 +17,7 @@ const RAW := {
 const DT := 1.0 / 60.0
 # The _check calls of a full run. A script error ends only the function it happens in, silently skipping the
 # checks after it there, so fewer than this means failure.
-const CHECKS := 94
+const CHECKS := 98
 
 var _checks := 0
 var _failed := 0
@@ -36,6 +36,7 @@ func _initialize() -> void:
 		for id in IDS:
 			_check_bundle(id, bundles[id])
 		_check_loop_hits(bundles["fire/torch"])
+		_check_directions(bundles["fire/torch"])
 		_check_stop(bundles["impacts/hit-spark"], bundles["fire/torch"])
 		_check_recolor(bundles["impacts/hit-spark"])
 		_check_sound_play(bundles["fire/torch"])
@@ -160,6 +161,28 @@ func _check_loop_hits(torch: JSON) -> void:
 	var want := PackedStringArray(["0:hit0", "1:hit0", "1:hit1"])
 	_check(_events == want, "torch with hits: a 2.5-cycle update fires one cycle of hits: %s" % ",".join(_events))
 	_free(fx)
+
+
+## A top-down bundle: frames counts one row, and direction (y down) picks the nearest row. The torch's 16 frames
+## stand in for 8 rows of 2. A side bundle has one row whatever the direction.
+func _check_directions(torch: JSON) -> void:
+	var rows := _variant(torch, {"frames": 2, "directions": 8})
+	_check_timing("torch as 8 rows of 2 frames", rows, DT)
+	var fx := _play(rows)
+	var got := []
+	var headings := [
+		Vector2.RIGHT, Vector2(1, 1), Vector2.DOWN, Vector2(-1, 1), Vector2.LEFT, Vector2(-1, -1), Vector2.UP,
+		Vector2(1, -1), Vector2(1, -0.4), Vector2(1, -0.42),
+	]
+	for v in headings:
+		fx.direction = v
+		got.append(fx._row())
+	_check(got == [0, 1, 2, 3, 4, 5, 6, 7, 0, 7], "direction picks the rows E to NE, y down: %s" % [got])
+	_free(fx)
+	var side := _play(torch)
+	side.direction = Vector2.DOWN
+	_check(side._row() == 0, "a side bundle has one row whatever the direction")
+	_free(side)
 
 
 ## "hold" keeps the last frame; stop() fades color and light over 0.3 s, then finishes once and frees the node.

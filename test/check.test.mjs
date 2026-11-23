@@ -39,7 +39,7 @@ test('a loop that jumps back is a seam; a periodic one is not', () => {
 test('other seeds are swept: drawing outside the canvas or crashing on a seed is reported once', () => {
   const m = { ...meta, options: { ...meta.options, seed: 1 } };
   const drift = { meta: m, draw: (p, t, o) => t < 0.5 && p.px(o.seed * 2, 0, o.palette[1]) }; // seed 4 reaches x = 8 + 8
-  assert.deepEqual(checkEffect('t/drift', drift), ['t/drift: seed 4: frame 0: draws outside the 16x16 canvas (try seeds 1 to 16 with --seed)']);
+  assert.deepEqual(checkEffect('t/drift', drift), ['t/drift: frame 0 (seed 4): draws outside the 16x16 canvas at (16, 8), in 10 of 10 frames']);
   const fragile = { meta: m, draw: (p, t, o) => { if (o.seed === 3) throw new Error('seed 3'); } };
   assert.match(checkEffect('t/fragile', fragile).join(), /^t\/fragile: seed 3: error: Error: seed 3/);
 });
@@ -55,6 +55,19 @@ test('sound: unknown kinds, cues outside the effect, a bad gain or pitch', () =>
   assert.deepEqual(checkEffect('t/sound', { ...good, meta: { ...meta, sound: [{ t: 0.1, kind: 'chime' }] } }), []);
   const loop = { ...meta, loop: true, duration: 1, sound: [{ t: 0.9, kind: 'crackle' }, { t: 0.95, kind: 'chime' }] };
   assert.deepEqual(checkEffect('t/loop', { meta: loop, draw: (p, t, o) => p.disc(Math.sin(t * Math.PI * 2) * 5, 0, 2, o.palette[3]) }), []);
+});
+
+test('top views are checked at every heading, and --seeds sweeps other seeds', () => {
+  const top = { ...meta, views: ['side', 'top'], top: { size: [16, 16], directions: 8 } };
+  // (7, -8) is the corner pixel heading east; at the four diagonals it leaves the canvas
+  const corner = { meta: top, draw: (p, t, o) => t < 0.5 && p.px(7, -8, o.palette[1]) };
+  assert.deepEqual(checkEffect('t/corner', corner), ['t/corner: top SE frame 0: draws outside the 16x16 canvas at (18, 8), in 40 of 80 frames']);
+  const late = { meta: { ...top, top: { size: [16, 16] } }, draw: (p, t, o) => (t < 0.5 || o.view === 'top') && p.px(0, 0, o.palette[1]) };
+  assert.deepEqual(checkEffect('t/late', late), ['t/late: top t = 0.5: a one-shot must draw nothing at its end']);
+  assert.match(checkEffect('t/four', { meta: { ...top, top: { directions: 4 } }, draw() {} })[0], /top.directions is 4: 1 \(radial\) or 8/);
+  const wild = { meta, draw: (p, t, o) => t < 0.5 && p.px(o.seed === 3 ? 9 : 0, 0, o.palette[1]) };
+  assert.deepEqual(checkEffect('t/wild', wild, '', { seeds: 2 }), []);
+  assert.match(checkEffect('t/wild', wild, '', { seeds: 3 }).join(), /^t\/wild: frame 0 \(seed 3\): draws outside/);
 });
 
 test('missing meta and thrown errors are reported, not crashes', () => {

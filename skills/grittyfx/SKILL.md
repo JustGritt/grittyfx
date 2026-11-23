@@ -66,6 +66,12 @@ bundle (`<name>.json`, `_data.png`, `_pal.png`, `.png`, and `.wav` when it has s
 (Phaser: `load.aseprite` then `anims.createFromAseprite`). Its colors are baked: add `--opts` for a recolor.
 `<name>.wav`, when there is one, is its sound from frame 0: play it with the animation (looped for a loop).
 
+**Top-down**: an effect whose `meta.views` has `top` (`list.mjs` and `docs/CATALOG.md` show it) also bakes and
+exports `<name>_top`: one row per heading (E, SE, S, SW, W, NW, N, NE) for a directional effect, one row for a radial
+one. Players pick the row from the game's heading: `angle` in the sheet player (radians, y down), `direction` in
+Godot (`Vector2`, y down) and Unity (`Vector2`, world y up); never rotate the sprite. Each row is an Aseprite tag
+named after its heading (Phaser: `createFromAseprite(key, null, sprite)` keeps those names per sprite).
+
 **Hit timing**: `meta.act.hits` is `[{ t, freeze, shake }]` (the bundle adds each hit's `frame`). When the effect
 reaches `t`, pause the game for `freeze` seconds and shake the camera by `shake` px; `windup` is how long the
 attacker winds up before the effect starts. Engines raise these as signals or events.
@@ -78,8 +84,8 @@ instance with the colors of a ramp from `src/core/color.js`. To bake a palette i
 ## 3. Make
 
 **Brief.** Ask, in one short message, only what the request leaves open: role (hit, projectile, pickup, ambient
-prop...), view (side only for now), size in px, length and loop, palette, glow, density, sound (synthesised from
-cues: thump, crack, whoosh, crackle, zap, chime). If they say "you pick", pick and state your picks.
+prop...), view (side, or top-down too), size in px, length and loop, palette, glow, density, sound (synthesised
+from cues: thump, crack, whoosh, crackle, zap, chime). If they say "you pick", pick and state your picks.
 
 **Read** before drafting: `src/core/painter.js` and `src/core/sim.js` (short, documented), and the existing effect
 closest to yours. The contract:
@@ -92,6 +98,10 @@ closest to yours. The contract:
 - (0, 0) is the anchor, x right, y down; directional effects face right. Colors are `C[i]` with `C = o.palette`:
   pick a step by role (0 darkest, last brightest), never compute a color.
 - One-shots draw nothing at `t = duration`. Seeded `Rng` / `rand` / noise only, never `Math.random` or `Date`.
+- Top-down: `views: ['side', 'top']`. Directional effects add `top: { directions: 8 }` and get 8 headings turned by
+  the painter for free; radial ones (novas, explosions) add `top: { size }` and draw the view from above themselves
+  when `o.view === 'top'`: no gravity, circles not ellipses, `Particles` / `Bits` with `top: true`. Read the Top-down
+  section of `docs/AUTHORING.md` first. Render writes `contact_top.png`, a row per heading: Read it too.
 
 **Loop**, from the clone's root:
 

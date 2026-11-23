@@ -47,10 +47,29 @@ export function composite(frame, palette, out = new Uint8ClampedArray(frame.w * 
   return out;
 }
 
+/** The headings of a top view's rows, 45 degrees apart clockwise from east (y down, so S is +90 degrees). */
+export const HEADINGS = ['E', 'SE', 'S', 'SW', 'W', 'NW', 'N', 'NE'];
+
+/**
+ * An effect's canvas in a view: { size, origin, directions }. Side is meta.size and meta.origin, one direction. Top is
+ * meta.top's size and origin (centered when left out) and directions (8 for a directional effect, else 1); without a
+ * size, a square around the origin that holds the side canvas turned to any heading.
+ */
+export function layout(meta, view = 'side') {
+  if (view !== 'top') return { size: meta.size, origin: meta.origin, directions: 1 };
+  const { size, origin, directions = 1 } = meta.top ?? {};
+  if (size) return { size, origin: origin ?? size.map(v => v >> 1), directions };
+  const [w, h] = meta.size, [ox, oy] = meta.origin, corners = [[ox, oy], [w - ox, oy], [ox, h - oy], [w - ox, h - oy]];
+  // one px of slack: turned, shapes are sampled at other points than in the side view
+  const r = 1 + Math.ceil(Math.max(...corners.flatMap(([x, y]) => [x, y, (x + y) / Math.SQRT2])));
+  return { size: [2 * r, 2 * r], origin: [r, r], directions };
+}
+
 /**
  * A live effect from an effect module. Options merge over `meta.options`; each ramp named in `meta.ramps`
  * ({ name: steps }) is resampled to its length and laid into the effect's palette table, and the effect sees it as
- * an array of indices. Set `flip`, `angle` and `lightK` on the result to place it.
+ * an array of indices. Pass `view: 'top'` for its top view (see layout). Set `flip`, `angle` (radians, clockwise) and
+ * `lightK` on the result to place it.
  */
 export function createFx(mod, opts = {}) {
   const { meta } = mod, o = { ...meta.options, ...opts }, ramps = {};

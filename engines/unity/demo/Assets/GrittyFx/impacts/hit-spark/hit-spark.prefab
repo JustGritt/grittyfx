@@ -132,6 +132,8 @@ MonoBehaviour:
   palette: {fileID: 2800000, guid: 72da5d9ece707ab458dfe9ee40bb669f, type: 3}
   lightGain: 1
   sound: {fileID: 8300000, guid: 00863b199671cf3498c9abb20c72e849, type: 3}
+  directions: 1
   playOnStart: 1
   flip: 0
   gain: 1
+  direction: {x: 1, y: 0}

@@ -1,5 +1,5 @@
 // The gallery: plays every effect live from its module, or one large with ?fx=<id> (the preview page).
-import { PAL, hex, createFx, createFrame, clearFrame, composite } from '../src/core/index.js';
+import { PAL, hex, createFx, createFrame, clearFrame, composite, layout, HEADINGS } from '../src/core/index.js';
 
 const BG = { dark: '#1b1d26', mid: '#575b6b', light: '#d8d5cd' }; // the stage colors in index.html
 const GAP = 0.8; // a one-shot rests this long, empty, before it plays again
@@ -19,9 +19,10 @@ const el = (tag, props = {}, ...kids) => {
 
 // Settings live in the form and the URL, so a preview link keeps them.
 for (const name of Object.keys(PAL)) f.palette.add(new Option(name, name), f.palette.length - 1);
+HEADINGS.forEach((name, d) => f.view.add(new Option(`top ${name}`, d))); // effects without a top view stay side
 for (const [k, v] of params) {
   if (k === 'flip' || k === 'hitstop') f[k].checked = v === '1';
-  else if (['palette', 'custom', 'seed', 'bg'].includes(k)) f[k].value = v;
+  else if (['palette', 'custom', 'seed', 'bg', 'view'].includes(k)) f[k].value = v;
 }
 f.custom.value ||= '#0b1a2e #14506a #1ca0a0 #6ff0c0 #f2fff6';
 if (!BG[f.bg.value]) f.bg.value = 'dark';
@@ -31,6 +32,7 @@ function query(extra = {}) {
   if (pal) q.set('palette', pal);
   if (pal === 'custom') q.set('custom', f.custom.value);
   if (f.seed.value) q.set('seed', f.seed.value);
+  if (f.view.value) q.set('view', f.view.value);
   if (f.flip.checked) q.set('flip', 1);
   if (f.bg.value !== 'dark') q.set('bg', f.bg.value);
   if (!f.hitstop.checked) q.set('hitstop', 0);
@@ -74,15 +76,21 @@ function options() {
  * freezes the effect for `freeze` seconds and shakes the view by `shake` pixels.
  */
 function player(mod, canvas, big) {
-  const { meta } = mod, [w, h] = meta.size, fps = meta.fps ?? 30, hits = meta.act?.hits ?? [];
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext('2d'), img = ctx.createImageData(w, h), frame = createFrame(w, h, ...meta.origin);
-  let fx, clock, base, next, freeze, shake, shown;
+  const { meta } = mod, fps = meta.fps ?? 30, hits = meta.act?.hits ?? [], ctx = canvas.getContext('2d');
+  let fx, clock, base, next, freeze, shake, shown, w, h, ox, img, frame;
   const pl = {
     meta, canvas, zoom: 1, error: null,
     restart() {
-      fx = createFx(mod, options());
+      // the top view at the chosen heading, live, so any angle works; the canvas follows the view's size
+      const view = f.view.value && meta.views?.includes('top') ? 'top' : 'side', v = layout(meta, view);
+      if (w !== v.size[0] || h !== v.size[1]) {
+        [canvas.width, canvas.height] = [w, h] = v.size;
+        img = ctx.createImageData(w, h);
+        if (frame) pl.fit();
+      }
+      frame = createFrame(w, h, (ox = v.origin[0]), v.origin[1]);
+      fx = createFx(mod, { ...options(), view });
+      fx.angle = v.directions > 1 ? (f.view.value * Math.PI) / 4 : 0; // a radial top view has one heading
       clock = base = next = freeze = 0;
       shake = null;
       shown = -1;
@@ -118,7 +126,7 @@ function player(mod, canvas, big) {
       if (t === shown) return;
       shown = t;
       fx.flip = f.flip.checked;
-      frame.ox = fx.flip ? w - meta.origin[0] : meta.origin[0]; // mirror the anchor so the flipped effect stays in frame
+      frame.ox = fx.flip ? w - ox : ox; // mirror the anchor so the flipped effect stays in frame
       fx.update(t - fx.t);
       clearFrame(frame);
       fx.draw(frame, 'back');
@@ -217,7 +225,7 @@ form.addEventListener('input', e => {
   if (e.target === f.custom) readCustom();
   showSettings();
   history.replaceState(null, '', only ? query({ fx: only }) : query());
-  const restart = [f.palette, f.custom, f.seed].includes(e.target);
+  const restart = [f.palette, f.custom, f.seed, f.view].includes(e.target);
   for (const pl of players) if (!pl.error) restart ? pl.restart() : pl.redraw();
 });
 document.getElementById('replay').addEventListener('click', () => players.forEach(pl => pl.error || pl.restart()));

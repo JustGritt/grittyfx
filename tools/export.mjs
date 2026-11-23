@@ -1,12 +1,13 @@
 // node tools/export.mjs <id | category | glob>... [--godot <project dir>] [--unity <project dir>]
-// Renders each effect's bundle into the projects: <godot>/grittyfx/<id>/ and <unity>/Assets/GrittyFx/<id>/.
+// Renders each effect's bundle into the projects: <godot>/grittyfx/<id>/ and <unity>/Assets/GrittyFx/<id>/; an
+// effect with a top view gets its <name>_top bundle beside the side one.
 // Re-export overwrites the bundle files only (four, and the .wav with sound); .import, .meta, prefabs and anything
 // else stay untouched. Godot also gets .import files for the two data PNGs, written once (Godot then keeps the file's
 // uid in them). A loop's .wav needs none: its smpl chunk tells Godot's default import to loop it.
 import { parseArgs } from 'node:util';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { matchIds, loadEffect, makeBundle } from './lib.mjs';
+import { matchIds, loadEffect, makeBundle, views } from './lib.mjs';
 
 // Godot's PNG defaults (fix alpha border on, 3D detection may compress) would corrupt the raw index and alpha bytes.
 const GODOT_IMPORT = `[remap]
@@ -40,16 +41,19 @@ if (a.unity) {
 }
 
 for (const id of matchIds(positionals)) {
-  const b = makeBundle(id, await loadEffect(id));
-  const out = { [b.files.json]: `${JSON.stringify(b.json, null, 2)}\n`, [b.files.data]: b.png.data, [b.files.palette]: b.png.palette, [b.files.sheet]: b.png.sheet, ...(b.wav && { [b.files.sound]: b.wav }) };
-  for (const { root, godot } of roots) {
-    const dir = join(root, ...id.split('/'));
-    mkdirSync(dir, { recursive: true });
-    const files = Object.entries(out);
-    if (godot) files.push(...[b.files.data, b.files.palette].map(f => [`${f}.import`, GODOT_IMPORT]).filter(([f]) => !existsSync(join(dir, f))));
-    for (const [name, content] of files) {
-      writeFileSync(join(dir, name), content);
-      console.log(join(dir, name));
+  const mod = await loadEffect(id);
+  for (const view of views(mod.meta)) {
+    const b = makeBundle(id, mod, { view });
+    const out = { [b.files.json]: `${JSON.stringify(b.json, null, 2)}\n`, [b.files.data]: b.png.data, [b.files.palette]: b.png.palette, [b.files.sheet]: b.png.sheet, ...(b.wav && view === views(mod.meta)[0] && { [b.files.sound]: b.wav }) }; // the views share one sound
+    for (const { root, godot } of roots) {
+      const dir = join(root, ...id.split('/'));
+      mkdirSync(dir, { recursive: true });
+      const files = Object.entries(out);
+      if (godot) files.push(...[b.files.data, b.files.palette].map(f => [`${f}.import`, GODOT_IMPORT]).filter(([f]) => !existsSync(join(dir, f))));
+      for (const [name, content] of files) {
+        writeFileSync(join(dir, name), content);
+        console.log(join(dir, name));
+      }
     }
   }
 }

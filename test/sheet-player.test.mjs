@@ -181,10 +181,25 @@ function overCanvas(f, bg) {
   return out;
 }
 
-async function realBundle(id) {
-  const mod = await loadEffect(id), b = makeBundle(id, mod);
+async function realBundle(id, view) {
+  const mod = await loadEffect(id), b = makeBundle(id, mod, { view });
   return { mod, b, bundle: { json: b.json, data: await decodePng(b.png.data), palette: (await decodePng(b.png.palette)).rgba } };
 }
+
+test('angle picks a top-down row: the nearest of E, SE, S, ... NE, screen space with y down', async () => {
+  const { mod, bundle } = await realBundle('fire/fireball', 'top'), { frames, n } = renderFrames(mod, { view: 'top' });
+  const p = createPlayer(bundle, { angle: Math.PI / 2 }).play(), deg = Math.PI / 180;
+  // the rendered frame 0 whose color alpha the player shows
+  const row = () => frames.findIndex((f, k) => k % n === 0 && f.color.every((v, j) => j % 2 === 0 || v === p.frame().color[(j >> 1) * 4 + 3]));
+  assert.equal(row(), 2 * n, 'PI / 2 is south');
+  for (const [a, d] of [[0, 0], [22 * deg, 0], [23 * deg, 1], [Math.atan2(1, -1), 3], [-Math.PI / 2, 6], [-Math.PI, 4], [7 * Math.PI, 4], [-10 * deg, 0], [-30 * deg, 7]]) {
+    p.angle = a;
+    assert.equal(row(), d * n, `${a / deg} degrees`);
+  }
+  const side = createPlayer((await realBundle('fire/fireball')).bundle).play(), plain = side.frame();
+  side.angle = 2;
+  assert.equal(side.frame(), plain, 'a side bundle ignores the angle');
+});
 
 test('a real bundle drawn by the player over a background equals composite() over it', async () => {
   for (const id of ['fire/torch', 'impacts/hit-spark', 'explosions/small-explosion']) {

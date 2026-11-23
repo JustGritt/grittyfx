@@ -14,11 +14,12 @@ const step = (ramp, h) => ramp[clamp(Math.round((ramp.length - 1) * h), 0, ramp.
 
 /**
  * Particles. `palette` (sparks, fire, embers), `smoke` and `dust` are ramps as palette indices, usually o.palette and
- * o.smoke. `ground` is the floor's y (sparks bounce on it, dust settles on it).
+ * o.smoke. `ground` is the floor's y (sparks bounce on it, dust settles on it). `top`: seen from above, the floor is the
+ * whole canvas, so nothing falls, rises or sinks; leave `ground` out.
  */
 export class Particles {
-  constructor({ rng, palette, smoke = palette, dust = smoke, ground = Infinity, gravity = 300 }) {
-    Object.assign(this, { rng, palette, smoke, dust, ground, gravity, list: [], ids: 0 });
+  constructor({ rng, palette, smoke = palette, dust = smoke, ground = Infinity, gravity = 300, top = false }) {
+    Object.assign(this, { rng, palette, smoke, dust, ground, gravity, top, list: [], ids: 0 });
   }
 
   /**
@@ -32,7 +33,7 @@ export class Particles {
   }
 
   update(dt) {
-    const { rng, ground, gravity: g } = this, born = [];
+    const { rng, ground, gravity: g, top } = this, born = [];
     for (const q of this.list) {
       if (q.delay > 0) {
         q.delay -= dt;
@@ -43,12 +44,14 @@ export class Particles {
         if (q.kind === FIRE && q.smoke > 0) born.push([SMOKE, q.x, q.y - 1, q.vx * 0.5, q.vy * 0.5, q.smoke, { size: q.size, back: q.back }]);
         continue;
       }
-      let drag = 0.5;
-      if (q.kind === SPARK) q.vy += g * dt;
-      else if (q.kind === SMOKE) (q.vy -= 25 * dt), (drag = 2.5);
-      else if (q.kind === FIRE) (q.vy -= 70 * dt), (drag = 3);
-      else if (q.kind === EMBER) (q.vy -= 18 * dt), (q.vx += (rng.next() - 0.5) * 120 * dt), (drag = 1.5);
-      else if (q.kind === DUST) (q.vy += 40 * dt), (drag = 4);
+      let drag = 0.5, ay = 0; // falling (sparks, dust) or rising (smoke, fire, embers)
+      if (q.kind === SPARK) ay = g;
+      else if (q.kind === SMOKE) (ay = -25), (drag = 2.5);
+      else if (q.kind === FIRE) (ay = -70), (drag = 3);
+      else if (q.kind === EMBER) (ay = -18), (q.vx += (rng.next() - 0.5) * 120 * dt), (drag = 1.5);
+      else if (q.kind === DUST) (ay = 40), (drag = 4);
+      if (top && q.kind === EMBER) q.vy += (rng.next() - 0.5) * 120 * dt; // wanders both ways on the floor plane
+      else if (!top) q.vy += ay * dt;
       q.vx *= 1 - drag * dt;
       q.vy *= 1 - drag * dt;
       q.x += q.vx * dt;
@@ -126,10 +129,11 @@ export class Lights {
 /**
  * Debris: shards (thin lines) and chunks that tumble, bounce on the ground, come to rest and fade at the end of life.
  * onLand(bit) runs at each touch of the ground, before the bounce, with the bit's impact velocity (kick up dust there).
+ * `top`: seen from above, bits skid across the floor plane and slow to a stop; no gravity, ground or onLand.
  */
 export class Bits {
-  constructor({ rng, ground = Infinity, gravity = 300, onLand }) {
-    Object.assign(this, { rng, ground, gravity, onLand, list: [] });
+  constructor({ rng, ground = Infinity, gravity = 300, onLand, top = false }) {
+    Object.assign(this, { rng, ground, gravity, onLand, top, list: [] });
   }
 
   /** c is a palette index; size the length in px. */
@@ -150,6 +154,14 @@ export class Bits {
       }
       b.age += dt;
       if (b.rest) continue;
+      if (this.top) {
+        const k = 1 - 3 * dt;
+        b.x += (b.vx *= k) * dt;
+        b.y += (b.vy *= k) * dt;
+        b.angle += (b.spin *= k) * dt;
+        b.rest = Math.hypot(b.vx, b.vy) < 6;
+        continue;
+      }
       b.vy += gravity * dt;
       b.x += b.vx * dt;
       b.y += b.vy * dt;

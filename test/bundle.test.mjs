@@ -42,6 +42,25 @@ test('bundle JSON: Aseprite array layout plus meta.grittyfx', () => {
   assert.deepEqual([g.data, g.palette, g.sheet], [files.data, files.palette, files.sheet]);
 });
 
+test('a top view bakes its own bundle: one row per heading, E to NE, turned clockwise', () => {
+  const dart = { ...mod, meta: { ...mod.meta, views: ['side', 'top'], top: { directions: 8 } }, draw: (p, t, o) => t < 0.3 && p.px(3, 0, o.palette[3]) };
+  const { json, files } = makeBundle('test/dart', dart, { view: 'top' }), g = json.meta.grittyfx;
+  assert.deepEqual(files, { data: 'dart_top_data.png', palette: 'dart_top_pal.png', sheet: 'dart_top.png', json: 'dart_top.json', sound: 'dart.wav' });
+  assert.deepEqual(
+    { frames: g.frames, frameSize: g.frameSize, columns: g.columns, pivot: g.pivot, view: g.view, directions: g.directions, mirror: g.mirror },
+    { frames: 9, frameSize: [16, 16], columns: 9, pivot: [8, 8], view: 'top', directions: 8, mirror: false },
+  );
+  assert.equal(json.frames.length, 72);
+  assert.deepEqual(json.frames[2 * 9 + 4].frame, { x: 4 * 16, y: 2 * 16, w: 16, h: 16 }, 'row S, frame 4');
+  assert.deepEqual(json.frames.map(f => f.filename), json.frames.map((_, i) => String(i)));
+  assert.deepEqual(json.meta.frameTags.map(t => [t.name, t.from, t.to]), ['E', 'SE', 'S', 'SW', 'W', 'NW', 'N', 'NE'].map((d, k) => [d, k * 9, k * 9 + 8]));
+  assert.deepEqual(g.act.hits, [{ frame: 2, t: 0.066, freeze: 0.08, shake: 2 }]);
+  // the dart, pixel (3, 0) east of the pivot, turns about the pivot (a pixel corner) to the south in row 2
+  const { frames } = renderFrames(dart, { view: 'top' }), at = f => (i => [i % 16, i >> 4])(f.color.findIndex((v, i) => i % 2 && v) >> 1);
+  assert.deepEqual([0, 2, 4, 6].map(d => at(frames[d * 9])), [[11, 8], [7, 11], [4, 7], [8, 4]]);
+  assert.equal(makeBundle('test/dart', dart).json.meta.grittyfx.view, 'side');
+});
+
 test('decoding the data sheet through the palette gives the same pixels as composite', () => {
   const { png, json } = makeBundle('test/blob', mod);
   const { frames, fx } = renderFrames(mod);

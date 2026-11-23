@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createFrame, composite, createFx, STEP } from 'grittyfx';
+import { createFrame, composite, createFx, layout, HEADINGS, STEP } from 'grittyfx';
 
 const pal = new Uint8Array(256 * 4);
 pal.set([200, 100, 0, 255], 4); // index 1
@@ -69,4 +69,20 @@ test('ramps from meta.ramps become palette indices; options override them', () =
   assert.deepEqual(fx.o.smoke, [5, 6, 7]);
   assert.deepEqual(fx.ramps.map(r => r.name), ['palette', 'smoke']);
   assert.deepEqual([...fx.palette.subarray(4, 7)], [0x0c, 0x14, 0x28]); // ice's darkest
+});
+
+test('layout: side is meta.size; top is meta.top, or a square that holds the side canvas at any heading', () => {
+  const meta = { size: [50, 28], origin: [36, 14] };
+  assert.deepEqual(layout(meta), { size: [50, 28], origin: [36, 14], directions: 1 });
+  assert.deepEqual(layout({ ...meta, top: { size: [40, 30] } }, 'top'), { size: [40, 30], origin: [20, 15], directions: 1 });
+  const { size: [w, h], origin: [ox, oy], directions } = layout({ ...meta, top: { directions: 8 } }, 'top');
+  assert.deepEqual([w, h, ox, oy, directions], [74, 74, 37, 37, 8]);
+  // the whole side canvas, filled, stays inside the top one at every heading
+  const fx = createFx({ meta: { ...meta, duration: 1, options: {} }, draw: (p, t, o) => p.shade(-36, -14, 50, 28, 1) }, { view: 'top' });
+  assert.equal(fx.o.view, 'top');
+  for (let d = 0; d < 8; d++) {
+    fx.angle = (d * Math.PI) / 4;
+    const p = fx.draw(createFrame(w, h, ox, oy));
+    assert.equal(p.outside, 0, HEADINGS[d]);
+  }
 });

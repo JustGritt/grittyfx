@@ -41,6 +41,25 @@ test('export writes the bundle into Godot and Unity projects and leaves other fi
   }
 });
 
+test('an effect with a top view exports its _top bundle beside the side one', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'grittyfx-export-'));
+  try {
+    writeFileSync(join(dir, 'project.godot'), '');
+    const r = run('fire/fireball', '--godot', dir);
+    assert.equal(r.status, 0, r.stderr);
+    const g = join(dir, 'grittyfx', 'fire', 'fireball'), names = r.stdout.trim().split(/\r?\n/).map(f => f.slice(g.length + 1));
+    const bundle = n => [`${n}.json`, `${n}_data.png`, `${n}_pal.png`, `${n}.png`, `${n}_data.png.import`, `${n}_pal.png.import`];
+    const want = [...bundle('fireball'), ...bundle('fireball_top')];
+    want.splice(4, 0, 'fireball.wav'); // one sound, written with the side bundle and shared by both
+    assert.deepEqual(names, want);
+    const side = JSON.parse(readFileSync(join(g, 'fireball.json'), 'utf8')).meta.grittyfx, top = JSON.parse(readFileSync(join(g, 'fireball_top.json'), 'utf8')).meta.grittyfx;
+    assert.deepEqual([side.view, side.directions, side.mirror], ['side', 1, true]);
+    assert.deepEqual([top.view, top.directions, top.mirror, top.data, top.sound], ['top', 8, false, 'fireball_top_data.png', 'fireball.wav']);
+  } finally {
+    rmSync(dir, { recursive: true });
+  }
+});
+
 test('export refuses a directory that is not a project, and needs a target', () => {
   const dir = mkdtempSync(join(tmpdir(), 'grittyfx-export-'));
   try {
