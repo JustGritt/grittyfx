@@ -36,6 +36,19 @@ test('a loop that jumps back is a seam; a periodic one is not', () => {
   assert.deepEqual(checkEffect('t/swing', swing), []);
 });
 
+test('top views are checked at every heading, and --seeds sweeps other seeds', () => {
+  const top = { ...meta, views: ['side', 'top'], top: { size: [16, 16], directions: 8 } };
+  // (7, -8) is the corner pixel heading east; at the four diagonals it leaves the canvas
+  const corner = { meta: top, draw: (p, t, o) => t < 0.5 && p.px(7, -8, o.palette[1]) };
+  assert.deepEqual(checkEffect('t/corner', corner), ['t/corner: top SE frame 0: draws outside the 16x16 canvas at (18, 8), in 40 of 80 frames']);
+  const late = { meta: { ...top, top: { size: [16, 16] } }, draw: (p, t, o) => (t < 0.5 || o.view === 'top') && p.px(0, 0, o.palette[1]) };
+  assert.deepEqual(checkEffect('t/late', late), ['t/late: top t = 0.5: a one-shot must draw nothing at its end']);
+  assert.match(checkEffect('t/four', { meta: { ...top, top: { directions: 4 } }, draw() {} })[0], /top.directions is 4: 1 \(radial\) or 8/);
+  const wild = { meta, draw: (p, t, o) => t < 0.5 && p.px(o.seed === 3 ? 9 : 0, 0, o.palette[1]) };
+  assert.deepEqual(checkEffect('t/wild', wild, '', { seeds: 2 }), []);
+  assert.match(checkEffect('t/wild', wild, '', { seeds: 3 }).join(), /^t\/wild: frame 0 \(seed 3\): draws outside/);
+});
+
 test('missing meta and thrown errors are reported, not crashes', () => {
   assert.match(checkEffect('t/empty', { meta: {} })[0], /meta: missing name/);
   assert.match(checkEffect('t/throws', { meta, draw: () => { throw new Error('boom'); } })[0], /error: Error: boom/);

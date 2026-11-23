@@ -1,10 +1,12 @@
-// node tools/check.mjs [id | category | glob]...: the quality gate. One line per problem; exits 1 if there is any.
-// No arguments checks every effect.
+// node tools/check.mjs [id | category | glob]... [--seeds N]: the quality gate. One line per problem; exits 1 if there
+// is any. No ids checks every effect. Every view is checked, a top view at each of its headings. --seeds N also checks
+// seeds 2 to N for drawing outside the canvas, bad colors and a one-shot that doesn't end empty.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { parseArgs } from 'node:util';
 import { performance } from 'node:perf_hooks';
-import { createFx, composite } from '../src/core/index.js';
-import { listIds, matchIds, loadEffect, drawAt } from './lib.mjs';
+import { createFx, composite, layout, HEADINGS } from '../src/core/index.js';
+import { listIds, matchIds, loadEffect, drawAt, views } from './lib.mjs';
 
 const BUDGET_MS = 2;
 
@@ -13,56 +15,69 @@ const same = (f, g) => f.color.every((v, i) => v === g.color[i]) && f.light.ever
 const rgb = (f, pal) => composite(f, pal, new Uint8Array(f.w * f.h * 4), [0, 0, 0]);
 const diff = (a, b) => a.reduce((s, v, i) => s + Math.abs(v - b[i]), 0);
 
-/** Every problem with an effect module, as "id: where: what" lines. `source` is its code, for the Math.random check. */
-export function checkEffect(id, mod, source = '') {
+/**
+ * Every problem with an effect module, as "id: where: what" lines. `source` is its code, for the Math.random check.
+ * Where is "frame 3" in the side view, "top frame 3" or "top SW frame 3" in the top one, with "(seed 4)" from `seeds`.
+ */
+export function checkEffect(id, mod, source = '', { seeds = 1 } = {}) {
   const out = [], say = (where, what) => out.push(`${id}: ${where}: ${what}`);
   const meta = mod.meta ?? {};
   for (const k of ['name', 'size', 'origin', 'duration']) if (meta[k] === undefined) say('meta', `missing ${k}`);
+  for (const view of views(meta)) if (view !== 'side' && view !== 'top') say('meta', `unknown view "${view}" (side or top)`);
+  if (![1, 8].includes(meta.top?.directions ?? 1)) say('meta', `top.directions is ${meta.top.directions}: 1 (radial) or 8 (directional)`);
   if (out.length) return out;
   try {
-    const { duration, loop } = meta, fps = meta.fps ?? 30, n = Math.max(1, Math.round(duration * fps)), [w, h] = meta.size;
-    const pass = () => {
-      const fx = createFx(mod), frames = [];
-      for (let i = 0; i < n; i++) {
-        const t0 = performance.now(), r = drawAt(fx, i / fps);
-        frames.push({ ...r, ms: performance.now() - t0 });
-      }
-      return { fx, frames };
-    };
-    const a = pass(), b = pass(), c = pass();
-
-    const once = {}; // first frame and frame count of each kind of bad write
-    a.frames.forEach(({ painters }, i) => {
-      for (const p of painters) {
-        for (const [k, at] of [['outside', p.outsideAt], ['bad', p.badAt]]) {
-          if (!p[k]) continue;
-          once[k] ??= { i, at, frames: new Set() };
-          once[k].frames.add(i);
+    const { duration, loop } = meta, fps = meta.fps ?? 30, n = Math.max(1, Math.round(duration * fps));
+    for (const view of views(meta)) {
+      const v = layout(meta, view), [w, h] = v.size, dirs = v.directions;
+      const where = (d, what, seed) => [view === 'top' && 'top', dirs > 1 && HEADINGS[d], what, seed > 1 && `(seed ${seed})`].filter(Boolean).join(' ');
+      const pass = seed => {
+        const fx = createFx(mod, { view, ...(seed > 1 && { seed }) }), frames = [];
+        for (let i = 0; i < n; i++) {
+          for (let d = 0; d < dirs; d++) {
+            const t0 = performance.now(), r = drawAt(fx, i / fps, v, d);
+            frames.push({ ...r, i, d, ms: performance.now() - t0 });
+          }
         }
+        return { fx, frames };
+      };
+      // drawing outside, bad colors and the one-shot end, for one seed
+      const bounds = seed => {
+        const a = pass(seed), once = {}; // first frame and frame count of each kind of bad write
+        a.frames.forEach(({ painters, i, d }, k) => {
+          for (const p of painters) {
+            for (const [kind, at] of [['outside', p.outsideAt], ['bad', p.badAt]]) {
+              if (!p[kind]) continue;
+              once[kind] ??= { i, d, at, frames: new Set() };
+              once[kind].frames.add(k);
+            }
+          }
+        });
+        if (once.outside) {
+          const { i, d, at, frames } = once.outside;
+          say(where(d, `frame ${i}`, seed), `draws outside the ${w}x${h} canvas at (${at.join(', ')}), in ${frames.size} of ${n * dirs} frames`);
+        }
+        if (once.bad) {
+          const { i, d, at: [x, y, col], frames } = once.bad;
+          say(where(d, `frame ${i}`, seed), `color ${col} at (${x}, ${y}) is not a palette index (1 to ${a.fx.ramps.reduce((s, r) => s + r.steps, 0)}), in ${frames.size} of ${n * dirs} frames`);
+        }
+        for (let d = 0; d < dirs && !loop; d++) if (lit(drawAt(a.fx, duration, v, d).frame)) say(where(d, `t = ${duration}`, seed), 'a one-shot must draw nothing at its end');
+        return a;
+      };
+      const a = bounds(1), b = pass(), c = pass();
+      for (let seed = 2; seed <= seeds; seed++) bounds(seed);
+
+      const changed = a.frames.find((f, k) => !same(f.frame, b.frames[k].frame));
+      if (changed) say(where(changed.d, `frame ${changed.i}`), 'differs between two renders: not deterministic');
+
+      const ms = a.frames.map((_, k) => Math.min(b.frames[k].ms, c.frames[k].ms)), slow = ms.indexOf(Math.max(...ms)), s = a.frames[slow];
+      if (ms[slow] > BUDGET_MS) say(where(s.d, `frame ${s.i}`), `takes ${ms[slow].toFixed(2)} ms to draw, over the ${BUDGET_MS} ms budget`);
+
+      for (let d = 0; d < dirs && loop && n > 2; d++) {
+        const imgs = a.frames.filter(f => f.d === d).map(f => rgb(f.frame, a.fx.palette)), steps = imgs.slice(1).map((img, i) => diff(imgs[i], img));
+        const wrap = diff(imgs[n - 1], imgs[0]), most = Math.max(...steps);
+        if (wrap > most * 1.5 + 255) say(where(d, 'loop'), `the last frame jumps to the first (change ${wrap}, other frames at most ${most}): a seam`);
       }
-    });
-    if (once.outside) {
-      const { i, at, frames } = once.outside;
-      say(`frame ${i}`, `draws outside the ${w}x${h} canvas at (${at.join(', ')}), in ${frames.size} of ${n} frames`);
-    }
-    if (once.bad) {
-      const { i, at: [x, y, col], frames } = once.bad;
-      say(`frame ${i}`, `color ${col} at (${x}, ${y}) is not a palette index (1 to ${a.fx.ramps.reduce((s, r) => s + r.steps, 0)}), in ${frames.size} of ${n} frames`);
-    }
-
-    const changed = a.frames.findIndex((f, i) => !same(f.frame, b.frames[i].frame));
-    if (changed >= 0) say(`frame ${changed}`, 'differs between two renders: not deterministic');
-
-    const ms = a.frames.map((_, i) => Math.min(b.frames[i].ms, c.frames[i].ms)), slow = ms.indexOf(Math.max(...ms));
-    if (ms[slow] > BUDGET_MS) say(`frame ${slow}`, `takes ${ms[slow].toFixed(2)} ms to draw, over the ${BUDGET_MS} ms budget`);
-
-    if (!loop) {
-      const end = drawAt(a.fx, duration).frame;
-      if (lit(end)) say(`t = ${duration}`, 'a one-shot must draw nothing at its end');
-    } else if (n > 2) {
-      const imgs = a.frames.map(f => rgb(f.frame, a.fx.palette)), steps = imgs.slice(1).map((img, i) => diff(imgs[i], img));
-      const wrap = diff(imgs[n - 1], imgs[0]), most = Math.max(...steps);
-      if (wrap > most * 1.5 + 255) say('loop', `the last frame jumps to the first (change ${wrap}, other frames at most ${most}): a seam`);
     }
 
     if (/Math\.random|\bDate\b/.test(source.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, ''))) say('source', 'uses Math.random or Date; use the seeded Rng');
@@ -81,11 +96,12 @@ export function checkEffect(id, mod, source = '') {
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const args = process.argv.slice(2), ids = args.length ? matchIds(args) : listIds();
+  const { values, positionals } = parseArgs({ allowPositionals: true, options: { seeds: { type: 'string', default: '1' } } });
+  const ids = positionals.length ? matchIds(positionals) : listIds();
   let failed = 0;
   for (const id of ids) {
     const url = new URL(`../src/fx/${id}.js`, import.meta.url);
-    const problems = checkEffect(id, await loadEffect(id), readFileSync(fileURLToPath(url), 'utf8'));
+    const problems = checkEffect(id, await loadEffect(id), readFileSync(fileURLToPath(url), 'utf8'), { seeds: Number(values.seeds) });
     problems.forEach(p => console.log(p));
     if (problems.length) failed++;
   }
