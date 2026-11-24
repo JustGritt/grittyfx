@@ -5,13 +5,15 @@ Pixel-art effects written as code, recolorable at runtime in Godot, Unity and th
 Each effect is one small JavaScript file that draws pixels and glow from a palette. Bake it once into a sprite sheet,
 then recolor it in the engine: the same explosion plays as fire, ice or poison, per instance, with no re-export.
 
-> **Status: early development.** 13 effects, each with a synthesised sound, a browser player, a Unity 6 package and a
-> Godot 4 addon (not yet tested in Godot). APIs may change.
+> **Status: 1.0.** 30 effects in 11 categories, each with a synthesised sound, 9 of them with top-down views; a browser
+> player, a Unity 6 package and a Godot 4 addon (not yet tested in Godot).
 
 - [Gallery](https://justgritt.github.io/grittyfx/): every effect live, with recolor and hit-stop. Locally:
   `node tools/serve.mjs`, then open the printed URL. Turn on Stage to see each one acted out by a swordsman and a
   training dummy (`node tools/render.mjs --stage <id>` renders it).
 - [Catalog](docs/CATALOG.md) of the effects; [authoring guide](docs/AUTHORING.md) to make your own.
+- In JS: `npm i grittyfx` (types included), then `createFx` plays any effect live on a canvas, or
+  `grittyfx/runtime/sheet-player` plays a baked bundle.
 - Export to an engine: `node tools/export.mjs <ids> --godot <project> --unity <project>`, then see
   [engines/godot](engines/godot/README.md) or [engines/unity](engines/unity/README.md).
 
@@ -21,7 +23,7 @@ Code-drawn pixel effects already exist ([pixelfx](https://github.com/patch-gg/pi
 ports), but in an engine you pick between baked sheets with fixed colors and live drawing on the CPU. grittyfx bakes
 sheets that stay recolorable.
 
-## What's planned
+## What it does
 
 - **Recolor at runtime.** Sheets store palette indices and a small shader maps them to any color ramp: elements,
   enemy variants and team colors from one sheet, on the GPU.
@@ -54,6 +56,9 @@ later.
 | 0.2 | Godot 4 addon, Unity 6 package, browser sheet player |
 | 0.3 | Claude Code skill, gallery, twelve effects |
 | 0.4 | top-down 8 directions, synthesised sound |
+| 0.5 / 1.0 | a stage that acts effects out, 30 effects, TypeScript types, npm package |
+
+Changes per version are in the [CHANGELOG](CHANGELOG.md).
 
 ## Feedback
 
