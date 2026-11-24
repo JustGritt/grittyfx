@@ -1,6 +1,6 @@
 // The stage's cast, drawn in Aseprite (src/stage/cast/*.aseprite, made into cast.js by tools/cast.mjs): a knight, a
-// mage, a priest and an archer who act effects out, and a goblin who takes them. Local coordinates as in effects:
-// (0, 0) on the floor under the feet, x toward the other actor, y down, 1 unit = 1 px.
+// mage, a priest, an archer and a kunoichi who act effects out, and a goblin who takes them. Local coordinates as in
+// effects: (0, 0) on the floor under the feet, x toward the other actor, y down, 1 unit = 1 px.
 import { paletteTable, fit } from '../core/index.js';
 import { PALETTE, CAST } from './cast.js';
 
@@ -24,6 +24,7 @@ export const CASTERS = {
   mage: { glow: true, look: { ready: 'gather', swing: 'cast', follow: 'cast', gather: 'gather', point: 'cast', raise: 'raise', crouch: 'gather' } },
   priest: { glow: true, look: { ready: 'gather', swing: 'cast', follow: 'cast', gather: 'gather', point: 'cast', raise: 'raise', crouch: 'gather' } },
   archer: { glow: false, look: { ready: 'draw', swing: 'release', follow: 'release', gather: 'draw', point: 'release', raise: 'draw', crouch: 'draw' } },
+  kunoichi: { glow: false, look: { ready: 'ready', swing: 'slash', follow: 'follow', gather: 'gather', point: 'throw', raise: 'seal', crouch: 'crouch', air: 'crouch' } },
 };
 
 /** `who`'s frame for a pose: its tag's frame `i` (wrapping), idle when it has no drawing for the pose. */

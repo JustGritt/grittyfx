@@ -1,4 +1,4 @@
-// The stage acts effects out: a caster that fits the effect (a knight, a mage or an archer) winds up for its
+// The stage acts effects out: a caster that fits the effect (a knight, a mage, a priest, an archer or a kunoichi) winds up for its
 // act.windup, the effect plays where its role puts it, the game freezes and shakes on each hit while a goblin recoils,
 // then both recover. The goblin only stands in for effects that strike it: a buff, a pickup or a prop plays with the
 // caster alone. A move chains effects.
@@ -27,7 +27,8 @@ const PLAY = 1.6; // a loop plays at least this long, then fades out
 const FADE = 0.3; // fx.stop()'s fade
 const SETTLE = 0.9; // the goblin recovers this long after a hit
 const WINDUP = { strike: 0.15, point: 0.3, raise: 0.3, hop: 0.4 }; // when act.windup is left out
-const KNIGHT = ['melee', 'slash', 'pickup']; // tags a knight acts; a projectile that isn't magic is the archer's
+const KNIGHT = ['melee', 'pickup']; // tags a knight acts; a projectile that isn't magic is the archer's
+const ROGUE = ['slash', 'vanish']; // tags the kunoichi acts, and every shadow/ effect
 
 /**
  * The caster's poses, which each caster draws its own way (CASTERS in actors.js): x steps forward and lift raises the
@@ -46,8 +47,9 @@ const SHAKE = 0.2, JIGGLE = [[1, 0], [-1, 1], [1, -1], [-1, 0]]; // as in the ga
  * category, else target. `ground` is the floor's y in the effect's own coordinates (how high its anchor sits), `x`
  * shifts it toward the goblin, `speed` is a looping projectile's in px/s. `pose` is how the caster acts it: strike (a
  * melee effect on the target), hop (landing or jump on the ground), raise (on the caster), point (anything else), none
- * (aside). `cast` is who: meta.stage.cast, else a knight for a strike, a hop or a pickup, the priest for a holy/
- * effect, an archer for a projectile that isn't magic or a spell, else a mage.
+ * (aside). `cast` is who: meta.stage.cast, else the kunoichi for a slash, a vanish or a shadow/ effect, a knight
+ * for a strike, a hop or a pickup, the priest for a holy/ effect, an archer for a projectile that isn't magic or a
+ * spell, else a mage.
  */
 export function role(meta, id = '') {
   const tags = meta.tags ?? [], s = meta.stage ?? {};
@@ -56,7 +58,8 @@ export function role(meta, id = '') {
     : at === 'ground' && (tags.includes('landing') || tags.includes('jump')) ? 'hop'
     : at === 'caster' || at === 'ground' ? 'raise'
     : at === 'target' && (tags.includes('melee') || tags.includes('slash')) ? 'strike' : 'point';
-  const cast = s.cast ?? (pose === 'strike' || pose === 'hop' || tags.some(t => KNIGHT.includes(t)) || id.startsWith('pickups/') ? 'knight'
+  const cast = s.cast ?? (tags.some(t => ROGUE.includes(t)) || id.startsWith('shadow/') ? 'kunoichi'
+    : pose === 'strike' || pose === 'hop' || tags.some(t => KNIGHT.includes(t)) || id.startsWith('pickups/') ? 'knight'
     : id.startsWith('holy/') ? 'priest'
     : at === 'path' && !tags.includes('magic') && !tags.includes('spell') ? 'archer' : 'mage');
   const ground = s.ground ?? (at === 'target' || at === 'path' ? HIT : at === 'above' ? HEAD : 0);

@@ -10,6 +10,8 @@
 - **Gallery**: Caster and Target toggles replace Stage, on by default, like pixelfx's character toggle: either can
   be switched off (`?caster=0`, `?target=0`), both off shows the effect alone. `createStage(steps, o, show)`.
 - **New effect** `projectiles/arrow` (8 headings), and an Arrow shot move.
+- **A kunoichi** joins the cast: she slashes (`slash`, the Sword combo with it), vanishes (`vanish`, the smoke
+  puff) and acts every `shadow/` effect, throwing, crouching into a hand sign or lunging with her kunai.
 - **More moves**: Shock arrow (archer), Tidal bolt and Hex (mage), Smite (priest), so every caster and the water,
   shadow, electric and holy effects play in one.
 - **Gallery ground**: a `ground` background, the default, like pixelfx's: a stone floor under the actors' feet (or
