@@ -1,6 +1,7 @@
-// The gallery: plays every effect live from its module, or one large with ?fx=<id> (the preview page). With Stage on,
-// a swordsman and a dummy act them out, and the moves (?move=<id>) show above them.
-import { PAL, hex, createFx, createFrame, clearFrame, composite, layout, HEADINGS } from '../src/core/index.js';
+// The gallery: plays every effect live from its module, filtered by category (?cat=), or one large with ?fx=<id> (the
+// preview page, with its sound). With Stage on, a swordsman and a dummy act them out, and the moves (?move=<id>) show
+// above them.
+import { PAL, hex, fit, createFx, createFrame, clearFrame, composite, layout, HEADINGS, synth, SAMPLE_RATE } from '../src/core/index.js';
 import { createStage, role } from '../src/stage/stage.js';
 import { MOVES } from '../src/stage/moves.js';
 
@@ -12,7 +13,10 @@ const calm = matchMedia('(prefers-reduced-motion: reduce)');
 const form = document.getElementById('controls'), f = form.elements, main = document.getElementById('main');
 const params = new URLSearchParams(location.search), only = params.get('fx'), move = params.get('move');
 const players = [];
+const audio = { ctx: null, on: false }; // sound plays on the preview page only, once its button is pressed
 let custom = null; // the last valid custom ramp
+let cat = params.get('cat') ?? ''; // the grid's category filter, '' for all
+let refresh = () => {}; // the preview page's parts that follow the settings
 
 const el = (tag, props = {}, ...kids) => {
   const e = Object.assign(document.createElement(tag), props);
@@ -32,6 +36,7 @@ if (!BG[f.bg.value]) f.bg.value = 'dark';
 
 function query(extra = {}) {
   const q = new URLSearchParams(extra), pal = f.palette.value;
+  if (cat) q.set('cat', cat);
   if (pal) q.set('palette', pal);
   if (pal === 'custom') q.set('custom', f.custom.value);
   if (f.seed.value) q.set('seed', f.seed.value);
@@ -54,15 +59,18 @@ function readCustom() {
   }
 }
 
+const swatches = colors => colors.map(c => {
+  const s = el('span');
+  s.style.background = `rgb(${c.slice(0, 3)})`;
+  return s;
+});
+
 function showSettings() {
   const pal = f.palette.value, colors = pal === 'custom' ? custom ?? [] : PAL[pal] ?? [];
   document.getElementById('custom-field').hidden = pal !== 'custom';
-  document.getElementById('ramp').replaceChildren(...colors.map(c => {
-    const s = el('span');
-    s.style.background = `rgb(${hex(c).slice(0, 3)})`;
-    return s;
-  }));
+  document.getElementById('ramp').replaceChildren(...swatches(colors.map(hex)));
   document.body.dataset.bg = f.bg.value;
+  refresh();
   document.getElementById('moves')?.toggleAttribute('hidden', !f.stage.checked);
   for (const a of document.querySelectorAll('a[data-fx]')) a.href = query({ fx: a.dataset.fx });
   for (const a of document.querySelectorAll('a[data-move]')) a.href = query({ move: a.dataset.move });
@@ -77,6 +85,55 @@ function options() {
   return o;
 }
 
+/** The effect's ramps as it plays now, for the preview's details: name, colors, where they come from. */
+function rampRows(meta) {
+  const o = { ...meta.options, ...options() };
+  return Object.entries(meta.ramps ?? {}).flatMap(([k, n]) => [
+    el('span', { textContent: k }),
+    el('span', { className: 'ramp' }, ...swatches(fit(o[k], n))),
+    el('span', { className: 'note', textContent: typeof o[k] === 'string' ? o[k] : 'custom' }),
+  ]);
+}
+
+/** Copyable lines that use the effect with the current palette and seed: live in JS, exported, or baked to a sheet. */
+function useRows(id) {
+  const o = options(), name = id.split('/')[1].replace(/-(\w)/g, (_, c) => c.toUpperCase());
+  const js = v => (Array.isArray(v) ? `[${v.map(js).join(', ')}]` : typeof v === 'string' ? `'${v}'` : String(v));
+  const args = Object.keys(o).length ? `, { ${Object.entries(o).map(([k, v]) => `${k}: ${js(v)}`).join(', ')} }` : '';
+  const bake = (o.palette ? ` --opts '${JSON.stringify({ palette: o.palette })}'` : '') + (o.seed !== undefined ? ` --seed ${o.seed}` : '');
+  return [
+    ['js', `import { createFx } from 'grittyfx';\nimport * as ${name} from 'grittyfx/fx/${id}';\nconst fx = createFx(${name}${args});`],
+    ['godot', `node tools/export.mjs ${id} --godot <project>`],
+    ['unity', `node tools/export.mjs ${id} --unity <project>`],
+    ['sheet', `node tools/render.mjs ${id} --sheet${bake}`],
+  ].flatMap(([k, code]) => [
+    el('dt', { textContent: k }),
+    el('dd', {}, el('pre', {}, el('code', { textContent: code })), el('button', { type: 'button', className: 'copy', textContent: 'copy' })),
+  ]);
+}
+
+/**
+ * Starts a cue's sound `late` seconds in: { at, end, stop, meta }, all times on the player's clock. A loop that stops
+ * (on the stage) fades out from `end` to `stop`, as its pixels do. Hit-stop freezes the pixels but not the sound, as
+ * in a game.
+ */
+function play(cue, late) {
+  const s = synth(cue.meta, options().seed);
+  if (!s) return null;
+  const ctx = audio.ctx, buf = ctx.createBuffer(1, s.length, SAMPLE_RATE), src = ctx.createBufferSource(), gain = ctx.createGain();
+  buf.copyToChannel(Float32Array.from(s), 0);
+  Object.assign(src, { buffer: buf, loop: !!cue.meta.loop });
+  src.connect(gain).connect(ctx.destination);
+  const t0 = ctx.currentTime - late; // when the cue's time 0 was, on the audio clock
+  src.start(0, late);
+  if (cue.meta.loop && cue.stop < Infinity) {
+    gain.gain.setValueAtTime(1, t0 + cue.end - cue.at);
+    gain.gain.linearRampToValueAtTime(0, t0 + cue.stop - cue.at);
+    src.stop(t0 + cue.stop - cue.at);
+  }
+  return src;
+}
+
 /**
  * Plays one effect on a canvas at its own frame rate, like its baked sheet, or acted out on the stage when Stage is on
  * (a move, given as `steps`, always is). With hit-stop on, each hit freezes it for `freeze` seconds and shakes the view
@@ -84,7 +141,7 @@ function options() {
  */
 function player(mod, canvas, big, id, steps) {
   const meta = mod?.meta, ctx = canvas.getContext('2d');
-  let fx, st, fps, hits, duration, loop, clock, base, next, freeze, shake, shown, w, h, ox, img, frame;
+  let fx, st, fps, hits, duration, loop, clock, base, next, freeze, shake, shown, w, h, ox, img, frame, cues = [], sounds = [];
   const pl = {
     canvas, zoom: 1, error: null,
     restart() {
@@ -109,6 +166,17 @@ function player(mod, canvas, big, id, steps) {
       clock = base = next = freeze = 0;
       shake = null;
       shown = -1;
+      pl.hush();
+      // each effect's sound from where it starts: the effect's from 0, a stage's from each act's start
+      if (big && audio.on) {
+        cues = st ? st.plan.acts.map(a => ({ at: a.start, end: a.end, stop: a.stop, meta: a.mod.meta })) : [{ at: 0, end: Infinity, stop: Infinity, meta }];
+        cues.sort((a, b) => a.at - b.at);
+      }
+    },
+    hush() {
+      sounds.forEach(s => s.stop());
+      sounds = [];
+      cues = [];
     },
     redraw() {
       shown = -1;
@@ -129,6 +197,10 @@ function player(mod, canvas, big, id, steps) {
         } else clock += dt;
         if (loop && next === hits.length && clock >= base + duration) (base += duration), (next = 0);
         if (!loop && clock >= duration + GAP) pl.restart();
+      }
+      while (cues.length && clock >= cues[0].at) {
+        const cue = cues.shift(), s = play(cue, clock - cue.at);
+        if (s) sounds.push(s);
       }
       let dx = 0, dy = 0;
       if (shake && (shake.left -= dt) > 0 && !calm.matches) {
@@ -153,6 +225,7 @@ function player(mod, canvas, big, id, steps) {
       ctx.putImageData(img, 0, 0);
     },
     fail(e) {
+      pl.hush();
       pl.error = e;
       broken(canvas.parentElement, e);
     },
@@ -181,18 +254,21 @@ async function show(entry, root, big) {
     if (big) {
       document.title = `${meta.name} · grittyfx`;
       const hits = (meta.act?.hits ?? []).map(x => `${+x.t.toFixed(3)} s (freeze ${x.freeze ?? 0} s, shake ${x.shake ?? 0} px)`);
+      const ramps = el('span', { className: 'ramps' }), use = root.querySelector('.use');
       const rows = [
         ['id', entry.id], ['size', `${meta.size.join(' × ')} px`], ['anchor', meta.origin.join(', ')],
-        ['plays', kind], ['duration', `${meta.duration} s at ${meta.fps ?? 30} fps`],
-        ['ramps', Object.entries(meta.ramps ?? {}).map(([k, n]) => `${k} ${n} (${meta.options?.[k] ?? '?'})`).join(', ')],
+        ['plays', kind], ['duration', `${meta.duration} s at ${meta.fps ?? 30} fps`], ['ramps', ramps],
         ['hits', hits.join(', ') || 'none'], ['tags', (meta.tags ?? []).join(', ')],
         ['stage', (({ at, pose, ground }) => `${at}, anchor ${ground} px up, ${pose ?? 'not acted'}`)(role(meta, entry.id))],
+        ['source', el('a', { href: `../src/fx/${entry.id}.js`, textContent: `src/fx/${entry.id}.js` })],
       ];
-      root.querySelector('.meta').append(
-        ...rows.flatMap(([k, v]) => [el('dt', { textContent: k }), el('dd', { textContent: v })]),
-        el('dt', { textContent: 'source' }),
-        el('dd', {}, el('a', { href: `../src/fx/${entry.id}.js`, textContent: `src/fx/${entry.id}.js` })),
-      );
+      root.querySelector('.meta').append(...rows.flatMap(([k, v]) => [el('dt', { textContent: k }), el('dd', {}, v)]));
+      use.hidden = false;
+      refresh = () => {
+        ramps.replaceChildren(...rampRows(meta));
+        use.querySelector('.meta').replaceChildren(...useRows(entry.id));
+      };
+      refresh();
     } else {
       root.querySelector('.facts').append(
         ...describe(meta).map((s, i) => el('li', { className: i ? '' : 'kind', textContent: s })),
@@ -233,6 +309,24 @@ async function showMove(id, root, big) {
 const note = (...kids) => main.replaceChildren(el('p', { className: 'note', role: 'status' }, ...kids));
 const clone = id => document.getElementById(id).content.firstElementChild.cloneNode(true);
 
+/** The preview page for `id`, linked to the ones before and after it in `ids` (round the ends); key is 'fx' or 'move'. */
+function preview(ids, id, key, nameOf) {
+  const root = clone('preview-tpl'), i = ids.indexOf(id), n = ids.length;
+  root.querySelector('.pager').hidden = n < 2;
+  root.querySelectorAll('.pager a').forEach((a, k) => {
+    const other = ids[(i + (k ? 1 : -1) + n) % n];
+    a.dataset[key] = other;
+    a.textContent = k ? `${nameOf(other)} ›` : `‹ ${nameOf(other)}`;
+    a.setAttribute('aria-label', `${k ? 'Next' : 'Previous'}: ${nameOf(other)}`);
+  });
+  if (key === 'fx' && cat) root.querySelector('.back').textContent = `← all ${cat} effects`;
+  main.replaceChildren(root);
+  return root;
+}
+
+/** Hides the grid's cards outside the chosen category. */
+const filter = () => document.querySelectorAll('li[data-cat]').forEach(li => (li.hidden = !!cat && li.dataset.cat !== cat));
+
 async function start() {
   let list;
   try {
@@ -244,20 +338,24 @@ async function start() {
   }
   if (move) {
     if (!MOVES[move]) return note('No move called ', el('code', { textContent: move }), '. ', el('a', { className: 'back', href: './', textContent: 'See them all.' }));
-    const root = clone('preview-tpl');
-    main.replaceChildren(root);
-    await showMove(move, root, true);
+    await showMove(move, preview(Object.keys(MOVES), move, 'move', id => MOVES[id].name), true);
   } else if (only) {
     const entry = list.find(e => e.id === only);
     if (!entry) return note('No effect called ', el('code', { textContent: only }), '. ', el('a', { className: 'back', href: './', textContent: 'See them all.' }));
-    const root = clone('preview-tpl');
-    main.replaceChildren(root);
-    await show(entry, root, true);
+    // step through the category the grid was filtered to, else through them all
+    const all = list.map(e => e.id), mine = all.filter(id => id.startsWith(`${cat}/`)), ids = mine.includes(only) ? mine : all;
+    if (ids === all) cat = '';
+    await show(entry, preview(ids, only, 'fx', id => list.find(e => e.id === id).meta?.name ?? id), true);
   } else {
     if (!list.length) return note('No effects yet.');
+    const counts = {};
+    for (const { id } of list) counts[id.split('/')[0]] = (counts[id.split('/')[0]] ?? 0) + 1;
+    if (!counts[cat]) cat = '';
+    const chips = el('fieldset', { className: 'chips', ariaLabel: 'Category' }, ...[['', list.length], ...Object.entries(counts)].map(([c, n]) =>
+      el('label', {}, el('input', { type: 'radio', name: 'cat', value: c, checked: c === cat }), el('span', {}, `${c || 'all'} `, el('small', { textContent: n })))));
     const ul = el('ul', { className: 'grid' }), moves = el('ul', { className: 'grid' });
     const ids = Object.keys(MOVES), section = el('section', { id: 'moves', hidden: !f.stage.checked }, el('h2', { textContent: `${ids.length} moves` }), moves);
-    main.replaceChildren(section, el('h2', { textContent: `${list.length} effects` }), ul);
+    main.replaceChildren(section, el('h2', { textContent: `${list.length} effects` }), chips, ul);
     for (const id of ids) {
       const card = clone('card-tpl');
       moves.append(card);
@@ -265,22 +363,43 @@ async function start() {
     }
     for (const entry of list) {
       const card = clone('card-tpl');
+      card.dataset.cat = entry.id.split('/')[0];
       ul.append(card);
       show(entry, card, false);
     }
+    filter();
   }
   showSettings();
 }
 
 form.addEventListener('submit', e => e.preventDefault());
-form.addEventListener('input', e => {
+document.addEventListener('input', e => { // the form's settings and the grid's category chips
   if (e.target === f.custom) readCustom();
+  if (e.target.name === 'cat') (cat = e.target.value), filter();
   showSettings();
   history.replaceState(null, '', move ? query({ move }) : only ? query({ fx: only }) : query());
   const restart = [f.palette, f.custom, f.seed, f.view, f.stage].includes(e.target);
   for (const pl of players) if (!pl.error) restart ? pl.restart() : pl.redraw();
-  if (e.target === f.stage) players.forEach(pl => pl.error || pl.fit()); // the moves were hidden, at zoom 1
+  if (e.target === f.stage || e.target.name === 'cat') players.forEach(pl => pl.error || pl.fit()); // shown again, fit while hidden at zoom 1
 });
+main.addEventListener('click', e => {
+  const sound = e.target.closest('.sound'), copy = e.target.closest('.copy');
+  if (sound) {
+    audio.ctx ??= new AudioContext();
+    audio.ctx.resume();
+    audio.on = !audio.on;
+    sound.setAttribute('aria-pressed', audio.on);
+    players.forEach(pl => pl.error || pl.restart()); // from the top, so the sound starts with the pixels
+  }
+  if (copy) {
+    const done = text => () => {
+      copy.textContent = text;
+      setTimeout(() => (copy.textContent = 'copy'), 1500);
+    };
+    navigator.clipboard.writeText(copy.previousElementSibling.textContent).then(done('copied'), done('failed'));
+  }
+});
+document.addEventListener('visibilitychange', () => audio.ctx?.[document.hidden ? 'suspend' : 'resume']()); // the pixels pause too
 document.getElementById('replay').addEventListener('click', () => players.forEach(pl => pl.error || pl.restart()));
 addEventListener('resize', () => players.forEach(pl => pl.error || pl.fit()));
 

@@ -7,6 +7,9 @@
   light layer in Addition, the effect's palette, a tag per hit); `export.mjs <file>.aseprite` bundles it back, still
   recolorable. Frame durations become held frames, hit tags move the hits and the sound's cues follow them. The bundle
   takes the file's name, so variants sit beside the original. `export.mjs --out <dir>` writes bundles for any engine.
+- **Gallery**: category filter (`?cat=`); pictures line up across a row. The preview page plays the effect's sound
+  (on the stage too), steps to the previous and next effect, shows each ramp's colors, and gives copyable lines to
+  use it: the JS import, the Godot and Unity export, the sheet, with the chosen palette and seed.
 
 ## 1.0.0 (2026-11-24)
 
