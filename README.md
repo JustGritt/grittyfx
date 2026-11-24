@@ -17,9 +17,9 @@ then recolor it in the engine: the same explosion plays as fire, ice or poison, 
 - Export to an engine: `node tools/export.mjs <ids> --godot <project> --unity <project>`, then see
   [engines/godot](engines/godot/README.md) or [engines/unity](engines/unity/README.md). `--out <dir>` writes the
   same bundle for any other engine.
-- Edit one by hand: `node tools/render.mjs <id> --aseprite` writes `records/<id>/<name>.aseprite`. Change its pacing,
+- Edit one by hand: `node tools/render.mjs <id> --aseprite <dir>` writes `<dir>/<name>.aseprite`. Change its pacing,
   anticipation or pixels in Aseprite, then `node tools/export.mjs <file>.aseprite --godot ...` bundles it back, still
-  recolorable.
+  recolorable. With the Claude Code skill and an Aseprite MCP, Claude opens it in your Aseprite for you.
 
 ## Why
 

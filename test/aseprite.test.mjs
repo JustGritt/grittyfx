@@ -106,3 +106,20 @@ test('export bundles an edited file into --out, named after the file', () => {
     rmSync(dir, { recursive: true });
   }
 });
+
+test('render --aseprite writes into the given folder and never over an existing file', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'grittyfx-ase-')), file = join(dir, 'art', 'hit-spark.aseprite');
+  const render = () => spawnSync(process.execPath, ['tools/render.mjs', ID, '--aseprite', join(dir, 'art')], { cwd: ROOT, encoding: 'utf8' });
+  try {
+    let r = render();
+    assert.equal(r.status, 0, r.stderr);
+    assert.deepEqual(readFileSync(file), asepriteFile(ID, mod));
+    writeFileSync(file, 'my edits');
+    r = render();
+    assert.equal(r.status, 0, r.stderr);
+    assert.match(r.stdout, /kept: it exists/);
+    assert.equal(readFileSync(file, 'utf8'), 'my edits');
+  } finally {
+    rmSync(dir, { recursive: true });
+  }
+});

@@ -78,15 +78,22 @@ reaches `t`, pause the game for `freeze` seconds and shake the camera by `shake`
 attacker winds up before the effect starts. Engines raise these as signals or events.
 
 **Edit by hand in Aseprite** (pacing, anticipation, holds, pixel touch-ups): `node <gfx>/tools/render.mjs <id>
---aseprite [--opts json]` writes `<gfx>/records/<id>/<name>.aseprite` (side view): a `color` layer, a `light` layer
-(Addition, the glow), the effect's palette and a one-frame `hit freeze=.. shake=..` tag per hit. In Aseprite, frame
-durations set the pacing (rounded to whole frames at the effect's fps; a 100 ms frame at 30 fps plays as 3), dragging a
-hit tag moves the hit and its sound, and new pixels must use the file's palette colors or they can't be recolored.
-Keep the two layers (merge any others into them) and the canvas size. Then `node <gfx>/tools/export.mjs
-<file>.aseprite --godot <project> --unity <project>` (or `--out <dir>` for any other engine) bundles it as
-`<category>/<file name>`: rename the file to keep the original beside a variant. The edited file is now the source:
-re-exporting the effect's id renders the code again, without the edits. With the Aseprite MCP connected, open the file
-with `open_sprite` (its allowed dirs must include the file's folder) and edit it with `duplicate_frame`, `set_frame_duration` and the drawing tools.
+--aseprite <dir> [--opts json] [--seed N]` writes `<dir>/<name>.aseprite` (side view) and never overwrites one: put it
+with the game's art, never under `<gfx>` (a plugin update replaces that folder). It has a `color` layer, a `light`
+layer (Addition, the glow), the effect's palette and a one-frame `hit freeze=.. shake=..` tag per hit. Frame durations
+set the pacing (rounded to whole frames at the effect's fps: a 100 ms frame at 30 fps plays as 3), moving a hit tag
+moves the hit and its sound, and new pixels must use the file's palette colors or they can't be recolored. Keep the
+two layers (merge any others into them) and the canvas size. Then `node <gfx>/tools/export.mjs <file>.aseprite
+--godot <project> --unity <project>` (or `--out <dir>` for any other engine) bundles it as `<category>/<file name>`:
+rename the file to keep a variant beside the original. The file is now the effect's source: exporting the id again
+renders the code, without the edits.
+
+**With an Aseprite MCP connected** (`open_sprite`, `save_sprite`, ...), open it in their Aseprite instead of
+pointing at a file: `get_connection_status` lists `allowedDirectories`; render with `--aseprite` into a folder inside
+one (the game's art folder when there is one, e.g. `<allowed>/fx`), then `open_sprite` the path it printed. Edit with
+the MCP's tools (`set_frame_duration` for holds, `duplicate_frame` for anticipation, `update_animation_tag` to move a
+hit, colors from `get_palette` for pixels), `save_sprite`, then export the file as above. If no allowed directory
+fits, say so: they add one to `ASEPRITE_MCP_ALLOWED_DIRS`.
 
 **Recolor**: live, pass ramp options to `createFx`. In an engine, call `set_ramp` (Godot) or `SetRamp` (Unity) per
 instance with the colors of a ramp from `src/core/color.js`. To bake a palette instead, `render.mjs <id> --sheet --opts
