@@ -357,6 +357,7 @@ function preview(ids, id, key, nameOf) {
     a.setAttribute('aria-label', `${k ? 'Next' : 'Previous'}: ${nameOf(other)}`);
   });
   if (key === 'fx' && cat) root.querySelector('.back').textContent = `← all ${cat} effects`;
+  root.querySelector('.desc').after(form); // the page's own nav and title first, then the settings for its stage
   main.replaceChildren(root);
   return root;
 }
@@ -391,8 +392,11 @@ async function start() {
     const chips = el('fieldset', { className: 'chips', ariaLabel: 'Category' }, ...[['', list.length], ...Object.entries(counts)].map(([c, n]) =>
       el('label', {}, el('input', { type: 'radio', name: 'cat', value: c, checked: c === cat }), el('span', {}, `${c || 'all'} `, el('small', { textContent: n })))));
     const ul = el('ul', { className: 'grid' }), moves = el('ul', { className: 'grid' });
-    const ids = Object.keys(MOVES), section = el('section', { id: 'moves', hidden: !acting() }, el('h2', { textContent: `${ids.length} moves` }), moves);
-    main.replaceChildren(section, el('h2', { textContent: `${list.length} effects` }), chips, ul);
+    const ids = Object.keys(MOVES), head = (text, n) => el('h2', {}, text, el('small', { textContent: n }));
+    main.replaceChildren(
+      el('section', {}, head('Effects', list.length), chips, ul),
+      el('section', { id: 'moves', hidden: !acting() }, head('Moves', ids.length), moves),
+    );
     for (const id of ids) {
       const card = clone('card-tpl');
       moves.append(card);
