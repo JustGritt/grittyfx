@@ -1,6 +1,6 @@
 // The gallery: plays every effect live from its module, filtered by category (?cat=), or one large with ?fx=<id> (the
-// preview page, with its sound). With Stage on, a swordsman and a dummy act them out, and the moves (?move=<id>) show
-// above them.
+// preview page, with its sound). With either character on, a knight, a mage or an archer acts them out on a goblin,
+// and the moves (?move=<id>) show above them.
 import { PAL, hex, fit, createFx, createFrame, clearFrame, composite, layout, HEADINGS, synth, SAMPLE_RATE } from '../src/core/index.js';
 import { createStage, role } from '../src/stage/stage.js';
 import { MOVES } from '../src/stage/moves.js';
@@ -28,7 +28,7 @@ const el = (tag, props = {}, ...kids) => {
 for (const name of Object.keys(PAL)) f.palette.add(new Option(name, name), f.palette.length - 1);
 HEADINGS.forEach((name, d) => f.view.add(new Option(`top ${name}`, d))); // effects without a top view stay side
 for (const [k, v] of params) {
-  if (k === 'flip' || k === 'hitstop' || k === 'stage') f[k].checked = v === '1';
+  if (k === 'flip' || k === 'hitstop' || k === 'caster' || k === 'target') f[k].checked = v === '1';
   else if (['palette', 'custom', 'seed', 'bg', 'view'].includes(k)) f[k].value = v;
 }
 f.custom.value ||= '#0b1a2e #14506a #1ca0a0 #6ff0c0 #f2fff6';
@@ -42,7 +42,8 @@ function query(extra = {}) {
   if (f.seed.value) q.set('seed', f.seed.value);
   if (f.view.value) q.set('view', f.view.value);
   if (f.flip.checked) q.set('flip', 1);
-  if (f.stage.checked) q.set('stage', 1);
+  if (!f.caster.checked) q.set('caster', 0);
+  if (!f.target.checked) q.set('target', 0);
   if (f.bg.value !== 'dark') q.set('bg', f.bg.value);
   if (!f.hitstop.checked) q.set('hitstop', 0);
   return String(q) ? `?${String(q).replaceAll('%2F', '/')}` : './';
@@ -71,11 +72,14 @@ function showSettings() {
   document.getElementById('ramp').replaceChildren(...swatches(colors.map(hex)));
   document.body.dataset.bg = f.bg.value;
   refresh();
-  document.getElementById('moves')?.toggleAttribute('hidden', !f.stage.checked);
+  document.getElementById('moves')?.toggleAttribute('hidden', !acting());
   for (const a of document.querySelectorAll('a[data-fx]')) a.href = query({ fx: a.dataset.fx });
   for (const a of document.querySelectorAll('a[data-move]')) a.href = query({ move: a.dataset.move });
   for (const a of document.querySelectorAll('a.back')) a.href = query();
 }
+
+/** Whether effects are acted out: either character is shown. */
+const acting = () => f.caster.checked || f.target.checked;
 
 /** The options every effect is created with: the chosen palette and seed over its own. */
 function options() {
@@ -135,9 +139,9 @@ function play(cue, late) {
 }
 
 /**
- * Plays one effect on a canvas at its own frame rate, like its baked sheet, or acted out on the stage when Stage is on
- * (a move, given as `steps`, always is). With hit-stop on, each hit freezes it for `freeze` seconds and shakes the view
- * by `shake` pixels: the effect's hits in meta.act, or the stage's.
+ * Plays one effect on a canvas at its own frame rate, like its baked sheet, or acted out on the stage when a character
+ * is on (a move, given as `steps`, always is). With hit-stop on, each hit freezes it for `freeze` seconds and shakes
+ * the view by `shake` pixels: the effect's hits in meta.act, or the stage's.
  */
 function player(mod, canvas, big, id, steps) {
   const meta = mod?.meta, ctx = canvas.getContext('2d');
@@ -145,8 +149,8 @@ function player(mod, canvas, big, id, steps) {
   const pl = {
     canvas, zoom: 1, error: null,
     restart() {
-      const acted = steps ?? (f.stage.checked && [{ mod, id }]);
-      st = acted && createStage(acted, options());
+      const acted = steps ?? (acting() && [{ mod, id }]);
+      st = acted && createStage(acted, options(), { caster: f.caster.checked, target: f.target.checked });
       // the top view at the chosen heading, live, so any angle works; the canvas follows the view's size
       const view = !st && f.view.value && meta.views?.includes('top') ? 'top' : 'side', v = st ? null : layout(meta, view);
       const [sw, sh] = st ? st.size : v.size;
@@ -259,7 +263,7 @@ async function show(entry, root, big) {
         ['id', entry.id], ['size', `${meta.size.join(' × ')} px`], ['anchor', meta.origin.join(', ')],
         ['plays', kind], ['duration', `${meta.duration} s at ${meta.fps ?? 30} fps`], ['ramps', ramps],
         ['hits', hits.join(', ') || 'none'], ['tags', (meta.tags ?? []).join(', ')],
-        ['stage', (({ at, pose, ground }) => `${at}, anchor ${ground} px up, ${pose ?? 'not acted'}`)(role(meta, entry.id))],
+        ['stage', (({ at, pose, cast, ground }) => `${at}, anchor ${ground} px up, ${pose ? `${cast}: ${pose}` : 'not acted'}`)(role(meta, entry.id))],
         ['source', el('a', { href: `../src/fx/${entry.id}.js`, textContent: `src/fx/${entry.id}.js` })],
       ];
       root.querySelector('.meta').append(...rows.flatMap(([k, v]) => [el('dt', { textContent: k }), el('dd', {}, v)]));
@@ -354,7 +358,7 @@ async function start() {
     const chips = el('fieldset', { className: 'chips', ariaLabel: 'Category' }, ...[['', list.length], ...Object.entries(counts)].map(([c, n]) =>
       el('label', {}, el('input', { type: 'radio', name: 'cat', value: c, checked: c === cat }), el('span', {}, `${c || 'all'} `, el('small', { textContent: n })))));
     const ul = el('ul', { className: 'grid' }), moves = el('ul', { className: 'grid' });
-    const ids = Object.keys(MOVES), section = el('section', { id: 'moves', hidden: !f.stage.checked }, el('h2', { textContent: `${ids.length} moves` }), moves);
+    const ids = Object.keys(MOVES), section = el('section', { id: 'moves', hidden: !acting() }, el('h2', { textContent: `${ids.length} moves` }), moves);
     main.replaceChildren(section, el('h2', { textContent: `${list.length} effects` }), chips, ul);
     for (const id of ids) {
       const card = clone('card-tpl');
@@ -378,9 +382,9 @@ document.addEventListener('input', e => { // the form's settings and the grid's 
   if (e.target.name === 'cat') (cat = e.target.value), filter();
   showSettings();
   history.replaceState(null, '', move ? query({ move }) : only ? query({ fx: only }) : query());
-  const restart = [f.palette, f.custom, f.seed, f.view, f.stage].includes(e.target);
+  const restart = [f.palette, f.custom, f.seed, f.view, f.caster, f.target].includes(e.target);
   for (const pl of players) if (!pl.error) restart ? pl.restart() : pl.redraw();
-  if (e.target === f.stage || e.target.name === 'cat') players.forEach(pl => pl.error || pl.fit()); // shown again, fit while hidden at zoom 1
+  if (e.target === f.caster || e.target === f.target || e.target.name === 'cat') players.forEach(pl => pl.error || pl.fit()); // shown again, fit while hidden at zoom 1
 });
 main.addEventListener('click', e => {
   const sound = e.target.closest('.sound'), copy = e.target.closest('.copy');

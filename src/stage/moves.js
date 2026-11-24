@@ -8,17 +8,22 @@ export const MOVES = {
   },
   fireball: {
     name: 'Fireball',
-    desc: 'A fireball thrown from the sword, exploding on the dummy',
+    desc: 'A fireball cast from the staff, exploding on the goblin',
     steps: [{ fx: 'fire/fireball' }, { fx: 'explosions/small-explosion', on: 'hit' }],
   },
   thunder: {
     name: 'Thunder',
-    desc: 'Lightning called down on the dummy',
+    desc: 'Lightning called down on the goblin',
     steps: [{ fx: 'magic/lightning-strike' }],
   },
   'frost-nova': {
     name: 'Frost nova',
-    desc: 'Ice bursts from the ground around the swordsman, glints hanging in the cold air',
+    desc: 'Ice bursts from the ground around the mage, glints hanging in the cold air',
     steps: [{ fx: 'magic/frost-burst' }, { fx: 'magic/twinkle', on: 'hit', opts: { palette: 'ice' } }],
+  },
+  'arrow-shot': {
+    name: 'Arrow shot',
+    desc: 'An arrow loosed from the bow, sparking where it strikes the goblin',
+    steps: [{ fx: 'projectiles/arrow' }, { fx: 'impacts/hit-spark', on: 'hit' }],
   },
 };

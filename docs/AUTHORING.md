@@ -12,7 +12,7 @@ drawing API, the workflow and the bar an effect has to clear. The code in `src/c
 | new | `node tools/new.mjs magic/frost-nova [--loop]` | A simulated one-shot, or a pure loop with `--loop`, that renders and passes the check as generated. |
 | render | `node tools/render.mjs magic/frost-nova` | Writes `records/<id>/contact.png`: 12 sampled frames at 3x, and `contact_top.png` (a row per heading) for a top view. `--all` for every frame, `--gif` / `--mp4` (ffmpeg, side view), `--zoom`, `--fps`, `--seed`, `--bg '#hex'`, `--opts '<json>'`. |
 | look, fix | | Open the contact sheet and judge it against the [quality bar](#the-quality-bar). Fix the worst thing, render again. **Three rounds minimum**: the first draft never holds up. |
-| act out | `node tools/render.mjs --stage magic/frost-nova` | Writes `records/<id>/stage.png`: the effect acted out by the [stage](#stage)'s swordsman and dummy, held on each hit and shaken, as a game shows it. Check where it lands and how its hits feel. `--gif`, `--mp4`, `--all`, `--flip`; a move's name instead of an id plays the move. |
+| act out | `node tools/render.mjs --stage magic/frost-nova` | Writes `records/<id>/stage.png`: the effect acted out by the [stage](#stage)'s cast, held on each hit and shaken, as a game shows it. Check where it lands and how its hits feel. `--gif`, `--mp4`, `--all`, `--flip`; a move's name instead of an id plays the move. |
 | sound | `node tools/sfx.mjs magic/frost-nova` | Writes `records/<id>/<name>.wav` from the [sound cues](#sound) and prints its length, peak and RMS. Listen to it with the contact sheet open. `--seed`. |
 | check | `node tools/check.mjs magic/frost-nova` | The gate. No output but the summary line means it passes. It tries seeds 2 to 16 too; `--seeds N` changes how many. |
 | recolor | `node tools/render.mjs magic/frost-nova --opts '{"palette":"poison"}'` | It must still read in another ramp, and on a light `--bg`. |
@@ -250,41 +250,55 @@ timing is data, the game decides.
 
 ## Stage
 
-An effect reads best acted out. The stage (`src/stage/`) is a code-drawn swordsman and a training dummy: the
-swordsman winds up for `act.windup` (0.15 s for a strike, 0.3 s for a cast when left out), the effect plays where its
-role puts it, the game freezes and shakes on each hit while the dummy flashes white and flinches, then both recover.
-The gallery's Stage toggle shows every effect this way, and `render --stage` writes it. It is a preview, side view
-only, and not part of the package: games bring their own characters.
+An effect reads best acted out. The stage (`src/stage/`) has a cast drawn in Aseprite: a caster that fits the effect
+(a knight, a mage or an archer) winds up for `act.windup` (0.15 s for a strike, 0.3 s for a cast when left out), the
+effect plays where its role puts it, the game freezes and shakes on each hit while a goblin flashes white and is
+knocked back, then both recover. The gallery acts every effect out this way (its Caster and Target toggles switch
+either character off), and `render --stage` writes it. It is a preview, side view only, and not part of the package:
+games bring their own characters.
 
 **Roles.** The first of an effect's tags that has a role places it; with none, its category does; else it goes on
 the target. Tag effects for what they are, and the stage follows:
 
-| tag | category | place (`at`) | the anchor goes | the swordsman |
+| tag | category | place (`at`) | the anchor goes | the caster |
 |---|---|---|---|---|
-| `projectile` | `projectiles` | `path` | from his sword's tip to the dummy's chest, flying 200 px/s (a loop), arriving on its first hit, or at its end (a one-shot); a loop is removed on arrival | points |
-| `aura`, `buff`, `pickup` | `pickups` | `caster` | on the floor at his feet | raises his sword |
-| `nova` | | `ground` | on the floor at his feet; a `landing` or `jump` tag makes him hop and land in it | raises his sword, or hops |
-| `status` | `status` | `above` | on top of the dummy's head | points |
+| `projectile` | `projectiles` | `path` | from the caster's staff or bow to the goblin's chest, flying 200 px/s (a loop), arriving on its first hit, or at its end (a one-shot); a loop is removed on arrival | shoots |
+| `aura`, `buff`, `pickup` | `pickups` | `caster` | on the floor at the caster's feet | raises a sword or staff |
+| `nova` | | `ground` | on the floor at the caster's feet; a `landing` or `jump` tag makes them hop and land in it | raises, or hops |
+| `status` | `status` | `above` | on top of the goblin's head | casts |
 | `ambient` (torches, portals, props) | | `aside` | on the floor between them; nobody acts | idles |
-| anything else: impacts, explosions, beams, pillars | | `target` | on the bullseye on the dummy's chest, 14 px over the floor | strikes in sword's reach if it is tagged `melee` or `slash`, else points |
+| anything else: impacts, explosions, beams, pillars | | `target` | on the goblin's chest, 14 px over the floor | strikes in sword's reach if it is tagged `melee` or `slash`, else casts |
+
+**Who acts it.** The knight strikes, hops and picks things up (`melee`, `slash`, `pickup` and the `pickups`
+category); the archer shoots projectiles that aren't tagged `magic` or `spell`; the mage casts everything else, the
+staff's orb glowing in the spell's colors. In a move, the first acted step picks.
 
 **`meta.stage`** corrects the default when an effect's anchor is somewhere else:
 
 | field | meaning |
 |---|---|
 | `at` | the place, over the role: `target`, `caster`, `ground`, `path`, `above` or `aside` |
+| `cast` | who acts it, over the tags: `knight`, `mage` or `archer` |
 | `ground` | where the floor is in the effect's own coordinates, px below its anchor: how high the stage holds the anchor. `0` for an anchor on the floor (explosions, splashes, pillars, a status drawn from the feet), `14` for a hit drawn 14 px above its floor |
-| `x` | px toward the dummy from the place: the slash anchors at its wielder, so `x: -22` |
+| `x` | px toward the goblin from the place: the slash anchors at its wielder, so `x: -22` |
 | `speed` | a looping projectile's, in px/s |
 
 `render --stage <id>` and the effect's preview page (its `stage` row) show where it lands. Each hit of an effect on
-the dummy (`target`, `path`, `above`) makes it flinch, and so does a projectile without hits when it arrives; hits on
-the swordsman's side still freeze and shake.
+the goblin (`target`, `path`, `above`) knocks it back, and so does a projectile without hits when it arrives; hits on
+the caster's side still freeze and shake.
 
 **Moves** (`src/stage/moves.js`) chain effects: `{ name, desc, steps: [{ fx, on, opts }] }`. A step plays once the
 one before it has ended, after its own wind-up; `on: 'hit'` plays it with the previous step's first hit instead (a
 spark on the slash's cut, the explosion where the fireball lands), and coinciding hits freeze once, at the stronger
-freeze and shake. `render --stage <move>` writes `records/moves/<move>/`; the gallery shows the moves with Stage on.
+freeze and shake. `render --stage <move>` writes `records/moves/<move>/`; the gallery shows the moves above the
+effects while a character is on.
+
+**The cast's art** is in `src/stage/cast/<name>.aseprite`, one file per character: the feet at the bottom center of
+the canvas, a tag per pose (`idle` has two frames, a breath), and a hidden `tip` layer with one pixel where the glow
+sits and shots leave from. The knight draws `idle`, `ready`, `swing`, `raise`, `crouch`; the mage `idle`,
+`gather`, `cast`, `raise`; the archer `idle`, `draw`, `release`; the goblin `idle`, `hurt` (`CASTERS` in
+`src/stage/actors.js` maps the stage's poses to them). After editing, `node tools/cast.mjs` writes
+`src/stage/cast.js`; a test fails while it is out of date.
 
 ## Sound
 

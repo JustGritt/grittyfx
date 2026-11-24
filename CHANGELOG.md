@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **A cast that fits**: the stage's code-drawn swordsman and dummy are replaced by characters drawn in Aseprite
+  (`src/stage/cast/*.aseprite`, made into `src/stage/cast.js` by `tools/cast.mjs`): a knight acts melee, pickups
+  and landings, a mage spells, statuses, auras and spell projectiles (the staff's orb glows in the spell's colors),
+  an archer other projectiles, and a goblin takes the hits (knocked back, a white flash, a hurt face). Tags pick the
+  caster, `meta.stage.cast` overrides it. Shots leave from the caster's staff or bow.
+- **Gallery**: Caster and Target toggles replace Stage, on by default, like pixelfx's character toggle: either can
+  be switched off (`?caster=0`, `?target=0`), both off shows the effect alone. `createStage(steps, o, show)`.
+- **New effect** `projectiles/arrow` (8 headings), and an Arrow shot move.
+
 - **Edit in Aseprite**: `render.mjs <id> --aseprite <dir>` writes the side view as an `.aseprite` file (never over an
   existing one) (a color layer, a
   light layer in Addition, the effect's palette, a tag per hit); `export.mjs <file>.aseprite` bundles it back, still

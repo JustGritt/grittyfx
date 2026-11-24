@@ -164,7 +164,11 @@
       </select>
     </div>
     <label class="check"><input id="flip" name="flip" type="checkbox"> Flip</label>
-    <label class="check" title="A swordsman and a training dummy act each effect out"><input id="stage" name="stage" type="checkbox"> Stage</label>
+    <fieldset title="A knight, a mage or an archer acts each effect out on a goblin; switch either off">
+      <legend>Characters</legend>
+      <label class="check"><input id="caster" name="caster" type="checkbox" checked> caster</label>
+      <label class="check"><input id="target" name="target" type="checkbox" checked> target</label>
+    </fieldset>
     <fieldset>
       <legend>Background</legend>
       <div class="seg">

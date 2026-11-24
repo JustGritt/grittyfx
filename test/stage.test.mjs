@@ -1,6 +1,9 @@
 import { test } from 'node:test';
+import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
-import { role, plan, dummyAt, realtime, createStage, HIT, NEAR, FAR, FPS } from '../src/stage/stage.js';
+import { role, plan, targetAt, realtime, createStage, HIT, NEAR, FAR, FPS } from '../src/stage/stage.js';
+import { CAST, frameOf } from '../src/stage/actors.js';
+import { castModule, castFiles } from '../tools/cast.mjs';
 import { MOVES } from '../src/stage/moves.js';
 import { listIds, loadEffect } from '../tools/lib.mjs';
 
@@ -9,16 +12,36 @@ const near = (a, b) => assert.ok(Math.abs(a - b) < 1e-9, `${a} is not ${b}`);
 
 test('role: tags place an effect, the category when no tag does, meta.stage over both', () => {
   const at = (tags, id, stage) => role({ tags, stage }, id);
-  assert.deepEqual(at(['fire', 'projectile']), { at: 'path', pose: 'point', x: 0, ground: HIT, speed: 200 });
+  assert.deepEqual(at(['fire', 'projectile']), { at: 'path', pose: 'point', cast: 'archer', x: 0, ground: HIT, speed: 200 });
   assert.equal(at(['heal', 'aura', 'status']).at, 'caster', 'the first tag with a role wins');
   assert.deepEqual([at(['buff']).at, at(['pickup']).at, at(['status']).at, at(['nova']).at, at(['ambient']).at], ['caster', 'caster', 'above', 'ground', 'aside']);
   assert.deepEqual([at([], 'projectiles/arrow').at, at([], 'status/x').at, at([], 'pickups/gem').at, at([], 'fire/x').at], ['path', 'above', 'caster', 'target']);
-  assert.deepEqual(at(['status'], '', { at: 'target', ground: 16, x: -3 }), { at: 'target', pose: 'point', x: -3, ground: 16, speed: 200 });
+  assert.deepEqual(at(['status'], '', { at: 'target', ground: 16, x: -3 }), { at: 'target', pose: 'point', cast: 'mage', x: -3, ground: 16, speed: 200 });
   assert.equal(at(['ambient']).pose, null, 'an ambient effect is not acted');
   assert.deepEqual([at(['slash']).pose, at(['impact', 'melee']).pose, at(['impact']).pose, at(['nova']).pose], ['strike', 'strike', 'point', 'raise']);
   assert.equal(at(['landing'], '', { at: 'ground' }).pose, 'hop');
   assert.equal(at(['landing', 'hit']).pose, 'point', 'only a landing on the ground under the caster hops');
   assert.deepEqual([at(['buff']).ground, at(['nova']).ground, at(['impact']).ground], [0, 0, HIT]);
+  assert.equal(at(['status']).ground, -CAST.goblin.idle[0].y, "a status sits on top of the goblin's head");
+});
+
+test('role: the caster fits the effect, meta.stage.cast over it', () => {
+  const cast = (tags, id, stage) => role({ tags, stage }, id).cast;
+  assert.deepEqual([cast(['slash']), cast(['impact', 'melee']), cast(['landing'], '', { at: 'ground' }), cast(['pickup']), cast([], 'pickups/gem')], ['knight', 'knight', 'knight', 'knight', 'knight']);
+  assert.deepEqual([cast(['projectile']), cast(['projectile', 'magic']), cast(['projectile', 'spell']), cast([], 'projectiles/rock')], ['archer', 'mage', 'mage', 'archer']);
+  assert.deepEqual([cast(['status']), cast(['nova']), cast(['aura']), cast(['impact']), cast(['ambient'])], ['mage', 'mage', 'mage', 'mage', 'mage']);
+  assert.equal(cast(['slash'], '', { cast: 'mage' }), 'mage');
+});
+
+test('cast.js is up to date with the Aseprite files, and every caster draws every pose', () => {
+  const file = readFileSync(new URL('../src/stage/cast.js', import.meta.url), 'utf8').replaceAll('\r\n', '\n'); // a CRLF checkout
+  assert.equal(file, castModule(castFiles()), 'run node tools/cast.mjs');
+  for (const who of ['knight', 'mage', 'archer']) {
+    for (const pose of ['idle', 'ready', 'swing', 'follow', 'gather', 'point', 'raise', 'crouch', 'air']) assert.ok(frameOf(who, pose).rows.length, `${who} ${pose}`);
+    assert.ok(frameOf(who, 'point').tip, `${who} shoots from a tip`);
+    assert.equal(CAST[who].idle.length, 2, `${who} breathes`);
+  }
+  assert.ok(CAST.goblin.hurt);
 });
 
 test('plan: the wind-up comes before the effect, its hits land after its start, on a frame', () => {
@@ -31,7 +54,7 @@ test('plan: the wind-up comes before the effect, its hits land after its start, 
   near(p.hits[0].t, Math.round((a.start + 0.05) * FPS) / FPS);
   assert.deepEqual(p.hits.map(h => [h.freeze, h.shake]), [[0.1, 3]]);
   assert.deepEqual(p.flinches.map(f => f.t), p.hits.map(h => h.t));
-  assert.ok(p.duration > p.hits[0].t + 0.5, 'time for the dummy to settle');
+  assert.ok(p.duration > p.hits[0].t + 0.5, 'time for the goblin to recover');
 });
 
 test('plan: on hit, a step lands with the previous one and their hits merge; otherwise it follows its end', () => {
@@ -45,11 +68,13 @@ test('plan: on hit, a step lands with the previous one and their hits merge; oth
   near(c.start, Math.round((b.end + 0.3) * FPS) / FPS); // after its own wind-up, a cast's by default
 });
 
-test('plan: a projectile flies from the sword to the target and hits on arrival', () => {
+test("plan: a projectile flies from the caster's tip to the target and hits on arrival", () => {
   const orb = mod({ tags: ['projectile'], loop: true });
   const p = plan([{ mod: orb }, { mod: mod({ act: { hits: [{ t: 0, freeze: 0.05, shake: 4 }] } }), on: 'hit' }]);
   const [a, b] = p.acts;
   assert.equal(p.D, FAR);
+  assert.equal(p.who, 'archer');
+  assert.deepEqual(a.from, [frameOf('archer', 'point').tip[0] + 1, frameOf('archer', 'point').tip[1]], 'from the bow, a step forward');
   assert.deepEqual(a.to, [FAR, -HIT]);
   near(a.travel, (a.to[0] - a.from[0]) / 200);
   near(a.end, a.start + a.travel);
@@ -61,13 +86,13 @@ test('plan: a projectile flies from the sword to the target and hits on arrival'
   near(shot.travel, 0.6);
 });
 
-test('the dummy flinches on the hit frame, flashes for one frame and wobbles back', () => {
+test('the goblin is knocked back on the hit frame, flashes for one frame, hurts a while and recovers', () => {
   const f = [{ t: 1, k: 0.4 }];
-  assert.deepEqual(dummyAt(f, 0.99), { tilt: 0, hit: false });
-  assert.deepEqual(dummyAt(f, 1), { tilt: 0.4, hit: true });
-  assert.equal(dummyAt(f, 1 + 1 / FPS).hit, false);
-  assert.ok(Math.min(...[0.1, 0.15, 0.2, 0.25].map(u => dummyAt(f, 1 + u).tilt)) < 0, 'it swings back past upright');
-  assert.ok(Math.abs(dummyAt(f, 2).tilt) < 0.01, 'and settles');
+  assert.deepEqual(targetAt(f, 0.99), { dx: 0, hit: false, hurt: false });
+  assert.deepEqual(targetAt(f, 1), { dx: 3, hit: true, hurt: true });
+  assert.deepEqual(targetAt(f, 1 + 1 / FPS), { dx: 3, hit: false, hurt: true });
+  assert.deepEqual(targetAt(f, 2), { dx: 0, hit: false, hurt: false }, 'back where it stood');
+  assert.equal(targetAt([{ t: 1, k: 0.5 }, { t: 1, k: 0.5 }, { t: 1, k: 0.5 }], 1).dx, 6, 'never knocked off the stage');
 });
 
 test('realtime: a hit holds its frame for its freeze and shakes the view', () => {
@@ -93,4 +118,17 @@ test('every effect and move plays on the stage, and draws something', async () =
     }
     assert.ok(lit > 400, `${name} draws the actors and the effect`);
   }
+});
+
+test('caster and target are layers: either can be left out, the layout stays', async () => {
+  const steps = [{ mod: await loadEffect('impacts/hit-spark'), id: 'impacts/hit-spark' }];
+  const count = show => {
+    const st = createStage(steps, {}, show), [w, h] = st.size, out = new Uint8ClampedArray(w * h * 4);
+    st.draw(0, out, [0, 0, 0]); // before the effect: only the actors
+    return [st.size.join('x'), out.reduce((n, v, i) => n + (i % 4 < 3 && v > 0), 0)];
+  };
+  const [size, both] = count({}), [, caster] = count({ target: false }), [, target] = count({ caster: false }), [, none] = count({ caster: false, target: false });
+  assert.deepEqual([count({ target: false })[0], count({ caster: false, target: false })[0]], [size, size]);
+  assert.equal(none, 0);
+  assert.ok(caster > 0 && target > 0 && Math.abs(caster + target - both) < 20, 'each draws its own actor');
 });

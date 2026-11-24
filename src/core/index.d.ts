@@ -36,7 +36,7 @@ export interface Meta {
   act?: { windup?: number; hits?: Hit[] };
   /** Cues; without it each act hit plays a thump; false is silence. */
   sound?: Cue[] | false;
-  stage?: { at?: 'target' | 'caster' | 'ground' | 'path' | 'above' | 'aside'; ground?: number; x?: number; speed?: number };
+  stage?: { at?: 'target' | 'caster' | 'ground' | 'path' | 'above' | 'aside'; cast?: 'knight' | 'mage' | 'archer'; ground?: number; x?: number; speed?: number };
 }
 
 /** Options as an effect sees them: meta.options merged with yours, each ramp slot turned into palette indices. */
