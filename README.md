@@ -15,7 +15,11 @@ then recolor it in the engine: the same explosion plays as fire, ice or poison, 
 - In JS: `npm i github:JustGritt/grittyfx` (types included), then `createFx` plays any effect live on a canvas, or
   `grittyfx/runtime/sheet-player` plays a baked bundle.
 - Export to an engine: `node tools/export.mjs <ids> --godot <project> --unity <project>`, then see
-  [engines/godot](engines/godot/README.md) or [engines/unity](engines/unity/README.md).
+  [engines/godot](engines/godot/README.md) or [engines/unity](engines/unity/README.md). `--out <dir>` writes the
+  same bundle for any other engine.
+- Edit one by hand: `node tools/render.mjs <id> --aseprite` writes `records/<id>/<name>.aseprite`. Change its pacing,
+  anticipation or pixels in Aseprite, then `node tools/export.mjs <file>.aseprite --godot ...` bundles it back, still
+  recolorable.
 
 ## Why
 
@@ -33,6 +37,9 @@ sheets that stay recolorable.
 - **Side view and top-down.** Directional effects bake 8 headings turned before rasterising, so pixels stay on the
   grid; radial ones get their own drawing from above. Players pick the row from the game's heading.
 - **Any engine.** Every effect also exports as a plain sprite sheet with Aseprite-style JSON.
+- **Edit in Aseprite.** An effect opens as an `.aseprite` file with its glow on its own layer and a tag per hit.
+  Retime it, add anticipation or touch up pixels with its palette; it comes back recolorable, its hits and sound
+  moved with the frames.
 - **Make your own.** A Claude Code skill drafts new effects, renders them and refines them until they hold up.
 
 ## Install the Claude Code skill

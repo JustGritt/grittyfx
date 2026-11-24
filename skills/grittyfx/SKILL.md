@@ -77,6 +77,17 @@ named after its heading (Phaser: `createFromAseprite(key, null, sprite)` keeps t
 reaches `t`, pause the game for `freeze` seconds and shake the camera by `shake` px; `windup` is how long the
 attacker winds up before the effect starts. Engines raise these as signals or events.
 
+**Edit by hand in Aseprite** (pacing, anticipation, holds, pixel touch-ups): `node <gfx>/tools/render.mjs <id>
+--aseprite [--opts json]` writes `<gfx>/records/<id>/<name>.aseprite` (side view): a `color` layer, a `light` layer
+(Addition, the glow), the effect's palette and a one-frame `hit freeze=.. shake=..` tag per hit. In Aseprite, frame
+durations set the pacing (rounded to whole frames at the effect's fps; a 100 ms frame at 30 fps plays as 3), dragging a
+hit tag moves the hit and its sound, and new pixels must use the file's palette colors or they can't be recolored.
+Keep the two layers (merge any others into them) and the canvas size. Then `node <gfx>/tools/export.mjs
+<file>.aseprite --godot <project> --unity <project>` (or `--out <dir>` for any other engine) bundles it as
+`<category>/<file name>`: rename the file to keep the original beside a variant. The edited file is now the source:
+re-exporting the effect's id renders the code again, without the edits. With the Aseprite MCP connected, open the file
+with `open_sprite` (its allowed dirs must include the file's folder) and edit it with `duplicate_frame`, `set_frame_duration` and the drawing tools.
+
 **Recolor**: live, pass ramp options to `createFx`. In an engine, call `set_ramp` (Godot) or `SetRamp` (Unity) per
 instance with the colors of a ramp from `src/core/color.js`. To bake a palette instead, `render.mjs <id> --sheet --opts
 '{"palette":"ice"}'` writes `<name>_pal.png` over the default bundle in `records/<id>/`: copy it under a new name

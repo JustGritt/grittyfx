@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- **Edit in Aseprite**: `render.mjs <id> --aseprite` writes the side view as an `.aseprite` file (a color layer, a
+  light layer in Addition, the effect's palette, a tag per hit); `export.mjs <file>.aseprite` bundles it back, still
+  recolorable. Frame durations become held frames, hit tags move the hits and the sound's cues follow them. The bundle
+  takes the file's name, so variants sit beside the original. `export.mjs --out <dir>` writes bundles for any engine.
+
 ## 1.0.0 (2026-11-24)
 
 - **Stage**: a code-drawn swordsman and training dummy act effects out: wind-up, the effect placed by its role (on
