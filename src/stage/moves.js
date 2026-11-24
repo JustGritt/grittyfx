@@ -26,4 +26,24 @@ export const MOVES = {
     desc: 'An arrow loosed from the bow, sparking where it strikes the goblin',
     steps: [{ fx: 'projectiles/arrow' }, { fx: 'impacts/hit-spark', on: 'hit' }],
   },
+  'shock-arrow': {
+    name: 'Shock arrow',
+    desc: 'An arrow that jolts the goblin with crackling bolts where it lands',
+    steps: [{ fx: 'projectiles/arrow' }, { fx: 'electric/shock', on: 'hit' }],
+  },
+  'tidal-bolt': {
+    name: 'Tidal bolt',
+    desc: 'A water bolt from the staff, bursting into a splash on the goblin',
+    steps: [{ fx: 'water/water-bolt' }, { fx: 'water/splash', on: 'hit' }],
+  },
+  hex: {
+    name: 'Hex',
+    desc: 'A shadow orb that leaves a curse hanging over the goblin',
+    steps: [{ fx: 'projectiles/energy-orb', opts: { palette: 'shadow' } }, { fx: 'shadow/curse', on: 'hit' }],
+  },
+  smite: {
+    name: 'Smite',
+    desc: 'A lance of light from the priest, a pillar of light where it strikes',
+    steps: [{ fx: 'holy/holy-bolt' }, { fx: 'holy/light-pillar', on: 'hit' }],
+  },
 };
