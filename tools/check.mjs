@@ -6,6 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { performance } from 'node:perf_hooks';
 import { createFx, composite, layout, HEADINGS, soundCues, synth, SOUNDS } from '../src/core/index.js';
+import { PLACES } from '../src/stage/stage.js';
 import { listIds, matchIds, loadEffect, drawAt, views } from './lib.mjs';
 
 const BUDGET_MS = 2;
@@ -26,6 +27,7 @@ export function checkEffect(id, mod, source = '', { seeds = SEEDS } = {}) {
   for (const k of ['name', 'size', 'origin', 'duration']) if (meta[k] === undefined) say('meta', `missing ${k}`);
   for (const view of views(meta)) if (view !== 'side' && view !== 'top') say('meta', `unknown view "${view}" (side or top)`);
   if (![1, 8].includes(meta.top?.directions ?? 1)) say('meta', `top.directions is ${meta.top.directions}: 1 (radial) or 8 (directional)`);
+  if (meta.stage?.at !== undefined && !PLACES.includes(meta.stage.at)) say('meta', `stage.at is "${meta.stage.at}": one of ${PLACES.join(', ')}`);
   if (out.length) return out;
   try {
     const { duration, loop } = meta, fps = meta.fps ?? 30, n = Math.max(1, Math.round(duration * fps));

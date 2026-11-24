@@ -28,6 +28,11 @@ test('not deterministic, Math.random in the source, act out of order', () => {
   assert.ok(lines.some(l => /hit 2 at t = 0.9 is outside/.test(l)));
 });
 
+test('an unknown stage place', () => {
+  assert.deepEqual(checkEffect('t/stage', { ...good, meta: { ...meta, stage: { at: 'target', ground: 0 } } }), []);
+  assert.match(checkEffect('t/stage', { ...good, meta: { ...meta, stage: { at: 'head' } } }).join(), /stage.at is "head": one of target, caster/);
+});
+
 test('a loop that jumps back is a seam; a periodic one is not', () => {
   const loop = { ...meta, loop: true, duration: 1 };
   const slide = { meta: loop, draw: (p, t, o) => p.disc(-6 + t * 12, 0, 2, o.palette[3]) };
