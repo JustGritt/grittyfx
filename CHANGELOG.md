@@ -21,6 +21,8 @@
 - **Gallery ground**: a `ground` background, the default, like pixelfx's: a stone floor under the actors' feet (or
   under an effect alone, as high as the stage would act it), level from card to card, filling each card edge to edge.
   `?bg=dark` is the flat one. `composite()` takes a background image as well as a color.
+- **A palette per character**: `src/stage/cast.js` exports `PALETTES[name]` in place of the cast's one `PALETTE`, so
+  each character has 89 colors of its own and the cast can grow past six. The stage draws the same pixels.
 
 - **Edit in Aseprite**: `render.mjs <id> --aseprite <dir>` writes the side view as an `.aseprite` file (never over an
   existing one) (a color layer, a

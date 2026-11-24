@@ -5,7 +5,7 @@ import { PAL, hex, fit, createFx, createFrame, clearFrame, composite, layout, HE
 import { createStage, role } from '../src/stage/stage.js';
 import { MOVES } from '../src/stage/moves.js';
 import { CAST, KEYS, bounds } from '../src/stage/actors.js';
-import { PALETTE } from '../src/stage/cast.js';
+import { PALETTES } from '../src/stage/cast.js';
 
 const BG = { ground: '#1b1d26', dark: '#1b1d26', mid: '#575b6b', light: '#d8d5cd' }; // the stage colors in index.html
 const STONE = ['#454a5e', '#2b2e3c', '#22242f', '#15161d'].map(hex); // the floor's lit edge, top course, deeper courses, mortar
@@ -357,7 +357,7 @@ function castCard(who) {
   const g = canvas.getContext('2d'), img = g.createImageData(canvas.width, canvas.height);
   frames.forEach(({ f }, n) => f.rows.forEach((line, j) => [...line].forEach((ch, i) => {
     const k = KEYS.indexOf(ch), X = (n % cols) * w + f.x - x0 + i, Y = Math.floor(n / cols) * h + f.y - y0 + j;
-    if (k >= 0) img.data.set(hex(PALETTE[k]), (Y * canvas.width + X) * 4);
+    if (k >= 0) img.data.set(hex(PALETTES[who][k]), (Y * canvas.width + X) * 4);
   })));
   g.putImageData(img, 0, 0);
   // one zoom for the whole cast, so their sizes compare; shortcut: a sheet over ~170 px wide overflows its card, fit then
