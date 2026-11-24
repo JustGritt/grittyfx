@@ -1,6 +1,6 @@
 # Catalog
 
-33 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
+45 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
 Ramps read `option: default (steps)`; pass another ramp name or a list of colors to recolor.
 
 ## electric
@@ -79,9 +79,21 @@ Ramps read `option: default (steps)`; pass another ramp name or a list of colors
 
 | effect | kind | views | size | duration | ramps | tags | description |
 |---|---|---|---|---|---|---|---|
+| `status/asleep` | loop | side | 28x26 | 4.5 s | palette: ice (8) | status, debuff, sleep, asleep, zzz, snore, drowsy | A sleep status over the head: Zs drift up and sideways one after another, growing, swaying and fading, in a slow breathing rhythm |
+| `status/bleeding` | loop | side | 40x30 | 1.6 s | palette: blood (8) | status, debuff, bleed, blood, wound, dot, gore | A bleed status over a body: a gash that throbs with each heartbeat and spurts, drops that well up and fall, spatters on the floor that fade |
 | `status/burning` | loop | side | 44x56 | 1.5 s | palette: fire (8), smoke: smoke (6) | status, fire, burn, debuff, dot | A burn status over a body: small flame tongues flare up and die down all over it, embers rise, a little smoke |
+| `status/confused` | loop | side | 36x22 | 2.4 s | palette: gold (8) | status, debuff, confuse, confused, question, puzzled, dizzy, swirl | A confused status over the head: two question marks bob and tilt this way and that, then whirl round each other in a little swirl and trade places |
+| `status/enraged` | loop | side | 52x44 | 1.6 s | palette: fire (8), steam: smoke (6) | status, debuff, enraged, rage, berserk, anger, fury, steam | A berserk status over the head: a throbbing anger mark, steam huffing out both sides, a red heat shimmer round the body |
+| `status/frozen` | loop | side | 56x46 | 2.4 s | palette: ice (8) | status, ice, frozen, freeze, frost, debuff, cold | A frozen status over a body: a jagged crust of translucent ice from the feet up, light sliding across it, glints twinkling on its points, cold haze pouring off it |
+| `status/gassed` | loop | side | 48x40 | 2.4 s | palette: smoke (8) | status, debuff, gas, teargas, cough, choke, smoke, haze | A tear gas status over a body: fits of coughing throw grey puffs out of the mouth in jerks, a thin haze hangs round the body |
+| `status/haste` | loop | side | 60x46 | 1.2 s | palette: electric (8) | buff, status, haste, speed, quick, swift, wind, dash | A speed buff on its caster: speed lines streaming back off the body, a wind gust curling behind the feet, a light shimmer |
+| `status/marked` | loop | side | 56x38 | 2 s | palette: blood (8) | status, debuff, mark, target, reticle, crosshair, sniper, hunter, lock | A hunter's mark on a target: corner brackets close in on the chest and lock with a flash, then pulse, a faint sight line running back to the shooter |
 | `status/poisoned` | loop | side | 44x56 | 2 s | palette: poison (8) | status, poison, debuff, bubbles, toxic | A poison status over a body: green bubbles that rise and pop, a sickly drip that splashes at the feet, faint fumes |
+| `status/shocked` | loop | side | 48x48 | 1.5 s | palette: electric (8) | status, electric, shock, shocked, paralyze, lightning, debuff, static | An electrified status over a body: little forked arcs crawling over it, re-forming in a new spot every few frames, sparks spitting off them and a flicker of light |
+| `status/silenced` | loop | side | 36x32 | 2 s | palette: arcane (8) | status, debuff, silence, silenced, mute, seal, speech, magic | A silence status over the head: a struck-through speech bubble pulses; words try to form in it, the seal flashes and they break into glyph shards that fizzle out |
+| `status/soaked` | loop | side | 44x40 | 2.4 s | palette: water (8) | status, water, soaked, wet, drench, drip, debuff | A drenched status over a body: drops running down it, hanging and falling into a puddle round the feet that rings with ripples, a wet sheen glinting on it |
 | `status/stunned` | loop | side | 36x20 | 1.2 s | palette: gold (8) | status, stun, dizzy, daze, stars, debuff | A dazed status over the head: little stars orbiting in a flattened ring, twinkling, bright in front and dim behind |
+| `status/suppressed` | loop | side | 64x30 | 2.4 s | palette: gold (8), dust: dust (6), sweat: water (6) | status, debuff, military, suppression, bullets, suppressed, pinned, tracer, gunfire | A suppression status over the head: tracer rounds whizzing past just overhead, one clipping in sparks and dust, a bead of sweat |
 
 ## water
 

@@ -5,7 +5,7 @@ Pixel-art effects written as code, recolorable at runtime in Godot, Unity and th
 Each effect is one small JavaScript file that draws pixels and glow from a palette. Bake it once into a sprite sheet,
 then recolor it in the engine: the same explosion plays as fire, ice or poison, per instance, with no re-export.
 
-> **Status: 1.0.** 31 effects in 11 categories, each with a synthesised sound, 10 of them with top-down views; a browser
+> **Status: 1.0.** 45 effects in 11 categories, each with a synthesised sound, 12 of them with top-down views; a browser
 > player, a Unity 6 package and a Godot 4 addon (not yet tested in Godot).
 
 - [Gallery](https://justgritt.github.io/grittyfx/): every effect live, with recolor, hit-stop and sound. Locally:
