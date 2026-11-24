@@ -18,7 +18,7 @@ export const PLACES = ['target', 'caster', 'ground', 'path', 'above', 'aside'];
 const BY_TAG = { projectile: 'path', aura: 'caster', buff: 'caster', pickup: 'caster', status: 'above', nova: 'ground', ambient: 'aside' };
 const BY_CATEGORY = { projectiles: 'path', status: 'above', pickups: 'caster' };
 const STRUCK = ['target', 'path', 'above']; // the places that need the goblin
-export const HIT = 14; // the goblin's chest, px above the floor: where blows land
+export const HIT = 11; // the goblin's chest, px above the floor: where blows land
 const HEAD = -CAST.goblin.idle[0].y; // the top of the goblin's head, where a status over it anchors
 export const NEAR = 26, FAR = 76; // the caster's feet to the goblin's: a sword's reach, or room for a projectile
 const SPEED = 200; // px/s of a looping projectile
