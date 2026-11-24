@@ -46,8 +46,8 @@ const SHAKE = 0.2, JIGGLE = [[1, 0], [-1, 1], [1, -1], [-1, 0]]; // as in the ga
  * category, else target. `ground` is the floor's y in the effect's own coordinates (how high its anchor sits), `x`
  * shifts it toward the goblin, `speed` is a looping projectile's in px/s. `pose` is how the caster acts it: strike (a
  * melee effect on the target), hop (landing or jump on the ground), raise (on the caster), point (anything else), none
- * (aside). `cast` is who: meta.stage.cast, else a knight for a strike, a hop or a pickup, an archer for a projectile
- * that isn't magic or a spell, else a mage.
+ * (aside). `cast` is who: meta.stage.cast, else a knight for a strike, a hop or a pickup, the priest for a holy/
+ * effect, an archer for a projectile that isn't magic or a spell, else a mage.
  */
 export function role(meta, id = '') {
   const tags = meta.tags ?? [], s = meta.stage ?? {};
@@ -57,6 +57,7 @@ export function role(meta, id = '') {
     : at === 'caster' || at === 'ground' ? 'raise'
     : at === 'target' && (tags.includes('melee') || tags.includes('slash')) ? 'strike' : 'point';
   const cast = s.cast ?? (pose === 'strike' || pose === 'hop' || tags.some(t => KNIGHT.includes(t)) || id.startsWith('pickups/') ? 'knight'
+    : id.startsWith('holy/') ? 'priest'
     : at === 'path' && !tags.includes('magic') && !tags.includes('spell') ? 'archer' : 'mage');
   const ground = s.ground ?? (at === 'target' || at === 'path' ? HIT : at === 'above' ? HEAD : 0);
   return { at, pose, cast, x: s.x ?? 0, ground, speed: s.speed ?? SPEED };

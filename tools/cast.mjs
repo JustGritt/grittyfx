@@ -8,7 +8,8 @@ import { decodeAseprite } from './aseprite.mjs';
 import { ROOT } from './lib.mjs';
 
 const DIR = join(ROOT, 'src', 'stage', 'cast'), OUT = join(ROOT, 'src', 'stage', 'cast.js');
-const KEYS = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'; // a row's characters: palette indices
+// a row's characters: palette indices. Never '.' (empty), quotes or a backslash: rows are written as JS strings.
+const KEYS = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$%&()*+,-/:;<=>?@[]^_{|}~';
 const hex = (b, i) => `#${[b[i], b[i + 1], b[i + 2]].map(v => v.toString(16).padStart(2, '0')).join('')}`;
 
 /** cast.js's source from { name: .aseprite bytes }: one palette for the cast, each pose's frames cropped to their pixels. */

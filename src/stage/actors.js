@@ -1,11 +1,11 @@
 // The stage's cast, drawn in Aseprite (src/stage/cast/*.aseprite, made into cast.js by tools/cast.mjs): a knight, a
-// mage and an archer who act effects out, and a goblin who takes them. Local coordinates as in effects: (0, 0) on the
-// floor under the feet, x toward the other actor, y down, 1 unit = 1 px.
+// mage, a priest and an archer who act effects out, and a goblin who takes them. Local coordinates as in effects:
+// (0, 0) on the floor under the feet, x toward the other actor, y down, 1 unit = 1 px.
 import { paletteTable, fit } from '../core/index.js';
 import { PALETTE, CAST } from './cast.js';
 
 export { CAST };
-const KEYS = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'; // as tools/cast.mjs writes them
+const KEYS = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$%&()*+,-/:;<=>?@[]^_{|}~'; // as tools/cast.mjs writes them: keep the two the same
 
 /**
  * The cast's palette table: its colors (`cast`), `glow` (the spell's ramp, 8 steps) that lights a caster's tip, and
@@ -22,6 +22,7 @@ export function actorPalette(glow = 'holy') {
 export const CASTERS = {
   knight: { glow: true, look: { ready: 'ready', swing: 'swing', follow: 'swing', gather: 'ready', point: 'swing', raise: 'raise', crouch: 'crouch', air: 'crouch' } },
   mage: { glow: true, look: { ready: 'gather', swing: 'cast', follow: 'cast', gather: 'gather', point: 'cast', raise: 'raise', crouch: 'gather' } },
+  priest: { glow: true, look: { ready: 'gather', swing: 'cast', follow: 'cast', gather: 'gather', point: 'cast', raise: 'raise', crouch: 'gather' } },
   archer: { glow: false, look: { ready: 'draw', swing: 'release', follow: 'release', gather: 'draw', point: 'release', raise: 'draw', crouch: 'draw' } },
 };
 
