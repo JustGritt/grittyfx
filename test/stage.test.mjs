@@ -31,7 +31,7 @@ test('role: the caster fits the effect, meta.stage.cast over it', () => {
   assert.deepEqual([cast(['projectile']), cast(['projectile', 'magic']), cast(['projectile', 'spell']), cast([], 'projectiles/rock')], ['archer', 'mage', 'mage', 'archer']);
   assert.deepEqual([cast(['status']), cast(['nova']), cast(['aura']), cast(['impact']), cast(['ambient'])], ['mage', 'mage', 'mage', 'mage', 'mage']);
   assert.deepEqual([cast(['buff'], 'holy/blessing'), cast(['projectile', 'magic'], 'holy/holy-bolt'), cast(['melee'], 'holy/smite')], ['priest', 'priest', 'knight'], "holy/ is the priest's, a strike still the knight's");
-  assert.deepEqual([cast(['slash', 'melee']), cast(['smoke', 'vanish']), cast(['nova', 'magic'], 'shadow/dark-nova'), cast(['ambient'], 'shadow/portal')], ['kunoichi', 'kunoichi', 'kunoichi', 'kunoichi'], 'the kunoichi slashes, vanishes and does shadow/');
+  assert.deepEqual([cast(['slash', 'melee']), cast(['projectile', 'thrown']), cast(['smoke', 'vanish']), cast(['nova', 'magic'], 'shadow/dark-nova'), cast(['ambient'], 'shadow/portal')], ['kunoichi', 'kunoichi', 'kunoichi', 'kunoichi', 'kunoichi'], 'the kunoichi slashes, throws, vanishes and does shadow/');
   assert.equal(cast(['slash'], '', { cast: 'mage' }), 'mage');
 });
 

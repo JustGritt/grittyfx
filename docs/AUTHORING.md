@@ -272,10 +272,10 @@ the target. Tag effects for what they are, and the stage follows:
 The goblin only stands in for effects that strike it (`target`, `path`, `above`): a buff, a pickup, a nova or a prop
 plays with the caster alone, a prop `aside` standing next to them, and the canvas fits.
 
-**Who acts it.** The kunoichi slashes and vanishes (`slash`, `vanish`) and acts every `shadow/` effect; the knight
-strikes, hops and picks things up (`melee`, `pickup` and the `pickups` category); the priest acts `holy/`; the archer
-shoots projectiles that aren't tagged `magic` or `spell`; the mage casts everything else, the staff's orb glowing in
-the spell's colors. In a move, the first acted step picks.
+**Who acts it.** The kunoichi slashes, throws and vanishes (`slash`, `thrown`, `vanish`) and acts every `shadow/`
+effect; the knight strikes, hops and picks things up (`melee`, `pickup` and the `pickups` category); the priest acts
+`holy/`; the archer shoots projectiles that aren't tagged `magic` or `spell`; the mage casts everything else, the
+staff's orb glowing in the spell's colors. In a move, the first acted step picks.
 
 **`meta.stage`** corrects the default when an effect's anchor is somewhere else:
 

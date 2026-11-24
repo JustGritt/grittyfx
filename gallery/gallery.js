@@ -4,6 +4,8 @@
 import { PAL, hex, fit, createFx, createFrame, clearFrame, composite, layout, HEADINGS, synth, SAMPLE_RATE } from '../src/core/index.js';
 import { createStage, role } from '../src/stage/stage.js';
 import { MOVES } from '../src/stage/moves.js';
+import { CAST, KEYS, bounds } from '../src/stage/actors.js';
+import { PALETTE } from '../src/stage/cast.js';
 
 const BG = { ground: '#1b1d26', dark: '#1b1d26', mid: '#575b6b', light: '#d8d5cd' }; // the stage colors in index.html
 const STONE = ['#454a5e', '#2b2e3c', '#22242f', '#15161d'].map(hex); // the floor's lit edge, top course, deeper courses, mortar
@@ -343,6 +345,38 @@ async function showMove(id, root, big) {
   }
 }
 
+/**
+ * A cast member's card: its frames as a sheet at 1x (cells the size of its biggest frame, feet at the same spot in
+ * each, row by row in pose order), shown zoomed, to download as a PNG or as the Aseprite file it comes from.
+ */
+function castCard(who) {
+  const [x0, y0, x1, y1] = bounds(who), w = x1 - x0, h = y1 - y0;
+  const frames = Object.entries(CAST[who]).flatMap(([pose, fs]) => fs.map(f => ({ pose, f })));
+  const cols = Math.ceil(Math.sqrt(frames.length)), rows = Math.ceil(frames.length / cols);
+  const canvas = el('canvas', { width: cols * w, height: rows * h, role: 'img', ariaLabel: `${who}, every pose` });
+  const g = canvas.getContext('2d'), img = g.createImageData(canvas.width, canvas.height);
+  frames.forEach(({ f }, n) => f.rows.forEach((line, j) => [...line].forEach((ch, i) => {
+    const k = KEYS.indexOf(ch), X = (n % cols) * w + f.x - x0 + i, Y = Math.floor(n / cols) * h + f.y - y0 + j;
+    if (k >= 0) img.data.set(hex(PALETTE[k]), (Y * canvas.width + X) * 4);
+  })));
+  g.putImageData(img, 0, 0);
+  // one zoom for the whole cast, so their sizes compare; shortcut: a sheet over ~170 px wide overflows its card, fit then
+  Object.assign(canvas.style, { position: 'static', width: `${canvas.width * 2}px`, height: `${canvas.height * 2}px` });
+  let n = 0;
+  const order = Object.entries(CAST[who]).map(([pose, fs]) => `${pose} ${fs.map(() => ++n).join(', ')}`);
+  return el('li', { className: 'card' },
+    el('div', { className: 'stage' }, canvas),
+    el('div', { className: 'info' },
+      el('h3', { textContent: who[0].toUpperCase() + who.slice(1) }),
+      el('p', { className: 'desc', textContent: `Frames left to right, row by row: ${order.join('; ')}.` }),
+      el('ul', { className: 'facts' },
+        el('li', { className: 'kind' }, el('a', { href: canvas.toDataURL('image/png'), download: `${who}.png`, textContent: 'PNG' })),
+        el('li', {}, el('a', { href: `../src/stage/cast/${who}.aseprite`, download: `${who}.aseprite`, textContent: '.aseprite' })),
+        el('li', { textContent: `${w}×${h} cells` }),
+        el('li', { textContent: `feet at ${-x0}, ${-y0}` })),
+    ));
+}
+
 const note = (...kids) => main.replaceChildren(el('p', { className: 'note', role: 'status' }, ...kids));
 const clone = id => document.getElementById(id).content.firstElementChild.cloneNode(true);
 
@@ -392,7 +426,11 @@ async function start() {
       el('label', {}, el('input', { type: 'radio', name: 'cat', value: c, checked: c === cat }), el('span', {}, `${c || 'all'} `, el('small', { textContent: n })))));
     const ul = el('ul', { className: 'grid' }), moves = el('ul', { className: 'grid' });
     const ids = Object.keys(MOVES), section = el('section', { id: 'moves', hidden: !acting() }, el('h2', { textContent: `${ids.length} moves` }), moves);
-    main.replaceChildren(section, el('h2', { textContent: `${list.length} effects` }), chips, ul);
+    const cast = el('section', { id: 'cast' },
+      el('h2', { textContent: `${Object.keys(CAST).length} characters` }),
+      el('p', { className: 'desc',textContent: 'The cast that acts the effects out, free to use in your own games (MIT, like the code).' }),
+      el('ul', { className: 'grid' }, ...Object.keys(CAST).map(castCard)));
+    main.replaceChildren(section, cast, el('h2', { textContent: `${list.length} effects` }), chips, ul);
     for (const id of ids) {
       const card = clone('card-tpl');
       moves.append(card);
