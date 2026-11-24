@@ -132,3 +132,13 @@ test('caster and target are layers: either can be left out, the layout stays', a
   assert.equal(none, 0);
   assert.ok(caster > 0 && target > 0 && Math.abs(caster + target - both) < 20, 'each draws its own actor');
 });
+
+test('the goblin only stands in for effects that strike it: a buff, a pickup or a prop plays with the caster alone', () => {
+  const foe = tags => plan([{ mod: mod({ tags }) }]).foe;
+  assert.deepEqual([foe(['impact']), foe(['projectile']), foe(['status'])], [true, true, true]);
+  assert.deepEqual([foe(['buff']), foe(['pickup']), foe(['nova']), foe(['ambient'])], [false, false, false, false]);
+  assert.equal(plan([{ mod: mod({ tags: ['buff'] }) }, { mod: mod({ tags: ['impact'] }) }]).foe, true, 'a move with a blow in it');
+  assert.equal(plan([{ mod: mod({ tags: ['ambient'] }) }]).acts[0].from[0], NEAR, 'a prop stands next to the caster');
+  const width = tags => createStage([{ mod: mod({ tags }) }]).size[0];
+  assert.ok(width(['buff']) < width(['impact']) - 20, 'the canvas fits the caster alone');
+});

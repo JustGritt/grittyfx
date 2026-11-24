@@ -266,8 +266,11 @@ the target. Tag effects for what they are, and the stage follows:
 | `aura`, `buff`, `pickup` | `pickups` | `caster` | on the floor at the caster's feet | raises a sword or staff |
 | `nova` | | `ground` | on the floor at the caster's feet; a `landing` or `jump` tag makes them hop and land in it | raises, or hops |
 | `status` | `status` | `above` | on top of the goblin's head | casts |
-| `ambient` (torches, portals, props) | | `aside` | on the floor between them; nobody acts | idles |
+| `ambient` (torches, portals, props) | | `aside` | on the floor next to the caster; nobody acts | idles |
 | anything else: impacts, explosions, beams, pillars | | `target` | on the goblin's chest, 14 px over the floor | strikes in sword's reach if it is tagged `melee` or `slash`, else casts |
+
+The goblin only stands in for effects that strike it (`target`, `path`, `above`): a buff, a pickup, a nova or a prop
+plays with the caster alone, a prop `aside` standing next to them, and the canvas fits.
 
 **Who acts it.** The knight strikes, hops and picks things up (`melee`, `slash`, `pickup` and the `pickups`
 category); the archer shoots projectiles that aren't tagged `magic` or `spell`; the mage casts everything else, the
@@ -280,7 +283,7 @@ staff's orb glowing in the spell's colors. In a move, the first acted step picks
 | `at` | the place, over the role: `target`, `caster`, `ground`, `path`, `above` or `aside` |
 | `cast` | who acts it, over the tags: `knight`, `mage` or `archer` |
 | `ground` | where the floor is in the effect's own coordinates, px below its anchor: how high the stage holds the anchor. `0` for an anchor on the floor (explosions, splashes, pillars, a status drawn from the feet), `14` for a hit drawn 14 px above its floor |
-| `x` | px toward the goblin from the place: the slash anchors at its wielder, so `x: -22` |
+| `x` | px toward the goblin from the place: the slash anchors at its wielder, so `x: -22`; the coin floats at the knight's side, `x: 16` |
 | `speed` | a looping projectile's, in px/s |
 
 `render --stage <id>` and the effect's preview page (its `stage` row) show where it lands. Each hit of an effect on

@@ -10,7 +10,7 @@ then recolor it in the engine: the same explosion plays as fire, ice or poison, 
 
 - [Gallery](https://justgritt.github.io/grittyfx/): every effect live, with recolor, hit-stop and sound. Locally:
   `node tools/serve.mjs`, then open the printed URL. Each effect is acted out by a caster that fits it (a knight, a
-  mage or an archer) on a goblin; switch either off to see the effect alone (`node tools/render.mjs --stage <id>`
+  mage or an archer), on a goblin when the effect strikes one; switch either off to see the effect alone (`node tools/render.mjs --stage <id>`
   renders it).
 - [Catalog](docs/CATALOG.md) of the effects; [authoring guide](docs/AUTHORING.md) to make your own.
 - In JS: `npm i github:JustGritt/grittyfx` (types included), then `createFx` plays any effect live on a canvas, or

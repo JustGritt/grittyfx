@@ -7,7 +7,7 @@
 // --aseprite <dir> writes <dir>/<name>.aseprite to edit by hand (the side view; export.mjs bundles it back), never over
 // an existing one: keep it with the game's art, as a plugin's copy of grittyfx is replaced on update. An
 // effect with a top view also gets contact_top.png (a row per direction) and its _top bundle. --stage acts the effect,
-// or a move from src/stage/moves.js, out with the cast (a knight, mage or archer, and a goblin), hit-stop and shake:
+// or a move from src/stage/moves.js, out with the cast (a knight, mage or archer, and a goblin if it strikes one), hit-stop and shake:
 // records/<id>/stage.png (and stage.gif, stage.mp4), records/moves/<move>/stage.png for a move.
 import { parseArgs } from 'node:util';
 import { existsSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
