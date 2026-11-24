@@ -8,7 +8,7 @@
 // createStage(steps, o)  { size, fps, duration, loop, hits, draw(t, rgba, bg, flip) }; o: effect options for every step
 // realtime(hits, d, fps) the frames a game shows at fps, with hit-stop and shake: [{ t, dx, dy }]
 import { createFx, createFrame, clearFrame, Painter } from '../core/index.js';
-import { actorPalette, POSES, drawHero, drawDummy, outline, flash } from './actors.js';
+import { actorPalette, POSES, drawHero, drawBase, drawDummy, outline, flash } from './actors.js';
 
 export const FPS = 30;
 export const PLACES = ['target', 'caster', 'ground', 'path', 'above', 'aside'];
@@ -187,7 +187,8 @@ export function createStage(steps, o = {}) {
       outline(hero, C.stone[0]);
       shadow(new Painter(hero), Math.round(q.x), q.lift > 4 ? 3 : 5);
       const d = dummyAt(P.flinches, t);
-      drawDummy(new Painter(clearFrame(dummy)).place(dummy.ox, dummy.oy, false, d.tilt), C);
+      drawBase(new Painter(clearFrame(dummy)), C);
+      drawDummy(new Painter(dummy).place(dummy.ox, dummy.oy, false, d.tilt), C);
       if (d.hit) flash(dummy, C.holy[7]); // the hit frame: a white silhouette, outlined
       outline(dummy, C.stone[0]);
       shadow(new Painter(dummy), 0, 6);

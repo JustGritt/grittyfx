@@ -93,10 +93,14 @@ export function drawHero(p, q, C) {
   }
 }
 
-/** The training dummy, upright; the stage turns the painter to tilt it. `flash` draws the hit frame. */
+/** The training dummy's weighted base, which stays on the floor while the dummy rocks on it. */
+export function drawBase(p, C) {
+  p.ellipse(0, 0, 6, 3, (dx, dy) => (dy > 0 ? 0 : dy < -2 ? C.stone[4] : C.stone[3]));
+}
+
+/** The training dummy above its base, upright; the stage turns the painter to tilt it. */
 export function drawDummy(p, C) {
-  const { stone: S, dust: D, blood: B, gold: G } = C;
-  p.ellipse(0, 0, 6, 3, (dx, dy) => (dy > 0 ? 0 : dy < -2 ? S[4] : S[3])); // the weighted base
+  const { dust: D, blood: B, gold: G } = C;
   p.beam(0, -2, 0, -8, 2, D[2]); // the post
   p.line(-8, -16, 7, -16, D[2]); // the crossbar arms, straw at their ends
   p.line(-8, -15, 7, -15, D[1]);
