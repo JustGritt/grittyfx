@@ -9,7 +9,7 @@ import { createFx, composite, layout, HEADINGS, soundCues, synth, SOUNDS } from 
 import { PLACES } from '../src/stage/stage.js';
 import { listIds, matchIds, loadEffect, drawAt, views } from './lib.mjs';
 
-const BUDGET_MS = 2;
+const BUDGET_MS = Number(process.env.GRITTYFX_BUDGET_MS) || 2; // CI raises it: shared runners are slower than a desk
 const SEEDS = 16; // users pick seeds: this many are swept
 
 const lit = f => f.color.some((v, i) => i % 2 && v) || f.light.some((v, i) => i % 2 && v);
