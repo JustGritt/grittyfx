@@ -50,6 +50,11 @@ jobs:
           cp -r gallery src _site/
           node tools/list.mjs --json > _site/gallery/fx-list.json
           echo '<!doctype html><meta http-equiv="refresh" content="0; url=gallery/"><a href="gallery/">gallery</a>' > _site/index.html
+      # an artifact per attempt: a re-run would otherwise find the failed attempt's too, and refuse to pick one
       - uses: actions/upload-pages-artifact@v5
+        with:
+          name: github-pages-${{ github.run_attempt }}
       - id: deploy
         uses: actions/deploy-pages@v5
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
