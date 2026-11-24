@@ -5,7 +5,7 @@ import { paletteTable, fit } from '../core/index.js';
 import { PALETTE, CAST } from './cast.js';
 
 export { CAST };
-const KEYS = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$%&()*+,-/:;<=>?@[]^_{|}~'; // as tools/cast.mjs writes them: keep the two the same
+export const KEYS = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$%&()*+,-/:;<=>?@[]^_{|}~'; // as tools/cast.mjs writes them: keep the two the same
 
 /**
  * The cast's palette table: its colors (`cast`), `glow` (the spell's ramp, 8 steps) that lights a caster's tip, and
