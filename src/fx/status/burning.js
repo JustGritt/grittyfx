@@ -12,6 +12,7 @@ export const meta = {
   views: ['side'],
   ramps: { palette: 8, smoke: 6 },
   options: { palette: 'fire', smoke: 'smoke', seed: 1 },
+  stage: { at: 'target', ground: 0 }, // over the whole body, from its feet
   sound: [{ t: 0, kind: 'crackle', gain: 0.5, pitch: 1.2 }], // smaller fires crackle higher
 };
 

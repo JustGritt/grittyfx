@@ -15,7 +15,7 @@ export const PLACES = ['target', 'caster', 'ground', 'path', 'above', 'aside'];
 const BY_TAG = { projectile: 'path', aura: 'caster', buff: 'caster', pickup: 'caster', status: 'above', nova: 'ground', ambient: 'aside' };
 const BY_CATEGORY = { projectiles: 'path', status: 'above', pickups: 'caster' };
 export const HIT = 14; // the bullseye on the dummy's chest, px above the floor: where blows land
-const HEAD = 32; // just over the dummy's head
+const HEAD = 29; // the top of the dummy's head, where a status over it anchors
 const TIP = 15; // the sword's tip in front of the swordsman at a cast, where projectiles leave
 export const NEAR = 26, FAR = 76; // the swordsman's feet to the dummy's: a sword's reach, or room for a projectile
 const SPEED = 200; // px/s of a looping projectile

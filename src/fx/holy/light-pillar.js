@@ -14,6 +14,7 @@ export const meta = {
   views: ['side'],
   ramps: { palette: 8 },
   options: { palette: 'holy', seed: 1 },
+  stage: { ground: 0 },
   act: { hits: [{ t: HIT, freeze: 0.08, shake: 3 }] },
   sound: [
     { t: 0, kind: 'chime', gain: 0.3, pitch: 2 }, // the ray finds its mark

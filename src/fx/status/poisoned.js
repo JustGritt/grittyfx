@@ -22,6 +22,7 @@ export const meta = {
   views: ['side'],
   ramps: { palette: 8 },
   options: { palette: 'poison', seed: 1 },
+  stage: { at: 'target', ground: 0 }, // over the whole body, from its feet
   sound: [
     // a soft blub at every pop, the pitch wandering; a drop landing
     ...pops.map((ph, i) => ({ t: ph * DURATION, kind: 'thump', gain: 0.2 + 0.08 * (i % 3), pitch: 2.6 + 0.35 * ((i * 5) % 4) })),
