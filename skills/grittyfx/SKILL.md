@@ -27,7 +27,8 @@ Usually what someone asks for already exists and only needs another palette, see
 1. `node <gfx>/tools/list.mjs <word>`: search by what it is (`torch`, `hit`, `explosion`), not by color: "ice torch"
    is `torch` with the `ice` palette. No words lists everything.
 2. Render each candidate and **look**: `node <gfx>/tools/render.mjs <id>` prints a contact sheet path; Read it.
-   Each render overwrites that sheet, so Read it before the next one.
+   Each render overwrites that sheet, so Read it before the next one. `--stage` instead shows it acted out (a
+   swordsman winds up, it lands on a training dummy, the hit freezes and shakes): the best way to show someone a hit.
 3. Read the candidate's `meta` (top of its file): `options` holds what you can change (palette, seed, ...), `ramps`
    the color slots, `act` its hits.
 4. Try the change: `--opts '{"palette":"ice"}'`, `--seed 7`, then Read the sheet again. Ramp names: fire, ember, ice,
@@ -93,6 +94,8 @@ closest to yours. The contract:
 - `meta`: name, desc, tags (what `list.mjs` searches), size [w, h], origin [x, y] (the anchor inside the canvas),
   duration, loop, fps, views, ramps (`{ palette: 8, smoke: 6 }`: slot and steps), options (defaults), act (hits),
   sound (cues `{ t, kind, gain, pitch }`; without it each hit thumps; see the Sound section of `docs/AUTHORING.md`).
+  Tags also place it on the stage (`projectile`, `aura`, `buff`, `pickup`, `nova`, `status`, `ambient`; anything else
+  lands on the target); `stage: { ground: 0 }` when the anchor is on the floor (the Stage section).
 - Pure: `draw(p, t, o)` (and `drawBack`), the frame from `t` alone. Simulated: `create(o)` returns
   `{ update(dt), draw(p), drawBack? }`, stepped at 120 Hz.
 - (0, 0) is the anchor, x right, y down; directional effects face right. Colors are `C[i]` with `C = o.palette`:
@@ -109,7 +112,8 @@ closest to yours. The contract:
 2. Draft in phases: anticipation, a hero frame (the brightest, biggest frame, where a hit lands), release, spread,
    hold, decay. Fast attack, slow release. Lines and light over flat fills.
 3. `node tools/render.mjs <id>` and **Read the contact sheet**. Short one-shot: add `--all`. Also look at 1x
-   (`--zoom 1`) and on a light background (`--bg '#c8c8d0'`).
+   (`--zoom 1`) and on a light background (`--bg '#c8c8d0'`). Then `node tools/render.mjs <id> --stage` and Read
+   `stage.png`: it must land in the right place and its hits must feel right acted out.
 4. Name what is wrong (the table below), fix it, render again. **Three rounds minimum**, even when round one looks
    fine: compare against the reference effect and ask what a pixel artist would change.
 5. Sound: cue `meta.sound` on what the frames show (impacts on the hit, a whoosh leading into a swing, crackle under

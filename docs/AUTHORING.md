@@ -12,6 +12,7 @@ drawing API, the workflow and the bar an effect has to clear. The code in `src/c
 | new | `node tools/new.mjs magic/frost-nova [--loop]` | A simulated one-shot, or a pure loop with `--loop`, that renders and passes the check as generated. |
 | render | `node tools/render.mjs magic/frost-nova` | Writes `records/<id>/contact.png`: 12 sampled frames at 3x, and `contact_top.png` (a row per heading) for a top view. `--all` for every frame, `--gif` / `--mp4` (ffmpeg, side view), `--zoom`, `--fps`, `--seed`, `--bg '#hex'`, `--opts '<json>'`. |
 | look, fix | | Open the contact sheet and judge it against the [quality bar](#the-quality-bar). Fix the worst thing, render again. **Three rounds minimum**: the first draft never holds up. |
+| act out | `node tools/render.mjs --stage magic/frost-nova` | Writes `records/<id>/stage.png`: the effect acted out by the [stage](#stage)'s swordsman and dummy, held on each hit and shaken, as a game shows it. Check where it lands and how its hits feel. `--gif`, `--mp4`, `--all`, `--flip`; a move's name instead of an id plays the move. |
 | sound | `node tools/sfx.mjs magic/frost-nova` | Writes `records/<id>/<name>.wav` from the [sound cues](#sound) and prints its length, peak and RMS. Listen to it with the contact sheet open. `--seed`. |
 | check | `node tools/check.mjs magic/frost-nova` | The gate. No output but the summary line means it passes. It tries seeds 2 to 16 too; `--seeds N` changes how many. |
 | recolor | `node tools/render.mjs magic/frost-nova --opts '{"palette":"poison"}'` | It must still read in another ramp, and on a light `--bg`. |
@@ -39,6 +40,7 @@ export const meta = {
   ramps: { palette: 8, smoke: 6 },                    // the ramp options and their step counts
   options: { palette: 'fire', smoke: 'smoke', seed: 1 }, // defaults; any option the effect reads goes here
   act: { hits: [{ t: 0, freeze: 0.05, shake: 4 }] },  // only when it hits, see Act timing
+  stage: { ground: 0 }, // only when the stage would place it wrong, see Stage
   sound: [{ t: 0, kind: 'crack', pitch: 0.3 }, { t: 0, kind: 'thump', pitch: 0.6 }], // see Sound
 };
 ```
@@ -134,7 +136,8 @@ gives particle j the same value on every frame). Noise is `noise2`, `fbm`, `loop
 Drawing outside the canvas, glow included; writes that are not palette indices; a one-shot that does not end empty; a
 loop whose last frame jumps to its first; two renders that differ; a frame over 2 ms; `Math.random` or `Date` in the
 source; `act` hits outside `[0, duration]`, out of order or negative; sound cues of an unknown kind, outside
-`[0, duration]` or with a pitch of 0 or less; a loop's sound that clicks where its end joins its start. Every view is
+`[0, duration]` or with a pitch of 0 or less; a loop's sound that clicks where its end joins its start; a `stage.at`
+that is not a stage place. Every view is
 checked, a top view at each of its headings (`top SW frame 4: ...`), and seeds 2 to 16 for crashes, drawing outside,
 bad colors and the one-shot end (`(seed 3)`, or `seed 3: error`); only the first broken seed is reported.
 
@@ -244,6 +247,44 @@ The bundle adds each hit's `frame` (`t * fps`, rounded). A player raises a hit e
 with the hit's index, freeze and shake. The game answers with hit-stop (time scale near 0 for `freeze` real seconds,
 timed by a clock that ignores the time scale) and a short camera shake. The effect itself never freezes or shakes:
 timing is data, the game decides.
+
+## Stage
+
+An effect reads best acted out. The stage (`src/stage/`) is a code-drawn swordsman and a training dummy: the
+swordsman winds up for `act.windup` (0.15 s for a strike, 0.3 s for a cast when left out), the effect plays where its
+role puts it, the game freezes and shakes on each hit while the dummy flashes white and flinches, then both recover.
+The gallery's Stage toggle shows every effect this way, and `render --stage` writes it. It is a preview, side view
+only, and not part of the package: games bring their own characters.
+
+**Roles.** The first of an effect's tags that has a role places it; with none, its category does; else it goes on
+the target. Tag effects for what they are, and the stage follows:
+
+| tag | category | place (`at`) | the anchor goes | the swordsman |
+|---|---|---|---|---|
+| `projectile` | `projectiles` | `path` | from his sword's tip to the dummy's chest, flying 200 px/s (a loop), arriving on its first hit, or at its end (a one-shot); a loop is removed on arrival | points |
+| `aura`, `buff`, `pickup` | `pickups` | `caster` | on the floor at his feet | raises his sword |
+| `nova` | | `ground` | on the floor at his feet; a `landing` or `jump` tag makes him hop and land in it | raises his sword, or hops |
+| `status` | `status` | `above` | on top of the dummy's head | points |
+| `ambient` (torches, portals, props) | | `aside` | on the floor between them; nobody acts | idles |
+| anything else: impacts, explosions, beams, pillars | | `target` | on the bullseye on the dummy's chest, 14 px over the floor | strikes in sword's reach if it is tagged `melee` or `slash`, else points |
+
+**`meta.stage`** corrects the default when an effect's anchor is somewhere else:
+
+| field | meaning |
+|---|---|
+| `at` | the place, over the role: `target`, `caster`, `ground`, `path`, `above` or `aside` |
+| `ground` | where the floor is in the effect's own coordinates, px below its anchor: how high the stage holds the anchor. `0` for an anchor on the floor (explosions, splashes, pillars, a status drawn from the feet), `14` for a hit drawn 14 px above its floor |
+| `x` | px toward the dummy from the place: the slash anchors at its wielder, so `x: -22` |
+| `speed` | a looping projectile's, in px/s |
+
+`render --stage <id>` and the effect's preview page (its `stage` row) show where it lands. Each hit of an effect on
+the dummy (`target`, `path`, `above`) makes it flinch, and so does a projectile without hits when it arrives; hits on
+the swordsman's side still freeze and shake.
+
+**Moves** (`src/stage/moves.js`) chain effects: `{ name, desc, steps: [{ fx, on, opts }] }`. A step plays once the
+one before it has ended, after its own wind-up; `on: 'hit'` plays it with the previous step's first hit instead (a
+spark on the slash's cut, the explosion where the fireball lands), and coinciding hits freeze once, at the stronger
+freeze and shake. `render --stage <move>` writes `records/moves/<move>/`; the gallery shows the moves with Stage on.
 
 ## Sound
 
