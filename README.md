@@ -12,7 +12,7 @@ then recolor it in the engine: the same explosion plays as fire, ice or poison, 
   `node tools/serve.mjs`, then open the printed URL. Turn on Stage to see each one acted out by a swordsman and a
   training dummy (`node tools/render.mjs --stage <id>` renders it).
 - [Catalog](docs/CATALOG.md) of the effects; [authoring guide](docs/AUTHORING.md) to make your own.
-- In JS: `npm i grittyfx` (types included), then `createFx` plays any effect live on a canvas, or
+- In JS: `npm i github:JustGritt/grittyfx` (types included), then `createFx` plays any effect live on a canvas, or
   `grittyfx/runtime/sheet-player` plays a baked bundle.
 - Export to an engine: `node tools/export.mjs <ids> --godot <project> --unity <project>`, then see
   [engines/godot](engines/godot/README.md) or [engines/unity](engines/unity/README.md).
