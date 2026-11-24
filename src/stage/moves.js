@@ -46,4 +46,14 @@ export const MOVES = {
     desc: 'A lance of light from the priest, a pillar of light where it strikes',
     steps: [{ fx: 'holy/holy-bolt' }, { fx: 'holy/light-pillar', on: 'hit' }],
   },
+  'soak-and-shock': {
+    name: 'Soak and shock',
+    desc: 'A water bolt drenches the goblin, then lightning finds it wet',
+    steps: [{ fx: 'water/water-bolt' }, { fx: 'status/soaked', on: 'hit' }, { fx: 'electric/shock' }, { fx: 'status/shocked', on: 'hit' }],
+  },
+  'deep-freeze': {
+    name: 'Deep freeze',
+    desc: 'An ice orb that locks the goblin in a crust of ice',
+    steps: [{ fx: 'projectiles/energy-orb', opts: { palette: 'ice' } }, { fx: 'status/frozen', on: 'hit' }],
+  },
 };
