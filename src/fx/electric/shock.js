@@ -13,6 +13,7 @@ export const meta = {
   ramps: { palette: 8 },
   options: { palette: 'electric', seed: 1 },
   act: { hits: [{ t: 1 / 30, freeze: 0.08, shake: 2 }] },
+  stage: { at: 'target', ground: 16 }, // around the body, not over its head as a status
   sound: [
     { t: 1 / 30, kind: 'crack', gain: 0.8, pitch: 1.8 }, // the jolt
     { t: 1 / 30, kind: 'zap', gain: 0.8 },

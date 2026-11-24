@@ -14,6 +14,7 @@ export const meta = {
   ramps: { palette: 8 },
   options: { palette: 'ice', seed: 1 },
   act: { windup: 0.1, hits: [{ t: 2 / 30, freeze: 0.05, shake: 1 }] },
+  stage: { x: -22 }, // the wielder, 22 px before the target
   sound: [
     { t: 0, kind: 'whoosh', gain: 0.8, pitch: 1.6 }, // the swing, loudest as it passes the target
     { t: 2 / 30, kind: 'crack', gain: 0.45, pitch: 2.2 }, // the cut

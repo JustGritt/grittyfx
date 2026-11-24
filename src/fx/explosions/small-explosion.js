@@ -14,6 +14,7 @@ export const meta = {
   ramps: { palette: 8, smoke: 6, dust: 5, debris: 4 },
   options: { palette: 'fire', smoke: 'smoke', dust: 'dust', debris: 'stone', seed: 1 },
   act: { hits: [{ t: 0, freeze: 0.05, shake: 4 }] },
+  stage: { ground: 0 },
   sound: [
     { t: 0, kind: 'crack', pitch: 0.3 }, // the blast's rumble
     { t: 0, kind: 'thump', pitch: 0.6 },

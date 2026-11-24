@@ -12,6 +12,7 @@ export const meta = {
   views: ['side'],
   ramps: { palette: 8 },
   options: { palette: 'gold', seed: 1 },
+  stage: { ground: 14 }, // around the body
   sound: [
     // one glint every quarter second, on a pentatonic scale
     { t: 0, kind: 'chime', gain: 0.3, pitch: 1.5 },

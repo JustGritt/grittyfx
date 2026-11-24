@@ -14,6 +14,7 @@ export const meta = {
   ramps: { palette: 8 },
   options: { palette: 'water', seed: 1 },
   act: { hits: [{ t: 1 / 30, freeze: 0.04, shake: 1 }] },
+  stage: { ground: 0 }, // the water's surface at the target's feet
   sound: [
     { t: 0, kind: 'whoosh', gain: 0.5, pitch: 0.6 }, // the water thrown up, loudest as the crown peaks
     { t: 1 / 30, kind: 'thump', gain: 0.7, pitch: 0.8 }, // the plunge

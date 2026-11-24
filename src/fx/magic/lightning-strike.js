@@ -13,6 +13,7 @@ export const meta = {
   ramps: { palette: 8 },
   options: { palette: 'electric', seed: 1 },
   act: { hits: [{ t: 0.2, freeze: 0.07, shake: 3 }] },
+  stage: { ground: 0 },
   sound: [
     { t: 0.08, kind: 'zap', gain: 0.3, pitch: 1.6 }, // the leader creeping down
     { t: 0.2, kind: 'crack' }, // the bolt

@@ -3,7 +3,7 @@ import { tileFbm, loopNoise, rand } from '../../core/index.js';
 export const meta = {
   name: 'Campfire',
   desc: 'Two crossed logs charring under licking flames, rising embers, a thin column of smoke and a warm pool of light',
-  tags: ['fire', 'light', 'prop', 'camp'],
+  tags: ['fire', 'light', 'prop', 'camp', 'ambient'],
   size: [56, 64],
   origin: [28, 54],
   duration: 1.5,

@@ -3,7 +3,7 @@ import { tileFbm, loopNoise, rand } from '../../core/index.js';
 export const meta = {
   name: 'Torch',
   desc: 'A wall torch: a flame licking up in tongues, white-hot core, drifting embers, a warm pool of light',
-  tags: ['fire', 'light', 'prop'],
+  tags: ['fire', 'light', 'prop', 'ambient'],
   size: [32, 48],
   origin: [16, 39],
   duration: 1,
@@ -12,6 +12,7 @@ export const meta = {
   views: ['side'],
   ramps: { palette: 8 },
   options: { palette: 'fire', seed: 1 },
+  stage: { ground: 24 }, // on a wall
   sound: [{ t: 0, kind: 'crackle', gain: 0.7 }],
 };
 

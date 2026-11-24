@@ -13,6 +13,7 @@ export const meta = {
   ramps: { palette: 8, debris: 4, dust: 5 },
   options: { palette: 'fire', debris: 'stone', dust: 'dust', seed: 1 },
   act: { windup: 0.2, hits: [{ t: 1 / 30, freeze: 0.14, shake: 4 }] },
+  stage: { ground: 18 },
   sound: [
     { t: 1 / 30, kind: 'thump', pitch: 0.7 },
     { t: 1 / 30, kind: 'crack', gain: 0.8, pitch: 0.8 },
