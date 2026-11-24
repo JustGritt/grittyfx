@@ -294,8 +294,8 @@ the caster's side still freeze and shake.
 **Moves** (`src/stage/moves.js`) chain effects: `{ name, desc, steps: [{ fx, on, opts }] }`. A step plays once the
 one before it has ended, after its own wind-up; `on: 'hit'` plays it with the previous step's first hit instead (a
 spark on the slash's cut, the explosion where the fireball lands), and coinciding hits freeze once, at the stronger
-freeze and shake. `render --stage <move>` writes `records/moves/<move>/`; the gallery shows the moves above the
-effects while a character is on.
+freeze and shake. `render --stage <move>` writes `records/moves/<move>/`; the gallery shows them on its Moves page
+(`?page=moves`).
 
 **The cast's art** is in `src/stage/cast/<name>.aseprite`, one file per character: the feet at the bottom center of
 the canvas, a tag per pose (`idle` has two frames, a breath), and a hidden `tip` layer with one pixel where the glow

@@ -21,6 +21,7 @@
     --mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
   }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   html { scrollbar-gutter: stable; } /* filtering the grid adds or drops the scrollbar: keep the page from shifting */
   body {
     margin: 0;
@@ -39,6 +40,10 @@
   .brand::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 8px; background: var(--accent); box-shadow: 4px 4px 0 #c9380f; }
   header p { margin: 0; color: var(--muted); flex: 1 1 16rem; }
   header .src { color: var(--muted); font: 13px var(--mono); }
+  .pages { display: flex; gap: 4px; }
+  .pages a { padding: 4px 10px; border-radius: 6px; font: 14px var(--mono); color: var(--muted); text-decoration: none; }
+  .pages a:hover { color: var(--text); }
+  .pages a[aria-current] { color: var(--text); background: var(--raised); box-shadow: inset 0 -2px 0 var(--accent); }
 
   .controls {
     display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px;
@@ -61,7 +66,6 @@
   button:hover, select:hover { border-color: #3d4154; }
   #replay { background: var(--accent); color: #1f0a12; border-color: var(--accent); margin-left: auto; }
   .custom { flex-basis: 100%; flex-wrap: wrap; }
-  .custom[hidden] { display: none; }
   .ramp { display: flex; height: 18px; min-width: 64px; border-radius: 3px; overflow: hidden; }
   .ramp span { flex: 1; min-width: 6px; }
   .ramp:empty { display: none; }
@@ -77,7 +81,6 @@
 
   h2 { display: flex; align-items: baseline; gap: 8px; font-size: 22px; line-height: 1.2; margin: 0 0 12px; }
   h2 small { font: 13px var(--mono); color: var(--muted); }
-  main > section + section { margin-top: 40px; }
   .below h2 { font: 600 12px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
   .chips { flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
   .chips span { display: block; padding: 0 10px; font: 13px/28px var(--mono); color: var(--muted); border: 1px solid var(--line); border-radius: 999px; }
@@ -92,11 +95,11 @@
     background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
     transition: border-color 0.15s;
   }
-  .card[hidden] { display: none; }
   .card:hover { border-color: #3d4154; }
-  .card:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .card a:focus-visible { outline: none; }
-  .card a::after { content: ""; position: absolute; inset: 0; }
+  /* the title's link covers the card; other links in it (a character's downloads) stay their own size */
+  .card:has(h3 a:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .card h3 a:focus-visible { outline: none; }
+  .card h3 a::after { content: ""; position: absolute; inset: 0; }
   /* the canvas fills the stage, a little past its sides and bottom; --fit is the effect's height at its zoom */
   .stage { position: relative; display: grid; place-items: center; min-height: max(14rem, var(--fit, 0px)); padding: 12px; background: var(--stage); overflow: hidden; transition: background-color 0.2s; }
   canvas { position: absolute; image-rendering: pixelated; }
@@ -114,9 +117,8 @@
   .preview .top a { color: var(--muted); text-decoration: none; }
   .preview .top a:hover { color: var(--text); }
   .pager { display: flex; gap: 20px; }
-  .pager[hidden] { display: none; }
   .preview h1 { margin: 8px 0 0; font-size: 26px; line-height: 1.2; }
-  .preview .desc { font-size: 15px; margin-bottom: 16px; }
+  .preview .desc, main > section > .desc { font-size: 15px; margin-bottom: 16px; }
   .preview .stage { min-height: max(18rem, var(--fit, 0px)); border: 1px solid var(--line); border-radius: 10px; }
   .sound { position: absolute; top: 10px; right: 10px; min-height: 30px; font-size: 13px; color: var(--muted); }
   .sound[aria-pressed="true"] { color: var(--text); border-color: var(--accent); box-shadow: inset 0 -2px 0 var(--accent); }
@@ -145,6 +147,11 @@
   <header>
     <a class="brand" href="./">grittyfx</a>
     <p>Pixel-art effects as code, playing live from their source.</p>
+    <nav class="pages" aria-label="Gallery">
+      <a data-page="" href="./">Effects</a>
+      <a data-page="moves" href="?page=moves">Moves</a>
+      <a data-page="characters" href="?page=characters">Characters</a>
+    </nav>
     <a class="src" href="https://github.com/JustGritt/grittyfx">source</a>
   </header>
 

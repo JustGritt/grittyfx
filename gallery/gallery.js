@@ -1,6 +1,6 @@
-// The gallery: plays every effect live from its module, filtered by category (?cat=), or one large with ?fx=<id> (the
-// preview page, with its sound). With either character on, a knight, a mage or an archer acts them out on a goblin,
-// and the moves (?move=<id>) show above them.
+// The gallery, three pages: the effects playing live from their modules, filtered by category (?cat=), or one large
+// with ?fx=<id> (the preview page, with its sound); the moves (?page=moves, one with ?move=<id>); the characters to
+// download (?page=characters). With either character on, the cast acts the effects out on a goblin.
 import { PAL, hex, fit, createFx, createFrame, clearFrame, composite, layout, HEADINGS, synth, SAMPLE_RATE } from '../src/core/index.js';
 import { createStage, role } from '../src/stage/stage.js';
 import { MOVES } from '../src/stage/moves.js';
@@ -17,6 +17,7 @@ const JIGGLE = [[1, 0], [-1, 1], [1, -1], [-1, 0]];
 const calm = matchMedia('(prefers-reduced-motion: reduce)');
 const form = document.getElementById('controls'), f = form.elements, main = document.getElementById('main');
 const params = new URLSearchParams(location.search), only = params.get('fx'), move = params.get('move');
+const asked = params.get('page'), page = move ? 'moves' : !only && ['moves', 'characters'].includes(asked) ? asked : ''; // '' is the effects
 const players = [];
 const audio = { ctx: null, on: false }; // sound plays on the preview page only, once its button is pressed
 let custom = null; // the last valid custom ramp
@@ -38,6 +39,9 @@ for (const [k, v] of params) {
 }
 f.custom.value ||= '#0b1a2e #14506a #1ca0a0 #6ff0c0 #f2fff6';
 if (!BG[f.bg.value]) f.bg.value = 'ground';
+form.hidden = page === 'characters'; // the settings play effects; the character sheets don't
+document.querySelector(`a[data-page="${page}"]`).setAttribute('aria-current', only || move ? 'true' : 'page');
+if (page) document.title = `${page[0].toUpperCase()}${page.slice(1)} · grittyfx`;
 
 function query(extra = {}) {
   const q = new URLSearchParams(extra), pal = f.palette.value;
@@ -53,6 +57,9 @@ function query(extra = {}) {
   if (!f.hitstop.checked) q.set('hitstop', 0);
   return String(q) ? `?${String(q).replaceAll('%2F', '/')}` : './';
 }
+
+/** The link to a page's list: its grid of effects, moves or characters. */
+const home = (p = page) => query(p ? { page: p } : {});
 
 function readCustom() {
   try {
@@ -77,10 +84,10 @@ function showSettings() {
   document.getElementById('ramp').replaceChildren(...swatches(colors.map(hex)));
   document.body.dataset.bg = f.bg.value;
   refresh();
-  document.getElementById('moves')?.toggleAttribute('hidden', !acting());
   for (const a of document.querySelectorAll('a[data-fx]')) a.href = query({ fx: a.dataset.fx });
   for (const a of document.querySelectorAll('a[data-move]')) a.href = query({ move: a.dataset.move });
-  for (const a of document.querySelectorAll('a.back')) a.href = query();
+  for (const a of document.querySelectorAll('a[data-page]')) a.href = home(a.dataset.page);
+  for (const a of document.querySelectorAll('a.back')) a.href = home();
 }
 
 /** The stage's backdrop, w x h RGBA: its color, and on 'ground' a stone floor from row `floor` down. */
@@ -378,6 +385,7 @@ function castCard(who) {
 }
 
 const note = (...kids) => main.replaceChildren(el('p', { className: 'note', role: 'status' }, ...kids));
+const head = (text, n) => el('h2', {}, text, el('small', { textContent: n }));
 const clone = id => document.getElementById(id).content.firstElementChild.cloneNode(true);
 
 /** The preview page for `id`, linked to the ones before and after it in `ids` (round the ends); key is 'fx' or 'move'. */
@@ -390,7 +398,8 @@ function preview(ids, id, key, nameOf) {
     a.textContent = k ? `${nameOf(other)} ›` : `‹ ${nameOf(other)}`;
     a.setAttribute('aria-label', `${k ? 'Next' : 'Previous'}: ${nameOf(other)}`);
   });
-  if (key === 'fx' && cat) root.querySelector('.back').textContent = `← all ${cat} effects`;
+  if (key === 'move') root.querySelector('.back').textContent = '← all moves';
+  else if (cat) root.querySelector('.back').textContent = `← all ${cat} effects`;
   root.querySelector('.desc').after(form); // the page's own nav and title first, then the settings for its stage
   main.replaceChildren(root);
   return root;
@@ -418,6 +427,20 @@ async function start() {
     const all = list.map(e => e.id), mine = all.filter(id => id.startsWith(`${cat}/`)), ids = mine.includes(only) ? mine : all;
     if (ids === all) cat = '';
     await show(entry, preview(ids, only, 'fx', id => list.find(e => e.id === id).meta?.name ?? id), true);
+  } else if (page === 'characters') {
+    const who = Object.keys(CAST);
+    main.replaceChildren(el('section', {}, head('Characters', who.length),
+      el('p', { className: 'desc', textContent: 'The cast that acts the effects out, free to use in your own games (MIT, like the code).' }),
+      el('ul', { className: 'grid' }, ...who.map(castCard))));
+  } else if (page === 'moves') {
+    const ids = Object.keys(MOVES), ul = el('ul', { className: 'grid' });
+    main.replaceChildren(el('section', {}, head('Moves', ids.length),
+      el('p', { className: 'desc', textContent: 'Effects played in a row as one attack, acted out by the cast.' }), ul));
+    for (const id of ids) {
+      const card = clone('card-tpl');
+      ul.append(card);
+      showMove(id, card, false);
+    }
   } else {
     if (!list.length) return note('No effects yet.');
     const counts = {};
@@ -425,20 +448,8 @@ async function start() {
     if (!counts[cat]) cat = '';
     const chips = el('fieldset', { className: 'chips', ariaLabel: 'Category' }, ...[['', list.length], ...Object.entries(counts)].map(([c, n]) =>
       el('label', {}, el('input', { type: 'radio', name: 'cat', value: c, checked: c === cat }), el('span', {}, `${c || 'all'} `, el('small', { textContent: n })))));
-    const ul = el('ul', { className: 'grid' }), moves = el('ul', { className: 'grid' });
-    const ids = Object.keys(MOVES), head = (text, n) => el('h2', {}, text, el('small', { textContent: n }));
-    main.replaceChildren(
-      el('section', {}, head('Effects', list.length), chips, ul),
-      el('section', { id: 'moves', hidden: !acting() }, head('Moves', ids.length), moves),
-      el('section', { id: 'cast' }, head('Characters', Object.keys(CAST).length),
-        el('p', { className: 'desc', textContent: 'The cast that acts the effects out, free to use in your own games (MIT, like the code).' }),
-        el('ul', { className: 'grid' }, ...Object.keys(CAST).map(castCard))),
-    );
-    for (const id of ids) {
-      const card = clone('card-tpl');
-      moves.append(card);
-      showMove(id, card, false);
-    }
+    const ul = el('ul', { className: 'grid' });
+    main.replaceChildren(el('section', {}, head('Effects', list.length), chips, ul));
     for (const entry of list) {
       const card = clone('card-tpl');
       card.dataset.cat = entry.id.split('/')[0];
@@ -455,7 +466,7 @@ document.addEventListener('input', e => { // the form's settings and the grid's 
   if (e.target === f.custom) readCustom();
   if (e.target.name === 'cat') (cat = e.target.value), filter();
   showSettings();
-  history.replaceState(null, '', move ? query({ move }) : only ? query({ fx: only }) : query());
+  history.replaceState(null, '', move ? query({ move }) : only ? query({ fx: only }) : home());
   const restart = [f.palette, f.custom, f.seed, f.view, f.caster, f.target].includes(e.target);
   for (const pl of players) if (!pl.error) restart ? pl.restart() : pl.redraw();
   // shown again (fit while hidden), or a new backdrop

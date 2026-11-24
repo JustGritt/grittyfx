@@ -16,6 +16,8 @@
   `projectiles/shuriken` (a spinning four-pointed star), both tagged `thrown`: the kunoichi throws them. 8 headings each.
 - **Gallery: the cast to download**: a card per character with every pose on a sheet, free to use (MIT): a PNG at
   1x (equal cells, feet at the same spot, the frame order listed) or the `.aseprite` it comes from.
+- **Gallery pages**: Effects, Moves (`?page=moves`) and Characters (`?page=characters`), each its own page under a
+  nav in the header, the settings following from one to the next; a preview's title sits above its settings.
 - **More moves**: Shock arrow (archer), Tidal bolt and Hex (mage), Smite (priest), so every caster and the water,
   shadow, electric and holy effects play in one.
 - **Gallery ground**: a `ground` background, the default, like pixelfx's: a stone floor under the actors' feet (or
