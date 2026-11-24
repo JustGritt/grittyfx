@@ -26,10 +26,10 @@ Usually what someone asks for already exists and only needs another palette, see
 
 1. `node <gfx>/tools/list.mjs <word>`: search by what it is (`torch`, `hit`, `explosion`), not by color: "ice torch"
    is `torch` with the `ice` palette. No words lists everything.
-2. Render each candidate and **look**: `node <gfx>/tools/render.mjs <id>` prints a contact sheet path; Read it.
-   Each render overwrites that sheet, so Read it before the next one. `--stage` instead shows it acted out (a
-   knight, a mage or an archer winds up, it lands on a goblin, the hit freezes and shakes): the best way to show
-   someone a hit.
+2. Render each candidate and **look**: `node <gfx>/tools/render.mjs <id>` prints a contact sheet path; Read it. Each
+   render overwrites that sheet, so Read it before the next one. `--stage` instead shows it acted out (a knight, a
+   mage, a priest, an archer or a kunoichi winds up, it lands on a goblin, the hit freezes and shakes): the best way
+   to show someone a hit.
 3. Read the candidate's `meta` (top of its file): `options` holds what you can change (palette, seed, ...), `ramps`
    the color slots, `act` its hits.
 4. Try the change: `--opts '{"palette":"ice"}'`, `--seed 7`, then Read the sheet again. Ramp names: fire, ember, ice,
@@ -114,8 +114,9 @@ closest to yours. The contract:
   duration, loop, fps, views, ramps (`{ palette: 8, smoke: 6 }`: slot and steps), options (defaults), act (hits),
   sound (cues `{ t, kind, gain, pitch }`; without it each hit thumps; see the Sound section of `docs/AUTHORING.md`).
   Tags also place it on the stage (`projectile`, `aura`, `buff`, `pickup`, `nova`, `status`, `ambient`; anything else
-  lands on the target) and pick who acts it (`melee`, `slash`, `pickup`: the knight; `magic` or `spell`: the mage;
-  a projectile without them: the archer); `stage: { ground: 0 }` when the anchor is on the floor (the Stage section).
+  lands on the target) and pick who acts it (`slash`, `thrown`, `vanish` or `shadow/`: the kunoichi; `melee`,
+  `pickup`: the knight; `holy/`: the priest; `magic` or `spell`: the mage; a projectile without them: the archer);
+  `stage: { ground: 0 }` when the anchor is on the floor (the Stage section).
 - Pure: `draw(p, t, o)` (and `drawBack`), the frame from `t` alone. Simulated: `create(o)` returns
   `{ update(dt), draw(p), drawBack? }`, stepped at 120 Hz.
 - (0, 0) is the anchor, x right, y down; directional effects face right. Colors are `C[i]` with `C = o.palette`:

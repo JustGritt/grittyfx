@@ -12,6 +12,8 @@
 - **New effect** `projectiles/arrow` (8 headings), and an Arrow shot move.
 - **A kunoichi** joins the cast: she slashes (`slash`, the Sword combo with it), vanishes (`vanish`, the smoke
   puff) and acts every `shadow/` effect, throwing, crouching into a hand sign or lunging with her kunai.
+- **New effects** `projectiles/kunai` (a leaf blade, a wrapped grip, a ring and a fluttering tassel) and
+  `projectiles/shuriken` (a spinning four-pointed star), both tagged `thrown`: the kunoichi throws them. 8 headings each.
 - **More moves**: Shock arrow (archer), Tidal bolt and Hex (mage), Smite (priest), so every caster and the water,
   shadow, electric and holy effects play in one.
 - **Gallery ground**: a `ground` background, the default, like pixelfx's: a stone floor under the actors' feet (or

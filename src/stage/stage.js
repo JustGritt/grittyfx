@@ -28,7 +28,7 @@ const FADE = 0.3; // fx.stop()'s fade
 const SETTLE = 0.9; // the goblin recovers this long after a hit
 const WINDUP = { strike: 0.15, point: 0.3, raise: 0.3, hop: 0.4 }; // when act.windup is left out
 const KNIGHT = ['melee', 'pickup']; // tags a knight acts; a projectile that isn't magic is the archer's
-const ROGUE = ['slash', 'vanish']; // tags the kunoichi acts, and every shadow/ effect
+const ROGUE = ['slash', 'vanish', 'thrown']; // tags the kunoichi acts, and every shadow/ effect
 
 /**
  * The caster's poses, which each caster draws its own way (CASTERS in actors.js): x steps forward and lift raises the
@@ -47,7 +47,7 @@ const SHAKE = 0.2, JIGGLE = [[1, 0], [-1, 1], [1, -1], [-1, 0]]; // as in the ga
  * category, else target. `ground` is the floor's y in the effect's own coordinates (how high its anchor sits), `x`
  * shifts it toward the goblin, `speed` is a looping projectile's in px/s. `pose` is how the caster acts it: strike (a
  * melee effect on the target), hop (landing or jump on the ground), raise (on the caster), point (anything else), none
- * (aside). `cast` is who: meta.stage.cast, else the kunoichi for a slash, a vanish or a shadow/ effect, a knight
+ * (aside). `cast` is who: meta.stage.cast, else the kunoichi for a slash, a vanish, a thrown weapon or a shadow/ effect, a knight
  * for a strike, a hop or a pickup, the priest for a holy/ effect, an archer for a projectile that isn't magic or a
  * spell, else a mage.
  */
