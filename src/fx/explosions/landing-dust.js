@@ -12,7 +12,7 @@ export const meta = {
   views: ['side'],
   ramps: { palette: 8 },
   options: { palette: 'dust', seed: 1 },
-  stage: { at: 'ground' }, // the swordsman lands in it
+  stage: { at: 'ground' }, // the knight lands in it
   sound: [
     { t: 0, kind: 'thump', gain: 0.6, pitch: 0.8 }, // the feet
     { t: 0, kind: 'whoosh', gain: 0.4, pitch: 0.8 }, // the dust kicked out

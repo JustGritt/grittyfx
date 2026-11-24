@@ -36,7 +36,7 @@ export interface Meta {
   act?: { windup?: number; hits?: Hit[] };
   /** Cues; without it each act hit plays a thump; false is silence. */
   sound?: Cue[] | false;
-  stage?: { at?: 'target' | 'caster' | 'ground' | 'path' | 'above' | 'aside'; ground?: number; x?: number; speed?: number };
+  stage?: { at?: 'target' | 'caster' | 'ground' | 'path' | 'above' | 'aside'; cast?: 'knight' | 'mage' | 'archer'; ground?: number; x?: number; speed?: number };
 }
 
 /** Options as an effect sees them: meta.options merged with yours, each ramp slot turned into palette indices. */
@@ -63,9 +63,10 @@ export interface Frame { w: number; h: number; ox: number; oy: number; color: Ui
 export const STEP: number;
 export function createFrame(w: number, h: number, ox?: number, oy?: number): Frame;
 export function clearFrame(frame: Frame): Frame;
-/** RGBA through a 256-entry palette table; opaque over `bg`, straight alpha without. */
+/** RGBA through a 256-entry palette table; opaque over `bg` (one color, or an RGBA image the frame's size), straight
+ * alpha without. */
 export function composite<T extends Uint8Array | Uint8ClampedArray = Uint8ClampedArray>(
-  frame: Frame, palette: ArrayLike<number>, out?: T, bg?: string | [number, number, number] | null, gain?: number,
+  frame: Frame, palette: ArrayLike<number>, out?: T, bg?: string | [number, number, number] | ArrayLike<number> | null, gain?: number,
 ): T;
 export const HEADINGS: readonly ['E', 'SE', 'S', 'SW', 'W', 'NW', 'N', 'NE'];
 export function layout(meta: Meta, view?: View): { size: [number, number]; origin: [number, number]; directions: number };

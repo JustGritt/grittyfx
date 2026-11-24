@@ -1,33 +1,35 @@
-// node tools/render.mjs <id | category | glob>... [--all] [--sheet] [--html] [--gif] [--mp4] [--zoom N] [--seed N]
-//   [--opts '<json>'] [--fps N] [--bg '#hex']
+// node tools/render.mjs <id | category | glob>... [--all] [--sheet] [--html] [--aseprite <dir>] [--gif] [--mp4] [--zoom N]
+//   [--seed N] [--opts '<json>'] [--fps N] [--bg '#hex']
 // node tools/render.mjs --stage <move | id | category | glob>... [--all] [--gif] [--mp4] [--flip] [--zoom N] [--seed N]
 //   [--opts '<json>'] [--bg '#hex']
 // Writes records/<id>/contact.png (sampled frames; --all for every frame), the bundle with --sheet (its .wav too when
-// the effect has sound), a page that plays it with --html (opens from disk), and a gif or mp4 through ffmpeg. An
+// the effect has sound), a page that plays it with --html (opens from disk), and a gif or mp4 through ffmpeg.
+// --aseprite <dir> writes <dir>/<name>.aseprite to edit by hand (the side view; export.mjs bundles it back), never over
+// an existing one: keep it with the game's art, as a plugin's copy of grittyfx is replaced on update. An
 // effect with a top view also gets contact_top.png (a row per direction) and its _top bundle. --stage acts the effect,
-// or a move from src/stage/moves.js, out with the swordsman and the dummy, hit-stop and shake included:
+// or a move from src/stage/moves.js, out with the cast (a knight, mage or archer, and a goblin if it strikes one), hit-stop and shake:
 // records/<id>/stage.png (and stage.gif, stage.mp4), records/moves/<move>/stage.png for a move.
 import { parseArgs } from 'node:util';
-import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { composite, hex } from '../src/core/index.js';
 import { createStage, realtime, FPS } from '../src/stage/stage.js';
 import { MOVES } from '../src/stage/moves.js';
 import { encodePng } from './png.mjs';
-import { ROOT, matchIds, loadEffect, renderFrames, makeBundle, htmlPage, blit, views } from './lib.mjs';
+import { ROOT, matchIds, loadEffect, renderFrames, makeBundle, htmlPage, blit, views, asepriteFile } from './lib.mjs';
 
 const { values: a, positionals } = parseArgs({
   allowPositionals: true,
   options: {
-    all: { type: 'boolean' }, sheet: { type: 'boolean' }, html: { type: 'boolean' }, gif: { type: 'boolean' }, mp4: { type: 'boolean' },
+    all: { type: 'boolean' }, sheet: { type: 'boolean' }, html: { type: 'boolean' }, aseprite: { type: 'string' }, gif: { type: 'boolean' }, mp4: { type: 'boolean' },
     stage: { type: 'boolean' }, flip: { type: 'boolean' },
     zoom: { type: 'string' }, seed: { type: 'string' }, opts: { type: 'string' }, fps: { type: 'string' },
     bg: { type: 'string', default: '#1b1d26' },
   },
 });
 if (!positionals.length) {
-  console.error('usage: node tools/render.mjs <id | category | glob>... [--all] [--sheet] [--html] [--gif] [--mp4] [--zoom N] [--seed N] [--opts json] [--fps N] [--bg #hex]');
+  console.error('usage: node tools/render.mjs <id | category | glob>... [--all] [--sheet] [--html] [--aseprite <dir>] [--gif] [--mp4] [--zoom N] [--seed N] [--opts json] [--fps N] [--bg #hex]');
   console.error(`       node tools/render.mjs --stage <move | id>... [--all] [--gif] [--mp4] [--flip] [--zoom N] [--seed N] [--opts json] [--bg #hex] (moves: ${Object.keys(MOVES).join(', ')})`);
   process.exit(1);
 }
@@ -104,6 +106,15 @@ for (const id of matchIds(positionals)) {
       const page = join(dir, `${id.split('/').pop()}.html`);
       writeFileSync(page, htmlPage(id, mod.meta, b));
       console.log(page);
+    }
+    if (a.aseprite && !top) {
+      const file = resolve(a.aseprite, `${id.split('/').pop()}.aseprite`);
+      if (existsSync(file)) console.log(`${file} (kept: it exists and may hold edits; delete it to start over)`);
+      else {
+        mkdirSync(a.aseprite, { recursive: true });
+        writeFileSync(file, asepriteFile(id, mod, { fps, opts }));
+        console.log(file);
+      }
     }
     if (a.sheet) {
       for (const key of ['data', 'palette', 'sheet']) writeFileSync(join(dir, b.files[key]), b.png[key]);

@@ -19,8 +19,8 @@ export function clearFrame(frame) {
 
 /**
  * Resolves a frame to RGBA through a palette table: rgb = pal[ci] * ca + pal[li] * lk * gain, a = ca.
- * Over `bg` (a hex string or [r, g, b]) the result is opaque. Without one it is straight alpha for a canvas or a PNG,
- * and light where there is no color becomes color with alpha (exact over black).
+ * Over `bg` (a hex string, [r, g, b], or an RGBA image the frame's size) the result is opaque. Without one it is
+ * straight alpha for a canvas or a PNG, and light where there is no color becomes color with alpha (exact over black).
  */
 export function composite(frame, palette, out = new Uint8ClampedArray(frame.w * frame.h * 4), bg = null, gain = 1) {
   const { color, light } = frame;
@@ -32,9 +32,10 @@ export function composite(frame, palette, out = new Uint8ClampedArray(frame.w * 
     let b = palette[ci + 2] * ca + palette[li + 2] * lk;
     let a = 1;
     if (bg) {
-      r += bg[0] * (1 - ca);
-      g += bg[1] * (1 - ca);
-      b += bg[2] * (1 - ca);
+      const k = bg.length > 4 ? i * 4 : 0; // one color, or this pixel of an image
+      r += bg[k] * (1 - ca);
+      g += bg[k + 1] * (1 - ca);
+      b += bg[k + 2] * (1 - ca);
     } else {
       a = Math.max(ca, Math.min(1, Math.max(r, g, b) / 255));
       if (a > 0) (r /= a), (g /= a), (b /= a);

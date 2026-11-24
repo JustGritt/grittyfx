@@ -12,7 +12,7 @@ export const meta = {
   views: ['side'],
   ramps: { palette: 8 },
   options: { palette: 'gold', seed: 1 },
-  stage: { ground: 12 }, // the coin at the swordsman's chest
+  stage: { ground: 12, x: 16 }, // a coin floating at the knight's side, chest high
   sound: [
     // two bright tings, a fourth apart
     { t: 0, kind: 'chime', gain: 0.5, pitch: 2 },

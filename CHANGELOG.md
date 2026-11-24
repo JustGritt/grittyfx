@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased
+
+- **A cast that fits**: the stage's code-drawn swordsman and dummy are replaced by characters drawn in Aseprite
+  (`src/stage/cast/*.aseprite`, made into `src/stage/cast.js` by `tools/cast.mjs`): a knight acts melee, pickups
+  and landings, a mage spells, statuses, auras and spell projectiles (the staff's orb glows in the spell's colors),
+  an archer other projectiles, and a goblin takes the hits (knocked back, a white flash, a hurt face). Tags pick the
+  caster, `meta.stage.cast` overrides it. Shots leave from the caster's staff or bow.
+- **Gallery**: Caster and Target toggles replace Stage, on by default, like pixelfx's character toggle: either can
+  be switched off (`?caster=0`, `?target=0`), both off shows the effect alone. `createStage(steps, o, show)`.
+- **New effect** `projectiles/arrow` (8 headings), and an Arrow shot move.
+- **Gallery ground**: a `ground` background, the default, like pixelfx's: a stone floor under the actors' feet (or
+  under an effect alone, as high as the stage would act it), level from card to card, filling each card edge to edge.
+  `?bg=dark` is the flat one. `composite()` takes a background image as well as a color.
+
+- **Edit in Aseprite**: `render.mjs <id> --aseprite <dir>` writes the side view as an `.aseprite` file (never over an
+  existing one) (a color layer, a
+  light layer in Addition, the effect's palette, a tag per hit); `export.mjs <file>.aseprite` bundles it back, still
+  recolorable. Frame durations become held frames, hit tags move the hits and the sound's cues follow them. The bundle
+  takes the file's name, so variants sit beside the original. `export.mjs --out <dir>` writes bundles for any engine.
+- **Gallery**: category filter (`?cat=`); pictures line up across a row. The preview page plays the effect's sound
+  (on the stage too), steps to the previous and next effect, shows each ramp's colors, and gives copyable lines to
+  use it: the JS import, the Godot and Unity export, the sheet, with the chosen palette and seed.
+
 ## 1.0.0 (2026-11-24)
 
 - **Stage**: a code-drawn swordsman and training dummy act effects out: wind-up, the effect placed by its role (on

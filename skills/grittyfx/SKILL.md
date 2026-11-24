@@ -28,7 +28,8 @@ Usually what someone asks for already exists and only needs another palette, see
    is `torch` with the `ice` palette. No words lists everything.
 2. Render each candidate and **look**: `node <gfx>/tools/render.mjs <id>` prints a contact sheet path; Read it.
    Each render overwrites that sheet, so Read it before the next one. `--stage` instead shows it acted out (a
-   swordsman winds up, it lands on a training dummy, the hit freezes and shakes): the best way to show someone a hit.
+   knight, a mage or an archer winds up, it lands on a goblin, the hit freezes and shakes): the best way to show
+   someone a hit.
 3. Read the candidate's `meta` (top of its file): `options` holds what you can change (palette, seed, ...), `ramps`
    the color slots, `act` its hits.
 4. Try the change: `--opts '{"palette":"ice"}'`, `--seed 7`, then Read the sheet again. Ramp names: fire, ember, ice,
@@ -77,6 +78,24 @@ named after its heading (Phaser: `createFromAseprite(key, null, sprite)` keeps t
 reaches `t`, pause the game for `freeze` seconds and shake the camera by `shake` px; `windup` is how long the
 attacker winds up before the effect starts. Engines raise these as signals or events.
 
+**Edit by hand in Aseprite** (pacing, anticipation, holds, pixel touch-ups): `node <gfx>/tools/render.mjs <id>
+--aseprite <dir> [--opts json] [--seed N]` writes `<dir>/<name>.aseprite` (side view) and never overwrites one: put it
+with the game's art, never under `<gfx>` (a plugin update replaces that folder). It has a `color` layer, a `light`
+layer (Addition, the glow), the effect's palette and a one-frame `hit freeze=.. shake=..` tag per hit. Frame durations
+set the pacing (rounded to whole frames at the effect's fps: a 100 ms frame at 30 fps plays as 3), moving a hit tag
+moves the hit and its sound, and new pixels must use the file's palette colors or they can't be recolored. Keep the
+two layers (merge any others into them) and the canvas size. Then `node <gfx>/tools/export.mjs <file>.aseprite
+--godot <project> --unity <project>` (or `--out <dir>` for any other engine) bundles it as `<category>/<file name>`:
+rename the file to keep a variant beside the original. The file is now the effect's source: exporting the id again
+renders the code, without the edits.
+
+**With an Aseprite MCP connected** (`open_sprite`, `save_sprite`, ...), open it in their Aseprite instead of
+pointing at a file: `get_connection_status` lists `allowedDirectories`; render with `--aseprite` into a folder inside
+one (the game's art folder when there is one, e.g. `<allowed>/fx`), then `open_sprite` the path it printed. Edit with
+the MCP's tools (`set_frame_duration` for holds, `duplicate_frame` for anticipation, `update_animation_tag` to move a
+hit, colors from `get_palette` for pixels), `save_sprite`, then export the file as above. If no allowed directory
+fits, say so: they add one to `ASEPRITE_MCP_ALLOWED_DIRS`.
+
 **Recolor**: live, pass ramp options to `createFx`. In an engine, call `set_ramp` (Godot) or `SetRamp` (Unity) per
 instance with the colors of a ramp from `src/core/color.js`. To bake a palette instead, `render.mjs <id> --sheet --opts
 '{"palette":"ice"}'` writes `<name>_pal.png` over the default bundle in `records/<id>/`: copy it under a new name
@@ -95,7 +114,8 @@ closest to yours. The contract:
   duration, loop, fps, views, ramps (`{ palette: 8, smoke: 6 }`: slot and steps), options (defaults), act (hits),
   sound (cues `{ t, kind, gain, pitch }`; without it each hit thumps; see the Sound section of `docs/AUTHORING.md`).
   Tags also place it on the stage (`projectile`, `aura`, `buff`, `pickup`, `nova`, `status`, `ambient`; anything else
-  lands on the target); `stage: { ground: 0 }` when the anchor is on the floor (the Stage section).
+  lands on the target) and pick who acts it (`melee`, `slash`, `pickup`: the knight; `magic` or `spell`: the mage;
+  a projectile without them: the archer); `stage: { ground: 0 }` when the anchor is on the floor (the Stage section).
 - Pure: `draw(p, t, o)` (and `drawBack`), the frame from `t` alone. Simulated: `create(o)` returns
   `{ update(dt), draw(p), drawBack? }`, stepped at 120 Hz.
 - (0, 0) is the anchor, x right, y down; directional effects face right. Colors are `C[i]` with `C = o.palette`:

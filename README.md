@@ -5,17 +5,22 @@ Pixel-art effects written as code, recolorable at runtime in Godot, Unity and th
 Each effect is one small JavaScript file that draws pixels and glow from a palette. Bake it once into a sprite sheet,
 then recolor it in the engine: the same explosion plays as fire, ice or poison, per instance, with no re-export.
 
-> **Status: 1.0.** 30 effects in 11 categories, each with a synthesised sound, 9 of them with top-down views; a browser
+> **Status: 1.0.** 31 effects in 11 categories, each with a synthesised sound, 10 of them with top-down views; a browser
 > player, a Unity 6 package and a Godot 4 addon (not yet tested in Godot).
 
-- [Gallery](https://justgritt.github.io/grittyfx/): every effect live, with recolor and hit-stop. Locally:
-  `node tools/serve.mjs`, then open the printed URL. Turn on Stage to see each one acted out by a swordsman and a
-  training dummy (`node tools/render.mjs --stage <id>` renders it).
+- [Gallery](https://justgritt.github.io/grittyfx/): every effect live, with recolor, hit-stop and sound. Locally:
+  `node tools/serve.mjs`, then open the printed URL. Each effect is acted out by a caster that fits it (a knight, a
+  mage or an archer), on a goblin when the effect strikes one; switch either off to see the effect alone (`node tools/render.mjs --stage <id>`
+  renders it).
 - [Catalog](docs/CATALOG.md) of the effects; [authoring guide](docs/AUTHORING.md) to make your own.
 - In JS: `npm i github:JustGritt/grittyfx` (types included), then `createFx` plays any effect live on a canvas, or
   `grittyfx/runtime/sheet-player` plays a baked bundle.
 - Export to an engine: `node tools/export.mjs <ids> --godot <project> --unity <project>`, then see
-  [engines/godot](engines/godot/README.md) or [engines/unity](engines/unity/README.md).
+  [engines/godot](engines/godot/README.md) or [engines/unity](engines/unity/README.md). `--out <dir>` writes the
+  same bundle for any other engine.
+- Edit one by hand: `node tools/render.mjs <id> --aseprite <dir>` writes `<dir>/<name>.aseprite`. Change its pacing,
+  anticipation or pixels in Aseprite, then `node tools/export.mjs <file>.aseprite --godot ...` bundles it back, still
+  recolorable. With the Claude Code skill and an Aseprite MCP, Claude opens it in your Aseprite for you.
 
 ## Why
 
@@ -33,6 +38,9 @@ sheets that stay recolorable.
 - **Side view and top-down.** Directional effects bake 8 headings turned before rasterising, so pixels stay on the
   grid; radial ones get their own drawing from above. Players pick the row from the game's heading.
 - **Any engine.** Every effect also exports as a plain sprite sheet with Aseprite-style JSON.
+- **Edit in Aseprite.** An effect opens as an `.aseprite` file with its glow on its own layer and a tag per hit.
+  Retime it, add anticipation or touch up pixels with its palette; it comes back recolorable, its hits and sound
+  moved with the frames.
 - **Make your own.** A Claude Code skill drafts new effects, renders them and refines them until they hold up.
 
 ## Install the Claude Code skill
