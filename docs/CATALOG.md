@@ -1,6 +1,6 @@
 # Catalog
 
-31 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
+33 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
 Ramps read `option: default (steps)`; pass another ramp name or a list of colors to recolor.
 
 ## electric
@@ -64,6 +64,8 @@ Ramps read `option: default (steps)`; pass another ramp name or a list of colors
 |---|---|---|---|---|---|---|---|
 | `projectiles/arrow` | loop | side, top (8 headings) | 48x12 | 0.4 s | palette: blood (8), wood: dust (6), steel: stone (6) | projectile, arrow, bow, physical | An arrow in flight: a steel broadhead that glints, a shaft whose fletching shivers as it flies, streaks of air running off behind |
 | `projectiles/energy-orb` | loop | side, top (8 headings) | 40x24 | 0.6 s | palette: arcane (8) | projectile, magic, energy, orb, arcane, bolt | A flying orb of energy: a pulsing core with a swirling shell, two sparks in orbit, echoes and motes trailing behind |
+| `projectiles/kunai` | loop | side, top (8 headings) | 40x12 | 0.4 s | palette: blood (8), steel: stone (6) | projectile, thrown, kunai, knife, dagger, ninja, physical | A thrown kunai flying point first: a leaf blade lit along its ridge, a wrapped grip, a ring pommel and a tassel that flutters, air streaming off behind |
+| `projectiles/shuriken` | loop | side, top (8 headings) | 28x16 | 0.4 s | palette: stone (6) | projectile, thrown, shuriken, star, spin, ninja, physical | A spinning four-pointed throwing star: bevelled steel points around a dark hole, a glint as each point swings past the light, air streaming off behind |
 
 ## shadow
 

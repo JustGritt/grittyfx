@@ -2,17 +2,17 @@
 // mage, a priest, an archer and a kunoichi who act effects out, and a goblin who takes them. Local coordinates as in
 // effects: (0, 0) on the floor under the feet, x toward the other actor, y down, 1 unit = 1 px.
 import { paletteTable, fit } from '../core/index.js';
-import { PALETTE, CAST } from './cast.js';
+import { PALETTES, CAST } from './cast.js';
 
 export { CAST };
-const KEYS = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$%&()*+,-/:;<=>?@[]^_{|}~'; // as tools/cast.mjs writes them: keep the two the same
+export const KEYS = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$%&()*+,-/:;<=>?@[]^_{|}~'; // as tools/cast.mjs writes them: keep the two the same
 
 /**
- * The cast's palette table: its colors (`cast`), `glow` (the spell's ramp, 8 steps) that lights a caster's tip, and
- * `ink`: the floor shadow's color, then a hit's white flash.
+ * The palette table for the actors `who` on stage: each one's colors under its name, `glow` (the spell's ramp, 8 steps)
+ * that lights a caster's tip, and `ink`: the floor shadow's color, then a hit's white flash.
  */
-export function actorPalette(glow = 'holy') {
-  return paletteTable({ cast: PALETTE, glow: fit(glow, 8), ink: ['#0e0c14', '#ffffff'] });
+export function actorPalette(glow = 'holy', who = Object.keys(CAST)) {
+  return paletteTable({ ...Object.fromEntries(who.map(n => [n, PALETTES[n]])), glow: fit(glow, 8), ink: ['#0e0c14', '#ffffff'] });
 }
 
 /**
@@ -39,14 +39,14 @@ export function bounds(who) {
   return [Math.min(...fs.map(f => f.x)), Math.min(...fs.map(f => f.y)), Math.max(...fs.map(f => f.x + f.rows[0].length)), Math.max(...fs.map(f => f.y + f.rows.length))];
 }
 
-/** Draws a frame of the cast with its feet at (x, y) local to `frame`'s origin; C is actorPalette().index. */
-export function drawFrame(frame, f, C, x = 0, y = 0) {
+/** Draws a frame of the cast with its feet at (x, y) local to `frame`'s origin; c is its character's indices, actorPalette().index[who]. */
+export function drawFrame(frame, f, c, x = 0, y = 0) {
   const { w, h, color } = frame, X0 = frame.ox + x + f.x, Y0 = frame.oy + y + f.y;
   f.rows.forEach((row, j) => {
     for (let i = 0; i < row.length; i++) {
       const k = KEYS.indexOf(row[i]), X = X0 + i, Y = Y0 + j;
       if (k < 0 || X < 0 || Y < 0 || X >= w || Y >= h) continue;
-      color[(Y * w + X) * 2] = C.cast[k];
+      color[(Y * w + X) * 2] = c[k];
       color[(Y * w + X) * 2 + 1] = 255;
     }
   });

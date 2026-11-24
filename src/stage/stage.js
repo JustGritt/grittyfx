@@ -28,7 +28,7 @@ const FADE = 0.3; // fx.stop()'s fade
 const SETTLE = 0.9; // the goblin recovers this long after a hit
 const WINDUP = { strike: 0.15, point: 0.3, raise: 0.3, hop: 0.4 }; // when act.windup is left out
 const KNIGHT = ['melee', 'pickup']; // tags a knight acts; a projectile that isn't magic is the archer's
-const ROGUE = ['slash', 'vanish']; // tags the kunoichi acts, and every shadow/ effect
+const ROGUE = ['slash', 'vanish', 'thrown']; // tags the kunoichi acts, and every shadow/ effect
 
 /**
  * The caster's poses, which each caster draws its own way (CASTERS in actors.js): x steps forward and lift raises the
@@ -47,7 +47,7 @@ const SHAKE = 0.2, JIGGLE = [[1, 0], [-1, 1], [1, -1], [-1, 0]]; // as in the ga
  * category, else target. `ground` is the floor's y in the effect's own coordinates (how high its anchor sits), `x`
  * shifts it toward the goblin, `speed` is a looping projectile's in px/s. `pose` is how the caster acts it: strike (a
  * melee effect on the target), hop (landing or jump on the ground), raise (on the caster), point (anything else), none
- * (aside). `cast` is who: meta.stage.cast, else the kunoichi for a slash, a vanish or a shadow/ effect, a knight
+ * (aside). `cast` is who: meta.stage.cast, else the kunoichi for a slash, a vanish, a thrown weapon or a shadow/ effect, a knight
  * for a strike, a hop or a pickup, the priest for a holy/ effect, an archer for a projectile that isn't magic or a
  * spell, else a mage.
  */
@@ -183,7 +183,7 @@ function mirror(out, W, H) {
  */
 export function createStage(steps, o = {}, show = {}) {
   const P = plan(steps), first = P.acts.find(a => a.role.pose) ?? P.acts[0], who = P.who;
-  const pal = actorPalette(o.palette ?? first.opts?.palette ?? first.mod.meta.options?.palette ?? 'holy'), C = pal.index;
+  const pal = actorPalette(o.palette ?? first.opts?.palette ?? first.mod.meta.options?.palette ?? 'holy', [who, 'goblin']), C = pal.index;
   // the canvas holds the actors in every pose (stepping, hopping, knocked back), whether shown or not, so switching
   // one off keeps the layout, and every effect at each place it goes
   const [cx0, cy0, cx1] = bounds(who), [gx0, gy0, gx1] = bounds('goblin'), hop = P.keys.some(k => k[1].lift) ? POSES.air.lift : 0;
@@ -229,7 +229,7 @@ export function createStage(steps, o = {}, show = {}) {
       if (show.caster !== false) {
         const q = poseAt(P.keys, t), busy = P.keys.length && t >= P.keys[0][0] && t <= P.keys.at(-1)[0];
         const f = frameOf(who, q.look, busy ? 0 : breath(t)), x = Math.round(q.x), y = -Math.round(q.lift), p = new Painter(clearFrame(hero));
-        drawFrame(hero, f, C, x, y);
+        drawFrame(hero, f, C[who], x, y);
         if (f.tip && q.glow > 0 && CASTERS[who].glow) { // the spell gathers at the tip in its own colors
           p.glow(x + f.tip[0], y + f.tip[1], 8, C.glow[5], 0.7 * q.glow);
           p.px(x + f.tip[0], y + f.tip[1], C.glow[7]);
@@ -239,7 +239,7 @@ export function createStage(steps, o = {}, show = {}) {
       }
       if (P.foe && show.target !== false) {
         const g = targetAt(P.flinches, t);
-        drawFrame(clearFrame(goblin), frameOf('goblin', g.hurt ? 'hurt' : 'idle', breath(t + 0.3)), C, g.dx);
+        drawFrame(clearFrame(goblin), frameOf('goblin', g.hurt ? 'hurt' : 'idle', breath(t + 0.3)), C.goblin, g.dx);
         if (g.hit) flash(goblin, C.ink[1]); // the hit frame: a white silhouette
         shadow(new Painter(goblin), 0, 6);
         over(out, W, H, goblin, pal.table, P.D - goblin.ox - x0, -goblin.oy - y0);

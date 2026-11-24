@@ -12,11 +12,17 @@
 - **New effect** `projectiles/arrow` (8 headings), and an Arrow shot move.
 - **A kunoichi** joins the cast: she slashes (`slash`, the Sword combo with it), vanishes (`vanish`, the smoke
   puff) and acts every `shadow/` effect, throwing, crouching into a hand sign or lunging with her kunai.
+- **New effects** `projectiles/kunai` (a leaf blade, a wrapped grip, a ring and a fluttering tassel) and
+  `projectiles/shuriken` (a spinning four-pointed star), both tagged `thrown`: the kunoichi throws them. 8 headings each.
+- **Gallery: the cast to download**: a card per character with every pose on a sheet, free to use (MIT): a PNG at
+  1x (equal cells, feet at the same spot, the frame order listed) or the `.aseprite` it comes from.
 - **More moves**: Shock arrow (archer), Tidal bolt and Hex (mage), Smite (priest), so every caster and the water,
   shadow, electric and holy effects play in one.
 - **Gallery ground**: a `ground` background, the default, like pixelfx's: a stone floor under the actors' feet (or
   under an effect alone, as high as the stage would act it), level from card to card, filling each card edge to edge.
   `?bg=dark` is the flat one. `composite()` takes a background image as well as a color.
+- **A palette per character**: `src/stage/cast.js` exports `PALETTES[name]` in place of the cast's one `PALETTE`, so
+  each character has 89 colors of its own and the cast can grow past six. The stage draws the same pixels.
 
 - **Edit in Aseprite**: `render.mjs <id> --aseprite <dir>` writes the side view as an `.aseprite` file (never over an
   existing one) (a color layer, a
