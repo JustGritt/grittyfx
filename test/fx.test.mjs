@@ -20,6 +20,12 @@ test('composite: color over a background, light added on top', () => {
   assert.equal(b2, Math.round(255 * lk * 2 + 30 * (1 - ca)));
 });
 
+test('composite over a background image: each pixel over its own', () => {
+  const f = createFrame(2, 1);
+  f.color.set([1, 255, 0, 0]);
+  assert.deepEqual([...composite(f, pal, undefined, [1, 2, 3, 255, 4, 5, 6, 255])], [200, 100, 0, 255, 4, 5, 6, 255]);
+});
+
 test('composite without a background: straight alpha, light alone becomes color with alpha', () => {
   const f = createFrame(2, 1);
   f.color.set([1, 255, 0, 0]);

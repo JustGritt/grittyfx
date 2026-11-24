@@ -5,9 +5,12 @@ import { PAL, hex, fit, createFx, createFrame, clearFrame, composite, layout, HE
 import { createStage, role } from '../src/stage/stage.js';
 import { MOVES } from '../src/stage/moves.js';
 
-const BG = { dark: '#1b1d26', mid: '#575b6b', light: '#d8d5cd' }; // the stage colors in index.html
+const BG = { ground: '#1b1d26', dark: '#1b1d26', mid: '#575b6b', light: '#d8d5cd' }; // the stage colors in index.html
+const STONE = ['#454a5e', '#2b2e3c', '#22242f', '#15161d'].map(hex); // the floor's lit edge, top course, deeper courses, mortar
 const GAP = 0.8; // a one-shot rests this long, empty, before it plays again
 const SHAKE = 0.2; // seconds a hit's shake takes to die down
+const EDGE = 4; // px of backdrop past the stage's sides and bottom, the most a hit shakes it
+const DEPTH = 64; // screen px of floor below the actors' feet, the same in every card: room for what an effect draws below
 const JIGGLE = [[1, 0], [-1, 1], [1, -1], [-1, 0]];
 const calm = matchMedia('(prefers-reduced-motion: reduce)');
 const form = document.getElementById('controls'), f = form.elements, main = document.getElementById('main');
@@ -32,7 +35,7 @@ for (const [k, v] of params) {
   else if (['palette', 'custom', 'seed', 'bg', 'view'].includes(k)) f[k].value = v;
 }
 f.custom.value ||= '#0b1a2e #14506a #1ca0a0 #6ff0c0 #f2fff6';
-if (!BG[f.bg.value]) f.bg.value = 'dark';
+if (!BG[f.bg.value]) f.bg.value = 'ground';
 
 function query(extra = {}) {
   const q = new URLSearchParams(extra), pal = f.palette.value;
@@ -44,7 +47,7 @@ function query(extra = {}) {
   if (f.flip.checked) q.set('flip', 1);
   if (!f.caster.checked) q.set('caster', 0);
   if (!f.target.checked) q.set('target', 0);
-  if (f.bg.value !== 'dark') q.set('bg', f.bg.value);
+  if (f.bg.value !== 'ground') q.set('bg', f.bg.value);
   if (!f.hitstop.checked) q.set('hitstop', 0);
   return String(q) ? `?${String(q).replaceAll('%2F', '/')}` : './';
 }
@@ -76,6 +79,19 @@ function showSettings() {
   for (const a of document.querySelectorAll('a[data-fx]')) a.href = query({ fx: a.dataset.fx });
   for (const a of document.querySelectorAll('a[data-move]')) a.href = query({ move: a.dataset.move });
   for (const a of document.querySelectorAll('a.back')) a.href = query();
+}
+
+/** The stage's backdrop, w x h RGBA: its color, and on 'ground' a stone floor from row `floor` down. */
+function backdrop(kind, w, h, floor) {
+  const out = new Uint8ClampedArray(w * h * 4), sky = hex(BG[kind]);
+  for (let y = 0; y < h; y++) {
+    const g = y - floor, course = Math.floor((g - 1) / 6); // bricks 16 x 5 px, every other course offset by half
+    for (let x = 0; x < w; x++) {
+      const mortar = g % 6 === 0 || (x + (course % 2) * 8) % 16 === 0;
+      out.set(kind !== 'ground' || g < 0 ? sky : g === 0 ? STONE[0] : mortar ? STONE[3] : STONE[course ? 2 : 1], (y * w + x) * 4);
+    }
+  }
+  return out;
 }
 
 /** Whether effects are acted out: either character is shown. */
@@ -145,7 +161,8 @@ function play(cue, late) {
  */
 function player(mod, canvas, big, id, steps) {
   const meta = mod?.meta, ctx = canvas.getContext('2d');
-  let fx, st, fps, hits, duration, loop, clock, base, next, freeze, shake, shown, w, h, ox, img, frame, cues = [], sounds = [];
+  // w x h is the effect or the stage, drawn at (X, Y) on a canvas that fills the card; `under` is its piece of backdrop
+  let fx, st, fps, hits, duration, loop, clock, base, next, freeze, shake, shown, w, h, ox, img, frame, floor, X = 0, Y = 0, under, cues = [], sounds = [];
   const pl = {
     canvas, zoom: 1, error: null,
     restart() {
@@ -154,10 +171,12 @@ function player(mod, canvas, big, id, steps) {
       // the top view at the chosen heading, live, so any angle works; the canvas follows the view's size
       const view = !st && f.view.value && meta.views?.includes('top') ? 'top' : 'side', v = st ? null : layout(meta, view);
       const [sw, sh] = st ? st.size : v.size;
-      if (w !== sw || h !== sh) {
+      // the floor: under the actors' feet, else as far under the anchor as the effect is acted; a top view has none
+      const fl = st ? st.floor : view === 'side' ? v.origin[1] + role(meta, id).ground : Infinity;
+      if (w !== sw || h !== sh || floor !== fl) {
         const resized = !!img;
-        [canvas.width, canvas.height] = [w, h] = [sw, sh];
-        img = ctx.createImageData(w, h);
+        [w, h, floor] = [sw, sh, fl];
+        img = new ImageData(w, h);
         if (resized) pl.fit();
       }
       if (st) ({ fps, hits, duration, loop } = st);
@@ -185,10 +204,24 @@ function player(mod, canvas, big, id, steps) {
     redraw() {
       shown = -1;
     },
+    // Zooms the effect to fit, and fills the stage with the canvas and its backdrop (hidden, it waits to be shown).
     fit() {
-      const room = canvas.parentElement.clientWidth - 24; // the stage's padding
-      pl.zoom = Math.max(1, Math.floor(Math.min(room / w, big ? (innerHeight * 0.6) / h : 3, big ? 12 : 3)));
-      canvas.style.width = `${w * pl.zoom}px`;
+      const stage = canvas.parentElement;
+      if (!stage.clientWidth) return;
+      const z = (pl.zoom = Math.max(1, Math.floor(Math.min((stage.clientWidth - 24) / w, big ? (innerHeight * 0.6) / h : 3, big ? 12 : 3))));
+      stage.style.setProperty('--fit', `${h * z + 24}px`); // 24: the stage's padding
+      // EDGE px past the sides and the bottom, so a shake shows no gap. The floor DEPTH screen px above the bottom, level
+      // from card to card where the effect fits; without one, the effect in the middle.
+      const vw = Math.ceil(stage.clientWidth / z), vh = Math.ceil(stage.clientHeight / z), W = Math.max(w, vw) + 2 * EDGE, H = Math.max(h, vh) + EDGE;
+      const room = H - EDGE - h;
+      [canvas.width, canvas.height, X] = [W, H, (W - w) >> 1];
+      Y = Math.max(0, Math.min(room, Number.isFinite(floor) ? room + h - Math.ceil(DEPTH / z) - floor : room >> 1));
+      Object.assign(canvas.style, { width: `${W * z}px`, left: `${-EDGE * z}px`, bottom: `${-EDGE * z}px` });
+      const back = backdrop(f.bg.value, W, H, Y + floor);
+      ctx.putImageData(new ImageData(back, W, H), 0, 0);
+      under = new Uint8ClampedArray(w * h * 4);
+      for (let y = 0; y < h; y++) under.set(back.subarray(((Y + y) * W + X) * 4, ((Y + y) * W + X + w) * 4), y * w * 4);
+      shown = -1;
     },
     tick(dt) {
       if (freeze > 0) freeze -= dt;
@@ -216,7 +249,7 @@ function player(mod, canvas, big, id, steps) {
       const t = Math.floor(clock * fps + 1e-6) / fps;
       if (t === shown) return;
       shown = t;
-      if (st) st.draw(t, img.data, hex(BG[f.bg.value]), f.flip.checked);
+      if (st) st.draw(t, img.data, under, f.flip.checked);
       else {
         fx.flip = f.flip.checked;
         frame.ox = fx.flip ? w - ox : ox; // mirror the anchor so the flipped effect stays in frame
@@ -224,9 +257,9 @@ function player(mod, canvas, big, id, steps) {
         clearFrame(frame);
         fx.draw(frame, 'back');
         fx.draw(frame, 'front');
-        composite(frame, fx.palette, img.data, BG[f.bg.value]);
+        composite(frame, fx.palette, img.data, under);
       }
-      ctx.putImageData(img, 0, 0);
+      ctx.putImageData(img, X, Y);
     },
     fail(e) {
       pl.hush();
@@ -384,7 +417,8 @@ document.addEventListener('input', e => { // the form's settings and the grid's 
   history.replaceState(null, '', move ? query({ move }) : only ? query({ fx: only }) : query());
   const restart = [f.palette, f.custom, f.seed, f.view, f.caster, f.target].includes(e.target);
   for (const pl of players) if (!pl.error) restart ? pl.restart() : pl.redraw();
-  if (e.target === f.caster || e.target === f.target || e.target.name === 'cat') players.forEach(pl => pl.error || pl.fit()); // shown again, fit while hidden at zoom 1
+  // shown again (fit while hidden), or a new backdrop
+  if ([f.caster, f.target].includes(e.target) || ['cat', 'bg'].includes(e.target.name)) players.forEach(pl => pl.error || pl.fit());
 });
 main.addEventListener('click', e => {
   const sound = e.target.closest('.sound'), copy = e.target.closest('.copy');

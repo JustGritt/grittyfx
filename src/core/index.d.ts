@@ -63,9 +63,10 @@ export interface Frame { w: number; h: number; ox: number; oy: number; color: Ui
 export const STEP: number;
 export function createFrame(w: number, h: number, ox?: number, oy?: number): Frame;
 export function clearFrame(frame: Frame): Frame;
-/** RGBA through a 256-entry palette table; opaque over `bg`, straight alpha without. */
+/** RGBA through a 256-entry palette table; opaque over `bg` (one color, or an RGBA image the frame's size), straight
+ * alpha without. */
 export function composite<T extends Uint8Array | Uint8ClampedArray = Uint8ClampedArray>(
-  frame: Frame, palette: ArrayLike<number>, out?: T, bg?: string | [number, number, number] | null, gain?: number,
+  frame: Frame, palette: ArrayLike<number>, out?: T, bg?: string | [number, number, number] | ArrayLike<number> | null, gain?: number,
 ): T;
 export const HEADINGS: readonly ['E', 'SE', 'S', 'SW', 'W', 'NW', 'N', 'NE'];
 export function layout(meta: Meta, view?: View): { size: [number, number]; origin: [number, number]; directions: number };

@@ -134,6 +134,17 @@ test('caster and target are layers: either can be left out, the layout stays', a
   assert.ok(caster > 0 && target > 0 && Math.abs(caster + target - both) < 20, 'each draws its own actor');
 });
 
+test('the actors stand on the floor row; a background image stays put when the stage flips', async () => {
+  const st = createStage([{ mod: await loadEffect('impacts/hit-spark'), id: 'impacts/hit-spark' }]), [w, h] = st.size;
+  const out = new Uint8ClampedArray(w * h * 4), row = y => out.subarray(y * w * 4, (y + 1) * w * 4);
+  st.draw(0, out, [100, 100, 100]); // before the effect: only the actors
+  const drawn = y => row(y).some((v, i) => i % 4 < 3 && v !== 100);
+  assert.ok(drawn(st.floor) && !drawn(st.floor + 1), 'their shadows are the lowest thing drawn, on the floor');
+  const bg = new Uint8ClampedArray(w * h * 4).map((_, i) => (i % 4 === 3 ? 255 : (i >> 2) % w));
+  st.draw(0, out, bg, true);
+  assert.deepEqual(row(0), bg.subarray(0, w * 4), 'the empty top row is the background, unmirrored');
+});
+
 test('the goblin only stands in for effects that strike it: a buff, a pickup or a prop plays with the caster alone', () => {
   const foe = tags => plan([{ mod: mod({ tags }) }]).foe;
   assert.deepEqual([foe(['impact']), foe(['projectile']), foe(['status'])], [true, true, true]);

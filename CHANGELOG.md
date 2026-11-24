@@ -10,6 +10,9 @@
 - **Gallery**: Caster and Target toggles replace Stage, on by default, like pixelfx's character toggle: either can
   be switched off (`?caster=0`, `?target=0`), both off shows the effect alone. `createStage(steps, o, show)`.
 - **New effect** `projectiles/arrow` (8 headings), and an Arrow shot move.
+- **Gallery ground**: a `ground` background, the default, like pixelfx's: a stone floor under the actors' feet (or
+  under an effect alone, as high as the stage would act it), level from card to card, filling each card edge to edge.
+  `?bg=dark` is the flat one. `composite()` takes a background image as well as a color.
 
 - **Edit in Aseprite**: `render.mjs <id> --aseprite <dir>` writes the side view as an `.aseprite` file (never over an
   existing one) (a color layer, a

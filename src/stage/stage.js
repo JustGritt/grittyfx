@@ -7,8 +7,8 @@
 //
 // role(meta, id)         where and how an effect is acted: meta.stage over its tags, then its category
 // plan(steps)            when and where each step plays, the hits, the goblin's flinches, the caster's poses
-// createStage(steps, o, show)  { size, fps, duration, loop, hits, draw(t, rgba, bg, flip) }; o: effect options for
-//                        every step, show: { caster, target }, the layers drawn
+// createStage(steps, o, show)  { size, floor, fps, duration, loop, hits, draw(t, rgba, bg, flip) }; o: effect options
+//                        for every step, show: { caster, target }, the layers drawn
 // realtime(hits, d, fps) the frames a game shows at fps, with hit-stop and shake: [{ t, dx, dy }]
 import { createFx, createFrame, clearFrame, Painter } from '../core/index.js';
 import { actorPalette, CAST, CASTERS, frameOf, bounds, drawFrame, flash } from './actors.js';
@@ -166,11 +166,17 @@ function over(out, W, H, f, pal, X0, Y0) {
   }
 }
 
+// Mirrors an RGBA image left to right, in place.
+function mirror(out, W, H) {
+  for (let y = 0; y < H; y++) for (let a = y * W * 4, b = a + (W - 1) * 4; a < b; a += 4, b -= 4) for (let c = 0; c < 4; c++) [out[a + c], out[b + c]] = [out[b + c], out[a + c]];
+}
+
 /**
  * A stage acting out `steps` ([{ mod, id, on, opts }], see plan); `o` (palette, seed...) goes to every effect, over a
  * step's own opts. draw(t, rgba, bg, flip) paints stage time t (seconds, never going back) into a Uint8ClampedArray of
- * size[0] x size[1] pixels over bg ([r, g, b]), mirrored with flip. `show.caster` and `show.target` false leave that
- * actor out; the effects play the same.
+ * size[0] x size[1] pixels over bg ([r, g, b], or an RGBA image of that size, which flip leaves unmirrored), mirrored
+ * with flip. `floor` is the row the actors stand on. `show.caster` and `show.target` false leave that actor out; the
+ * effects play the same.
  */
 export function createStage(steps, o = {}, show = {}) {
   const P = plan(steps), first = P.acts.find(a => a.role.pose) ?? P.acts[0], who = P.who;
@@ -193,9 +199,12 @@ export function createStage(steps, o = {}, show = {}) {
   const breath = t => Math.floor(t / 0.6) % 2; // idle frames take turns
 
   return {
-    size: [W, H], fps: FPS, duration: P.duration, loop: P.loop, hits: P.hits, plan: P,
+    size: [W, H], floor: -y0, fps: FPS, duration: P.duration, loop: P.loop, hits: P.hits, plan: P,
     draw(t, out, bg = [27, 29, 38], flip = false) {
-      for (let i = 0; i < W * H * 4; i += 4) out.set([bg[0], bg[1], bg[2], 255], i);
+      if (bg.length > 4) {
+        out.set(bg);
+        if (flip) mirror(out, W, H); // turned back with the rest at the end
+      } else for (let i = 0; i < W * H * 4; i += 4) out.set([bg[0], bg[1], bg[2], 255], i);
       const shown = [];
       for (const a of live) {
         const local = t - a.start;
@@ -233,7 +242,7 @@ export function createStage(steps, o = {}, show = {}) {
         over(out, W, H, goblin, pal.table, P.D - goblin.ox - x0, -goblin.oy - y0);
       }
       layer('front');
-      if (flip) for (let y = 0; y < H; y++) for (let a = y * W * 4, b = a + (W - 1) * 4; a < b; a += 4, b -= 4) for (let c = 0; c < 4; c++) [out[a + c], out[b + c]] = [out[b + c], out[a + c]];
+      if (flip) mirror(out, W, H);
       return out;
     },
   };
