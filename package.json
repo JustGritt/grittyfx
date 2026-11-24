@@ -1,14 +1,44 @@
 {
   "name": "grittyfx",
-  "version": "0.0.0",
-  "description": "Pixel-art effects as code for Godot, Unity and the browser.",
+  "version": "1.0.0",
+  "description": "Pixel-art effects as code: recolorable at runtime in Godot, Unity and the browser, with glow, sound and hit timing.",
+  "keywords": [
+    "pixel-art",
+    "vfx",
+    "effects",
+    "gamedev",
+    "sprite-sheet",
+    "godot",
+    "unity",
+    "phaser",
+    "palette",
+    "aseprite"
+  ],
+  "homepage": "https://justgritt.github.io/grittyfx/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JustGritt/grittyfx.git"
+  },
+  "bugs": "https://github.com/JustGritt/grittyfx/issues",
   "type": "module",
   "license": "MIT",
   "exports": {
-    ".": "./src/core/index.js",
-    "./fx/*": "./src/fx/*.js",
+    ".": {
+      "types": "./src/core/index.d.ts",
+      "default": "./src/core/index.js"
+    },
+    "./fx/*": {
+      "types": "./src/core/effect.d.ts",
+      "default": "./src/fx/*.js"
+    },
     "./runtime/*": "./runtime/*.js"
   },
+  "types": "./src/core/index.d.ts",
+  "files": [
+    "src",
+    "runtime",
+    "tools"
+  ],
   "engines": {
     "node": ">=18"
   },
