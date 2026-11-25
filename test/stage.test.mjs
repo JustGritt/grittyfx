@@ -2,7 +2,9 @@ import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { role, plan, poseAt, targetAt, realtime, createStage, HIT, NEAR, FAR, FPS } from '../src/stage/stage.js';
-import { CAST, frameOf } from '../src/stage/actors.js';
+import { CAST, BODY, frameOf, tinted } from '../src/stage/actors.js';
+import { PALETTES } from '../src/stage/cast.js';
+import { fit } from '../src/core/index.js';
 import { castModule, castFiles } from '../tools/cast.mjs';
 import { MOVES } from '../src/stage/moves.js';
 import { listIds, loadEffect } from '../tools/lib.mjs';
@@ -167,4 +169,25 @@ test('the goblin only stands in for effects that strike it: a buff, a pickup or 
   assert.equal(plan([{ mod: mod({ tags: ['buff'], stage: { ground: 5 } }), stage: { at: 'target' } }]).acts[0].role.ground, 5, 'the rest of it kept');
   const width = tags => createStage([{ mod: mod({ tags }) }]).size[0];
   assert.ok(width(['buff']) < width(['impact']) - 20, 'the canvas fits the caster alone');
+});
+
+test("a tint swaps a character's body ramp and nothing else: the slime's outline, eyes and blush stay", () => {
+  const ice = fit('ice', BODY.slime.length), out = tinted('slime', 'ice');
+  PALETTES.slime.forEach((c, i) => assert.deepEqual(out[i], BODY.slime.includes(c) ? ice[BODY.slime.indexOf(c)] : c, c));
+  assert.equal(tinted('slime', { ramp: 'ice', swap: { '#fc95a5': '#c4302e' } })[PALETTES.slime.indexOf('#fc95a5')], '#c4302e');
+  assert.deepEqual(tinted('goblin', 'ice'), PALETTES.goblin, 'a character without a BODY keeps its colors');
+});
+
+test("another foe takes the hits: the slime in the goblin's place, tinted", async () => {
+  const steps = [{ mod: await loadEffect('impacts/hit-spark'), id: 'impacts/hit-spark' }];
+  const pixels = cast => {
+    const st = createStage(steps, {}, { caster: false }, cast), [w, h] = st.size, out = new Uint8ClampedArray(w * h * 4);
+    st.draw(0, out, [0, 0, 0]);
+    return out;
+  };
+  const goblin = pixels(), slime = pixels({ foe: 'slime' }), ice = pixels({ foe: 'slime', tint: { slime: 'ice' } });
+  assert.notDeepEqual(slime, goblin);
+  assert.notDeepEqual(ice, slime);
+  const lit = a => a.reduce((n, v, i) => n + (i % 4 < 3 && v > 0), 0);
+  assert.equal(lit(ice), lit(slime), 'a tint changes colors, not the drawing');
 });
