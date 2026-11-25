@@ -12,7 +12,7 @@ export const meta = {
   views: ['side'],
   ramps: { palette: 8 },
   options: { palette: 'fire', seed: 1 },
-  stage: { ground: 24 }, // on a wall
+  stage: { ground: 24, scenery: 'sconce' }, // on a wall
   sound: [{ t: 0, kind: 'crackle', gain: 0.7 }],
 };
 

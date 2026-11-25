@@ -39,13 +39,36 @@ export const POSES = Object.fromEntries(Object.entries({
   point: [1, 0, 1], raise: [0, 0, 1], crouch: [0, 0, 0], air: [0, 9, 0],
 }).map(([look, [x, lift, glow]]) => [look, { look, x, lift, glow }]));
 const PUSH = 6; // px a goblin is knocked back at most
+
+// The set a prop stands in (meta.stage.scenery), drawn behind it from its anchor: put(x, y, rgb, k) blends px right and
+// down of it. Fixed colors, like the floor's: char, wood, iron; a pool takes its water from the effect's first ramp.
+const INK = { k: [36, 22, 15], w: [110, 68, 37], W: [160, 106, 56], i: [59, 63, 78], I: [107, 113, 134] };
+const paint = (put, rows, x) => rows.forEach((row, y) => [...row].forEach((c, i) => c !== '.' && put(x + i - (row.length >> 1), y, INK[c])));
+export const SCENERY = {
+  // a wall torch's charred head, its stick and the iron band holding it to the wall, under fire/torch's flame (which
+  // covers the top 6 rows)
+  sconce: put => paint(put, ['.kkkkk.', '.kWWwk.', '.kWWwk.', '..kWk..', '..kWk..', '..kWk..', 'IiiiiiI', '.iIIIi.',
+    '..kWk..', '..kWk..', '..kwk..', '..kwk..', '..kwk..', '...k...'], 0),
+  // the two terminals electric/arc jumps between: iron rods from its contact points, 18 px either side, to the floor
+  posts: (put, a) => [-18, 18].forEach(x => paint(put, Array.from({ length: a.role.ground }, (_, y) => (y < 2 ? '.iIi.' : y >= a.role.ground - 2 ? 'kiIik' : '.kik.')), x)),
+  // a pool level with the floor round the anchor, as wide as the effect and deep enough for its lower half, rounded
+  pool: (put, a) => {
+    const [w, h] = a.mod.meta.size, { from, steps } = a.fx.ramps[0], depth = h - a.mod.meta.origin[1] + 1;
+    const water = i => [...a.fx.palette.subarray(i * 4, i * 4 + 3)], deep = water(from + 1), top = water(from + (steps >> 1));
+    for (let y = 0; y < depth; y++) {
+      const half = Math.round((w / 2) * Math.sqrt(1 - (y / depth) ** 2));
+      for (let x = -half; x < half; x++) put(x, y, y ? deep : top, y ? 0.6 : 0.9);
+    }
+  },
+};
 const SHAKE = 0.2, JIGGLE = [[1, 0], [-1, 1], [1, -1], [-1, 0]]; // as in the gallery
 
 /**
- * Where and how an effect is acted: { at, pose, cast, x, ground, speed }. `at` is one of PLACES, from meta.stage.at,
+ * Where and how an effect is acted: { at, pose, cast, x, ground, speed, scenery }. `at` is one of PLACES, from meta.stage.at,
  * else its tags (projectile: path, aura, buff, pickup: caster, status: above, nova: ground, ambient: aside), else its
  * category, else target. `ground` is the floor's y in the effect's own coordinates (how high its anchor sits), `x`
- * shifts it toward the goblin, `speed` is a looping projectile's in px/s. `pose` is how the caster acts it: strike (a
+ * shifts it toward the goblin, `speed` is a looping projectile's in px/s, `scenery` the SCENERY drawn behind it (a
+ * prop's sconce, posts or pool). `pose` is how the caster acts it: strike (a
  * melee effect on the target), hop (landing or jump on the ground), raise (on the caster), point (anything else), none
  * (aside). `cast` is who: meta.stage.cast, else the kunoichi for a slash, a vanish, a thrown weapon or a shadow/ effect, a knight
  * for a strike, a hop or a pickup, the priest for a holy/ effect, an archer for a projectile that isn't magic or a
@@ -63,7 +86,7 @@ export function role(meta, id = '') {
     : id.startsWith('holy/') ? 'priest'
     : at === 'path' && !tags.includes('magic') && !tags.includes('spell') ? 'archer' : 'mage');
   const ground = s.ground ?? (at === 'target' || at === 'path' ? HIT : at === 'above' ? HEAD : 0);
-  return { at, pose, cast, x: s.x ?? 0, ground, speed: s.speed ?? SPEED };
+  return { at, pose, cast, x: s.x ?? 0, ground, speed: s.speed ?? SPEED, scenery: s.scenery };
 }
 
 const snap = t => Math.round(t * FPS) / FPS; // hits land on a frame, as in a bundle
@@ -105,7 +128,7 @@ export function plan(steps) {
   steps.forEach((s, i) => {
     const r = roles[i], { meta } = s.mod, own = meta.act?.hits ?? [], prev = acts[i - 1], ride = prev && s.on === 'hit';
     const windup = ride || !r.pose ? 0 : meta.act?.windup ?? WINDUP[r.pose];
-    const start = snap(ride ? prev.contact - (own[0]?.t ?? 0) : (prev ? prev.end : LEAD) + windup);
+    const start = snap(ride ? prev.contact - (own[0]?.t ?? 0) : (prev ? prev.end : r.pose ? LEAD : 0) + windup); // a prop is there from the start
     const from = r.at === 'path' ? [tip[0] + POSES.point.x + r.x, tip[1]] : [{ target: D, above: D, caster: 0, ground: 0, aside: foe ? D / 2 : NEAR }[r.at] + r.x, -r.ground];
     const to = r.at === 'path' ? [D + r.x, -r.ground] : from;
     // a projectile arrives on its first hit, or at its end, or (a loop) after flying the distance
@@ -219,6 +242,10 @@ export function createStage(steps, o = {}, show = {}) {
         const u = a.travel ? Math.min(1, local / a.travel) : 0, [fx, fy] = a.from, [tx, ty] = a.to;
         shown.push([a, Math.round(fx + (tx - fx) * u) - a.frame.ox - x0, Math.round(fy + (ty - fy) * u) - a.frame.oy - y0]);
       }
+      for (const [a, X, Y] of shown) if (a.role.scenery) SCENERY[a.role.scenery]((x, y, rgb, k = 1) => {
+        const px = X + a.frame.ox + x, py = Y + a.frame.oy + y, o = (py * W + px) * 4;
+        if (px >= 0 && px < W && py >= 0 && py < H) for (let c = 0; c < 3; c++) out[o + c] += (rgb[c] - out[o + c]) * k;
+      }, a);
       const layer = name => shown.forEach(([a, X, Y]) => {
         clearFrame(a.frame);
         a.fx.draw(a.frame, name);

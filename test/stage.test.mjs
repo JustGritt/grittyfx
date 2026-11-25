@@ -12,11 +12,11 @@ const near = (a, b) => assert.ok(Math.abs(a - b) < 1e-9, `${a} is not ${b}`);
 
 test('role: tags place an effect, the category when no tag does, meta.stage over both', () => {
   const at = (tags, id, stage) => role({ tags, stage }, id);
-  assert.deepEqual(at(['fire', 'projectile']), { at: 'path', pose: 'point', cast: 'archer', x: 0, ground: HIT, speed: 200 });
+  assert.deepEqual(at(['fire', 'projectile']), { at: 'path', pose: 'point', cast: 'archer', x: 0, ground: HIT, speed: 200, scenery: undefined });
   assert.equal(at(['heal', 'aura', 'status']).at, 'caster', 'the first tag with a role wins');
   assert.deepEqual([at(['buff']).at, at(['pickup']).at, at(['status']).at, at(['nova']).at, at(['ambient']).at], ['caster', 'caster', 'above', 'ground', 'aside']);
   assert.deepEqual([at([], 'projectiles/arrow').at, at([], 'status/x').at, at([], 'pickups/gem').at, at([], 'fire/x').at], ['path', 'above', 'caster', 'target']);
-  assert.deepEqual(at(['status'], '', { at: 'target', ground: 16, x: -3 }), { at: 'target', pose: 'point', cast: 'mage', x: -3, ground: 16, speed: 200 });
+  assert.deepEqual(at(['status'], '', { at: 'target', ground: 16, x: -3 }), { at: 'target', pose: 'point', cast: 'mage', x: -3, ground: 16, speed: 200, scenery: undefined });
   assert.equal(at(['ambient']).pose, null, 'an ambient effect is not acted');
   assert.deepEqual([at(['slash']).pose, at(['impact', 'melee']).pose, at(['impact']).pose, at(['nova']).pose], ['strike', 'strike', 'point', 'raise']);
   assert.equal(at(['landing'], '', { at: 'ground' }).pose, 'hop');
@@ -152,6 +152,7 @@ test('the goblin only stands in for effects that strike it: a buff, a pickup or 
   assert.deepEqual([foe(['buff']), foe(['pickup']), foe(['nova']), foe(['ambient'])], [false, false, false, false]);
   assert.equal(plan([{ mod: mod({ tags: ['buff'] }) }, { mod: mod({ tags: ['impact'] }) }]).foe, true, 'a move with a blow in it');
   assert.equal(plan([{ mod: mod({ tags: ['ambient'] }) }]).acts[0].from[0], NEAR, 'a prop stands next to the caster');
+  assert.equal(plan([{ mod: mod({ tags: ['ambient'] }) }]).acts[0].start, 0, 'from the start: nothing winds up for it');
   const width = tags => createStage([{ mod: mod({ tags }) }]).size[0];
   assert.ok(width(['buff']) < width(['impact']) - 20, 'the canvas fits the caster alone');
 });

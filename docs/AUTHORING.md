@@ -286,6 +286,7 @@ staff's orb glowing in the spell's colors. In a move, the first acted step picks
 | `ground` | where the floor is in the effect's own coordinates, px below its anchor: how high the stage holds the anchor. `0` for an anchor on the floor (explosions, splashes, pillars, a status drawn from the feet), `14` for a hit drawn 14 px above its floor |
 | `x` | px toward the goblin from the place: the slash anchors at its wielder, so `x: -22`; the coin floats at the knight's side, `x: 16` |
 | `speed` | a looping projectile's, in px/s |
+| `scenery` | the set the stage draws behind a prop, from its anchor: `sconce` (a wall torch's stick, for the torch's flame), `posts` (two terminals 18 px either side, down to the floor, for the arc), `pool` (water level with the floor, from the effect's first ramp, for the ripple) |
 
 `render --stage <id>` and the effect's preview page (its `stage` row) show where it lands. Each hit of an effect on
 the goblin (`target`, `path`, `above`) knocks it back, and so does a projectile without hits when it arrives; hits on

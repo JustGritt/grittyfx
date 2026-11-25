@@ -31,6 +31,10 @@
 - **Gallery: frame by frame**: a preview has a pause button and a slider under its stage, to hold any frame of the
   effect, move or stage (arrow keys step one frame) with its number and time; palette, seed and flip recolor the held
   frame, and play goes on from it.
+- **Props on the stage**: `meta.stage.scenery` names a set piece the stage draws behind a prop: the torch's flame
+  sits on a wall sconce, the arc jumps between two terminal posts, the ripple spreads on a pool level with the floor
+  (in the effect's own colors). The arc and the ripple stand clear of the caster and no longer sink into the floor,
+  and props are there from the stage's first frame, without the 0.4 s an acted effect waits.
 - **More moves**: Shock arrow (archer), Tidal bolt and Hex (mage), Smite (priest), so every caster and the water,
   shadow, electric and holy effects play in one.
 - **Gallery ground**: a `ground` background, the default, like pixelfx's: a stone floor under the actors' feet (or

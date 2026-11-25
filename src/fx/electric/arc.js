@@ -10,6 +10,7 @@ export const meta = {
   loop: true,
   fps: 20,
   views: ['side'],
+  stage: { ground: 16, x: 16, scenery: 'posts' }, // between two terminals, clear of the caster
   ramps: { palette: 8 },
   options: { palette: 'electric', seed: 1 },
   sound: [
