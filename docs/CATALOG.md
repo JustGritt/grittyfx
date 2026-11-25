@@ -1,6 +1,6 @@
 # Catalog
 
-33 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
+38 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
 Ramps read `option: default (steps)`; pass another ramp name or a list of colors to recolor.
 
 ## electric
@@ -23,7 +23,10 @@ Ramps read `option: default (steps)`; pass another ramp name or a list of colors
 | effect | kind | views | size | duration | ramps | tags | description |
 |---|---|---|---|---|---|---|---|
 | `fire/campfire` | loop | side | 56x64 | 1.5 s | palette: fire (8), smoke: smoke (6), wood: dust (5) | fire, light, prop, camp, ambient | Two crossed logs charring under licking flames, rising embers, a thin column of smoke and a warm pool of light |
+| `fire/candle` | loop | side | 32x44 | 2 s | palette: fire (8), wax: #3a2a28,#7a6458,#bca88e,#e4d6b8,#fbf4e2 (5) | fire, light, prop, ambient, candle | A wax candle: a small flame swaying on its wick and guttering now and then, a white-hot heart, a drip of wax running down, a warm pool of light |
 | `fire/fireball` | loop | side, top (8 headings) | 50x28 | 0.5 s | palette: fire (8) | fire, projectile, magic | A flying fireball: a white-hot core, flame tails streaming back, licks that tear off and sparks left behind |
+| `fire/lava-bubble` | loop | side | 56x40 | 2.4 s | palette: fire (8), rock: stone (5) | fire, lava, magma, pool, ambient, prop | A pool of lava in a rock rim: a dark crust drifting over molten seams, bubbles swelling and popping in turn, spitting drops that arc and fall back, the air lit above it |
+| `fire/steam-vent` | loop | side | 48x72 | 2 s | palette: fire (8), smoke: smoke (8) | fire, steam, vent, geyser, smoke, ambient, prop | A crack in the floor glowing with heat, breathing out a thin wisp of steam and, twice a loop, a hissing burst that rolls up, leans and thins away |
 | `fire/torch` | loop | side | 24x32 | 1 s | palette: fire (8) | fire, light, prop, ambient | A wall torch: a flame licking up in tongues, white-hot core, drifting embers, a warm pool of light |
 
 ## holy
@@ -50,6 +53,12 @@ Ramps read `option: default (steps)`; pass another ramp name or a list of colors
 | `magic/heal-aura` | loop | side | 48x56 | 2 s | palette: heal (8) | magic, heal, aura, buff, status | A soft ring of light at the feet, sparkles and little plus signs rising through a gentle glow |
 | `magic/lightning-strike` | one-shot | side | 72x104 | 0.8 s | palette: electric (8) | magic, lightning, electric, strike, spell | A glint and a creeping leader, then a jagged branching bolt with a white hero frame, re-strikes, ground sparks and afterglow |
 | `magic/twinkle` | loop | side | 36x36 | 1.5 s | palette: gold (8) | magic, sparkle, glint, pickup, idle | Star glints that pop up around a collectible one after another: a white core, four arms, a soft glow |
+
+## nature
+
+| effect | kind | views | size | duration | ramps | tags | description |
+|---|---|---|---|---|---|---|---|
+| `nature/fireflies` | loop | side | 64x46 | 4 s | palette: poison (8) | nature, firefly, light, night, ambient, prop | A few fireflies drifting over the ground on their own lazy paths, each blinking on its own beat: a hot point, a soft halo lighting the air, a dim body between blinks |
 
 ## pickups
 
@@ -90,3 +99,4 @@ Ramps read `option: default (steps)`; pass another ramp name or a list of colors
 | `water/ripple` | loop | side, top | 64x24 | 2.4 s | palette: water (8) | water, ripple, ambient, surface, prop | Rings that spread over still water from one spot, a bright crest over a dark trough, breaking up and fading as they go, a glint riding each crest |
 | `water/splash` | one-shot | side, top | 84x56 | 1.2 s | palette: water (8) | water, splash, impact, hit, landing, droplets | Something hits the water: a white burst, a crown of water thrown up that collapses into a foam ring, a jet from the middle, droplets that arc out and ripple where they land |
 | `water/water-bolt` | loop | side, top (8 headings) | 48x26 | 0.5 s | palette: water (8) | water, projectile, magic, bolt | A flying ball of churning water: swirling bands under a glinting skin, a foam bow wave, a wake of spray that breaks up behind and droplets shed as it goes |
+| `water/waterfall` | loop | side | 48x72 | 1 s | palette: water (8) | water, waterfall, cascade, ambient, prop | A narrow fall of water: it curls over a lip, pours down in streaks that race past, and churns into foam and drifting mist on a pool at its foot |
