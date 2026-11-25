@@ -38,6 +38,9 @@
 - **`fire/torch` at the cast's scale**: the flame is 15 px tall, not 30 (a third of a 40 px character, not three
   quarters), on a 24x32 canvas instead of 32x48, its tongues, glow and embers scaled with it. The Unity demo keeps its
   older export until it is re-exported with Unity 6000.3.
+- **Frost burst on the target**: `magic/frost-burst` bursts from the ground under the goblin (`stage: { at: 'target',
+  ground: 0 }`), the mage pointing it there, not at the mage's own feet. A move's step can place its effect over its
+  `meta.stage` (`{ fx, on, opts, stage }`): Frost nova's glints hang round the goblin with it.
 - **More moves**: Shock arrow (archer), Tidal bolt and Hex (mage), Smite (priest), so every caster and the water,
   shadow, electric and holy effects play in one.
 - **Gallery ground**: a `ground` background, the default, like pixelfx's: a stone floor under the actors' feet (or

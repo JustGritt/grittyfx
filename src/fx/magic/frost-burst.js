@@ -10,6 +10,7 @@ export const meta = {
   loop: false,
   fps: 30,
   views: ['side'],
+  stage: { at: 'target', ground: 0 }, // bursts from the ground under the goblin
   ramps: { palette: 8 },
   options: { palette: 'ice', seed: 1 },
   act: { hits: [{ t: 0.12, freeze: 0.05, shake: 2 }] },

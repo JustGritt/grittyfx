@@ -1,5 +1,6 @@
 // Moves: effects chained and acted out on the stage, in the gallery and by `render --stage <move>`. A step plays once
 // the one before it has ended, after its own wind-up; `on: 'hit'` plays it with the previous step's first hit instead.
+// A step's `stage` places it over its effect's meta.stage.
 export const MOVES = {
   'sword-combo': {
     name: 'Sword combo',
@@ -18,8 +19,8 @@ export const MOVES = {
   },
   'frost-nova': {
     name: 'Frost nova',
-    desc: 'Ice bursts from the ground around the mage, glints hanging in the cold air',
-    steps: [{ fx: 'magic/frost-burst' }, { fx: 'magic/twinkle', on: 'hit', opts: { palette: 'ice' } }],
+    desc: 'Ice bursts from the ground under the goblin, glints hanging in the cold air around it',
+    steps: [{ fx: 'magic/frost-burst' }, { fx: 'magic/twinkle', on: 'hit', opts: { palette: 'ice' }, stage: { at: 'target' } }],
   },
   'arrow-shot': {
     name: 'Arrow shot',

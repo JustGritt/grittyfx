@@ -153,6 +153,8 @@ test('the goblin only stands in for effects that strike it: a buff, a pickup or 
   assert.equal(plan([{ mod: mod({ tags: ['buff'] }) }, { mod: mod({ tags: ['impact'] }) }]).foe, true, 'a move with a blow in it');
   assert.equal(plan([{ mod: mod({ tags: ['ambient'] }) }]).acts[0].from[0], NEAR, 'a prop stands next to the caster');
   assert.equal(plan([{ mod: mod({ tags: ['ambient'] }) }]).acts[0].start, 0, 'from the start: nothing winds up for it');
+  assert.equal(plan([{ mod: mod({ tags: ['buff'], stage: { ground: 5 } }), stage: { at: 'target' } }]).acts[0].role.at, 'target', "a step's stage over the effect's");
+  assert.equal(plan([{ mod: mod({ tags: ['buff'], stage: { ground: 5 } }), stage: { at: 'target' } }]).acts[0].role.ground, 5, 'the rest of it kept');
   const width = tags => createStage([{ mod: mod({ tags }) }]).size[0];
   assert.ok(width(['buff']) < width(['impact']) - 20, 'the canvas fits the caster alone');
 });

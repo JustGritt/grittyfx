@@ -110,8 +110,9 @@ export function poseAt(keys, t) {
 }
 
 /**
- * When and where each step plays. steps: [{ mod, id, on }]; a step starts once the one before it ends, after its own
- * wind-up, or with `on: 'hit'` so that its first hit lands with the previous step's first contact. Positions are in px
+ * When and where each step plays. steps: [{ mod, id, on, stage }]; a step starts once the one before it ends, after its
+ * own wind-up, or with `on: 'hit'` so that its first hit lands with the previous step's first contact; `stage` places it
+ * over its meta.stage. Positions are in px
  * with the caster's feet at (0, 0), the goblin's at (D, 0), y down. Returns { D, who, foe, acts, hits, flinches, keys,
  * duration, loop }: who acts (the first acted step's cast), whether the goblin is on stage (a step strikes it; a prop
  * aside stands NEAR the caster), acts [{ mod, role, start, end, stop, travel, from, to,
@@ -119,7 +120,7 @@ export function poseAt(keys, t) {
  * pose keys. A projectile leaves from the caster's tip as it shoots.
  */
 export function plan(steps) {
-  const roles = steps.map(s => role(s.mod.meta, s.id));
+  const roles = steps.map(s => role(s.stage ? { ...s.mod.meta, stage: { ...s.mod.meta.stage, ...s.stage } } : s.mod.meta, s.id));
   const acting = roles.filter((r, i) => r.pose && !(i && steps[i].on === 'hit'));
   const foe = roles.some(r => STRUCK.includes(r.at));
   const D = !foe || (acting.length && acting.every(r => r.pose === 'strike')) ? NEAR : FAR;

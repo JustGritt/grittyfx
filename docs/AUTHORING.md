@@ -292,9 +292,9 @@ staff's orb glowing in the spell's colors. In a move, the first acted step picks
 the goblin (`target`, `path`, `above`) knocks it back, and so does a projectile without hits when it arrives; hits on
 the caster's side still freeze and shake.
 
-**Moves** (`src/stage/moves.js`) chain effects: `{ name, desc, steps: [{ fx, on, opts }] }`. A step plays once the
+**Moves** (`src/stage/moves.js`) chain effects: `{ name, desc, steps: [{ fx, on, opts, stage }] }`. A step plays once the
 one before it has ended, after its own wind-up; `on: 'hit'` plays it with the previous step's first hit instead (a
-spark on the slash's cut, the explosion where the fireball lands), and coinciding hits freeze once, at the stronger
+spark on the slash's cut, the explosion where the fireball lands), and a step's `stage` places it over its effect's `meta.stage` (Frost nova's glints round the goblin), and coinciding hits freeze once, at the stronger
 freeze and shake. `render --stage <move>` writes `records/moves/<move>/`; the gallery shows them on its Moves page
 (`?page=moves`).
 
