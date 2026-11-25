@@ -78,4 +78,14 @@ export const MOVES = {
     desc: 'A quake runs along the floor to the goblin and rock spikes erupt where it lands',
     steps: [{ fx: 'earth/quake' }, { fx: 'earth/spike', on: 'hit' }],
   },
+  vanish: {
+    name: 'Vanish',
+    desc: 'A hand seal, and on its flash a smoke bomb dashed down at her feet that hides her',
+    steps: [{ fx: 'shadow/seal' }, { fx: 'shadow/smoke-bomb', on: 'hit' }],
+  },
+  'shadow-step': {
+    name: 'Shadow step',
+    desc: 'A blink across the gap, cutting the goblin as she reappears',
+    steps: [{ fx: 'shadow/blink' }, { fx: 'impacts/slash', on: 'hit', opts: { palette: 'arcane' } }],
+  },
 };

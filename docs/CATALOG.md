@@ -1,6 +1,6 @@
 # Catalog
 
-37 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
+41 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
 Ramps read `option: default (steps)`; pass another ramp name or a list of colors to recolor.
 
 ## earth
@@ -80,9 +80,13 @@ Ramps read `option: default (steps)`; pass another ramp name or a list of colors
 
 | effect | kind | views | size | duration | ramps | tags | description |
 |---|---|---|---|---|---|---|---|
+| `shadow/blink` | one-shot | side, top (8 headings) | 88x40 | 0.5 s | palette: arcane (8), smoke: shadow (8) | vanish, blink, teleport, dash, shadow, ninja, afterimage | A shadow step: a slit of light where the body was, afterimages and speed lines streaking ahead, a slit opening where it reappears, wisps of shadow at both ends |
 | `shadow/curse` | loop | side | 30x40 | 2 s | palette: shadow (8), rim: arcane (8) | status, shadow, curse, debuff, skull, magic | A status over the target's head (the anchor): a ghostly skull turns side to side with glinting eye sockets inside a ring of runes and drips shadow onto it |
 | `shadow/dark-nova` | one-shot | side, top | 104x68 | 1.4 s | palette: shadow (8), rim: arcane (8) | nova, shadow, dark, magic, spell, blast | Darkness is pulled in to the caster's feet, then bursts out as a ring of shadow tendrils and dark motes along the ground under a violet rim light |
 | `shadow/portal` | loop | side | 60x76 | 2 s | palette: shadow (8), rim: arcane (8) | ambient, shadow, portal, magic, summon | A summoning portal standing on the ground: a swirling dark oval inside a flickering violet rim, motes drawn into it |
+| `shadow/seal` | one-shot | side | 56x56 | 0.6 s | palette: arcane (8) | shadow, seal, ninja, jutsu, buff, flash, glyph | A hand seal released: motes drawn into the hands, a white flash with a cross of light, a ring of glyph ticks snapping outward and a thin shock ring |
+| `shadow/smoke-bomb` | one-shot | side | 80x80 | 1.3 s | palette: fire (8), smoke: smoke (8) | vanish, smoke, bomb, ninja, escape, poof, shadow | A ninja vanish: a pellet dashed down at the feet, a pop of light, smoke rolling out along the floor and billowing into a column that hides whoever stood there, then thins away |
+| `shadow/substitution` | one-shot | side | 72x56 | 1.8 s | palette: smoke (8), wood: #2a160c,#4a2a16,#6e4024,#94603a,#b8854f,#d8ae74 (6), dust: dust (6) | vanish, substitution, decoy, log, smoke, ninja, shadow, poof | A body swapped for a log: a pop of smoke, and a log left standing where they stood tips over, lands with a knock and a puff of dust, lies there, then goes in a second poof |
 
 ## status
 
