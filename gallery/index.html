@@ -109,9 +109,10 @@
   .chips input:checked + span { color: var(--text); box-shadow: inset 0 -2px 0 var(--accent); }
   .chips input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-  /* The drawer: cells ruled by hairlines, no gaps. Each card spans two rows, so stages and labels line up across a row. */
-  .grid { list-style: none; margin: 1px 1px var(--space-4xl); padding: 0; display: grid; gap: 1px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); } /* 360: wide enough that most stages fit at 3x */
-  .card { position: relative; display: grid; grid-row: span 2; grid-template-rows: subgrid; row-gap: 0; background: var(--page); box-shadow: 0 0 0 1px var(--line); }
+  /* The drawer: cells ruled by hairlines, no gaps, every card the same size (320: the widest stage fits at 2x, the zoom
+     every card shares, see relayout in gallery.js). */
+  .grid { list-style: none; margin: 1px 1px var(--space-4xl); padding: 0; display: grid; gap: 1px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); }
+  .card { position: relative; display: flex; flex-direction: column; background: var(--page); box-shadow: 0 0 0 1px var(--line); }
   /* the title's link covers the card; other links in it (a character's downloads) stay their own size */
   .card:has(h3 a:focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; z-index: 1; }
   .card h3 a:focus-visible { outline: none; }
@@ -119,13 +120,15 @@
   /* the canvas fills the stage, a little past its sides and bottom; --fit is the effect's height at its zoom */
   .stage { position: relative; display: grid; place-items: center; min-height: max(14rem, var(--fit, 0px)); padding: 12px; background: var(--stage); overflow: hidden; transition: background-color 0.2s; }
   canvas { position: absolute; image-rendering: pixelated; }
-  .info { display: flex; flex-direction: column; padding: var(--space-lg) var(--space-lg) var(--space-lg); transition: background-color 0.15s; }
+  .info { display: flex; flex: 1; flex-direction: column; padding: var(--space-lg) var(--space-lg) var(--space-lg); transition: background-color 0.15s; }
   .card:hover .info { background: var(--well); }
-  .info h3 { margin: 0 0 var(--space-xs); font: 700 20px/1.2 var(--sans); letter-spacing: -0.01em; }
+  /* every label the same height, so every card is: a one-line name, four lines of description, two of facts */
+  .info h3 { margin: 0 0 var(--space-xs); font: 700 20px/1.2 var(--sans); letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .info .desc { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4; overflow: hidden; min-height: 4lh; }
   .info a { text-decoration: none; }
   .desc { margin: 0 0 var(--space-lg); color: var(--muted); font-size: 14px; line-height: 1.55; }
   /* the specimen label: kind first, then size, length and id, in the same order on every card */
-  .facts { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-xs) var(--space-lg); margin: auto 0 0; padding: var(--space-md) 0 0; list-style: none; border-top: 1px solid var(--line); font: 500 13px/1.5 var(--sans); color: var(--muted); }
+  .facts { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-xs) var(--space-lg); margin: auto 0 0; padding: var(--space-md) 0 0; list-style: none; border-top: 1px solid var(--line); font: 500 13px/1.5 var(--sans); color: var(--muted); height: calc(2lh + var(--space-xs) + var(--space-md) + 1px); overflow: hidden; }
   .facts .kind { color: var(--text); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; }
   .facts code { font: 12px var(--mono); }
   .facts a { color: var(--text); text-decoration: underline 1px var(--line-strong); }

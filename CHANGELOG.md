@@ -21,8 +21,10 @@
 - **Gallery redesign**: a specimen catalog. Cards ruled by hairlines in one drawer, set in Satoshi (from Fontshare's
   CDN, as its license keeps the files out of public repos), monospace for code only; a category index in place
   of pills, and the settings strip held at the top on wide screens. Every page puts its title first, then the settings
-  (one row on wide screens, "Cast" for the caster and target), then the specimens, wider so nearly all play at 3x;
-  cards are captioned from `fx-list.json` before their module loads; a colophon with the docs and engine links.
+  (one row on wide screens, "Cast" for the caster and target), then the specimens. Every card the same size: one zoom
+  for the page (the largest every stage fits at, 2x on a laptop), one stage height with every floor on one line, labels
+  of fixed height; cards are captioned from `fx-list.json` before their module loads; a colophon with the docs and
+  engine links.
 - **More moves**: Shock arrow (archer), Tidal bolt and Hex (mage), Smite (priest), so every caster and the water,
   shadow, electric and holy effects play in one.
 - **Gallery ground**: a `ground` background, the default, like pixelfx's: a stone floor under the actors' feet (or

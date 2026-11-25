@@ -172,7 +172,8 @@ function player(mod, canvas, big, id, steps) {
   // w x h is the effect or the stage, drawn at (X, Y) on a canvas that fills the card; `under` is its piece of backdrop
   let fx, st, fps, hits, duration, loop, clock, base, next, freeze, shake, shown, w, h, ox, img, frame, floor, X = 0, Y = 0, under, cues = [], sounds = [];
   const pl = {
-    canvas, zoom: 1, error: null,
+    canvas, big, zoom: 1, error: null,
+    get w() { return w; }, get h() { return h; }, get floor() { return floor; },
     restart() {
       const acted = steps ?? (acting() && [{ mod, id }]);
       st = acted && createStage(acted, options(), { caster: f.caster.checked, target: f.target.checked });
@@ -185,7 +186,7 @@ function player(mod, canvas, big, id, steps) {
         const resized = !!img;
         [w, h, floor] = [sw, sh, fl];
         img = new ImageData(w, h);
-        if (resized) pl.fit();
+        if (resized) pl.fit(), relayout(); // fit now, before the next tick draws; then every card to the new sizes
       }
       if (st) ({ fps, hits, duration, loop } = st);
       else {
@@ -212,18 +213,20 @@ function player(mod, canvas, big, id, steps) {
     redraw() {
       shown = -1;
     },
-    // Zooms the effect to fit, and fills the stage with the canvas and its backdrop (hidden, it waits to be shown).
+    // Zooms the effect to fit, and fills the stage with the canvas and its backdrop (hidden, it waits to be shown). A
+    // card takes the zoom and floor every card shares (relayout); the preview, its own.
     fit() {
       const stage = canvas.parentElement;
       if (!stage.clientWidth) return;
-      const z = (pl.zoom = Math.max(1, Math.floor(Math.min((stage.clientWidth - 24) / w, big ? (innerHeight * 0.6) / h : 3, big ? 12 : 3))));
-      stage.style.setProperty('--fit', `${h * z + 24}px`); // 24: the stage's padding
-      // EDGE px past the sides and the bottom, so a shake shows no gap. The floor DEPTH screen px above the bottom, level
-      // from card to card where the effect fits; without one, the effect in the middle.
+      const z = (pl.zoom = big ? Math.max(1, Math.floor(Math.min((stage.clientWidth - 24) / w, (innerHeight * 0.6) / h, 12))) : cards.zoom);
+      if (big) stage.style.setProperty('--fit', `${h * z + 24}px`); // 24: the stage's padding
+      // EDGE px past the sides and the bottom, so a shake shows no gap. The floor `depth` screen px above the bottom,
+      // level from card to card; without one, the effect in the middle.
+      const depth = big ? DEPTH : cards.below;
       const vw = Math.ceil(stage.clientWidth / z), vh = Math.ceil(stage.clientHeight / z), W = Math.max(w, vw) + 2 * EDGE, H = Math.max(h, vh) + EDGE;
       const room = H - EDGE - h;
       [canvas.width, canvas.height, X] = [W, H, (W - w) >> 1];
-      Y = Math.max(0, Math.min(room, Number.isFinite(floor) ? room + h - Math.ceil(DEPTH / z) - floor : room >> 1));
+      Y = Math.max(0, Math.min(room, Number.isFinite(floor) ? room + h - Math.ceil(depth / z) - floor : room >> 1));
       Object.assign(canvas.style, { width: `${W * z}px`, left: `${-EDGE * z}px`, bottom: `${-EDGE * z}px` });
       const back = backdrop(f.bg.value, W, H, Y + floor);
       ctx.putImageData(new ImageData(back, W, H), 0, 0);
@@ -278,6 +281,29 @@ function player(mod, canvas, big, id, steps) {
   return pl;
 }
 
+const cards = { zoom: 2, below: DEPTH }; // what every card on a page shares, set by relayout()
+let pending = 0;
+
+/**
+ * Lays every card out alike, so they match across the page: one zoom, the largest (up to 3) at which every stage fits
+ * a card's width, and one stage height that holds them all with their floors on one line, `below` px above the
+ * bottom. Then refits every player. Batched to once a frame, as cards arrive one by one.
+ */
+function relayout() {
+  pending ||= requestAnimationFrame(() => {
+    pending = 0;
+    const ps = players.filter(pl => !pl.big && !pl.error), width = Math.max(0, ...[...document.querySelectorAll('.grid .stage')].map(s => s.clientWidth));
+    if (ps.length && width) {
+      const z = (cards.zoom = Math.max(1, Math.min(3, ...ps.map(pl => Math.floor(width / pl.w)))));
+      const floored = ps.filter(pl => Number.isFinite(pl.floor));
+      cards.below = Math.max(DEPTH, ...floored.map(pl => (pl.h - pl.floor) * z));
+      const height = Math.max(...floored.map(pl => pl.floor * z + cards.below), ...ps.map(pl => pl.h * z)) + 24; // 24: headroom
+      document.querySelectorAll('.grid').forEach(g => g.style.setProperty('--fit', `${height}px`));
+    }
+    players.forEach(pl => pl.error || pl.fit());
+  });
+}
+
 function broken(stage, e) {
   console.error(e);
   stage.replaceChildren(el('p', { className: 'error', textContent: String(e) }));
@@ -327,6 +353,7 @@ async function show(entry, root, big) {
     pl.restart();
     pl.fit();
     players.push(pl);
+    relayout();
   } catch (e) {
     broken(root.querySelector('.stage'), e);
   }
@@ -343,12 +370,13 @@ async function showMove(id, root, big) {
   if (big) {
     document.title = `${m.name} · grittyfx`;
     root.querySelector('.meta').append(...[['move', id], ['steps', steps.join(', then ')]].flatMap(([k, v]) => [el('dt', { textContent: k }), el('dd', { textContent: v })]));
-  } else root.querySelector('.facts').append(el('li', { className: 'kind', textContent: 'move' }), ...steps.map(s => el('li', {}, el('code', { textContent: s }))));
+  } else root.querySelector('.facts').append(...steps.map(s => el('li', {}, el('code', { textContent: s }))));
   try {
     const pl = player(null, canvas, big, id, await Promise.all(m.steps.map(async s => ({ ...s, id: s.fx, mod: await import(`../src/fx/${s.fx}.js`) }))));
     pl.restart();
     pl.fit();
     players.push(pl);
+    relayout();
   } catch (e) {
     broken(root.querySelector('.stage'), e);
   }
@@ -474,7 +502,7 @@ document.addEventListener('input', e => { // the form's settings and the grid's 
   const restart = [f.palette, f.custom, f.seed, f.view, f.caster, f.target].includes(e.target);
   for (const pl of players) if (!pl.error) restart ? pl.restart() : pl.redraw();
   // shown again (fit while hidden), or a new backdrop
-  if ([f.caster, f.target].includes(e.target) || ['cat', 'bg'].includes(e.target.name)) players.forEach(pl => pl.error || pl.fit());
+  if ([f.caster, f.target].includes(e.target) || ['cat', 'bg'].includes(e.target.name)) relayout();
 });
 main.addEventListener('click', e => {
   const sound = e.target.closest('.sound'), copy = e.target.closest('.copy');
@@ -495,7 +523,7 @@ main.addEventListener('click', e => {
 });
 document.addEventListener('visibilitychange', () => audio.ctx?.[document.hidden ? 'suspend' : 'resume']()); // the pixels pause too
 document.getElementById('replay').addEventListener('click', () => players.forEach(pl => pl.error || pl.restart()));
-addEventListener('resize', () => players.forEach(pl => pl.error || pl.fit()));
+addEventListener('resize', relayout);
 
 readCustom();
 showSettings();
