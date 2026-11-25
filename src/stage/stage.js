@@ -11,7 +11,7 @@
 //                        for every step, show: { caster, target }, the layers drawn
 // realtime(hits, d, fps) the frames a game shows at fps, with hit-stop and shake: [{ t, dx, dy }]
 import { createFx, createFrame, clearFrame, Painter, rand } from '../core/index.js';
-import { actorPalette, CAST, CASTERS, frameOf, bounds, drawFrame, flash } from './actors.js';
+import { actorPalette, CAST, CASTERS, frameOf, runOf, frameAt, seconds, bounds, drawFrame, flash } from './actors.js';
 
 export const FPS = 30;
 export const PLACES = ['target', 'caster', 'ground', 'path', 'above', 'aside'];
@@ -115,13 +115,46 @@ const ACTING = {
   leap: (s, c, w) => [[s - w * 0.7, 'crouch', OUT], [s, 'crouch'], [s + 0.14, 'air', OUT], [s + 0.28, 'air'], [s + 0.42, 'crouch', IN], [s + 0.55, 'crouch'], [s + 0.85, 'idle', IO]],
 };
 
-/** The caster's pose at t from keys [[t, pose, ease], ...]: idle before the first; numbers ease, the look switches halfway. */
+// How far through a move to its key the look switches: halfway through an eased move, on the key itself for a cut
+// (LINEAR: a strike's contact, a cast's release), so that the pose lands with the hit.
+const switchAt = ease => {
+  if (ease === LINEAR) return 1;
+  let lo = 0, hi = 1;
+  while (hi - lo > 1e-9) {
+    const m = (lo + hi) / 2;
+    ease(m) < 0.5 ? (lo = m) : (hi = m);
+  }
+  return hi;
+};
+
+/** The caster's pose at t from keys [[t, pose, ease], ...]: idle before the first; numbers ease, the look switches at switchAt. */
 export function poseAt(keys, t) {
   const k = keys.findIndex(key => key[0] > t);
   if (k === 0 || !keys.length) return POSES.idle;
   if (k < 0) return keys.at(-1)[1];
-  const [t0, a] = keys[k - 1], [t1, b, ease = IO] = keys[k], u = ease((t - t0) / (t1 - t0));
-  return Object.fromEntries(Object.keys(a).map(n => [n, typeof a[n] === 'string' ? (u < 0.5 ? a : b)[n] : a[n] + (b[n] - a[n]) * u]));
+  const [t0, a] = keys[k - 1], [t1, b, ease = IO] = keys[k], r = (t - t0) / (t1 - t0), u = ease(r);
+  return Object.fromEntries(Object.keys(a).map(n => [n, typeof a[n] === 'string' ? (r < switchAt(ease) ? a : b)[n] : a[n] + (b[n] - a[n]) * u]));
+}
+
+/** Where the caster's look changes, from pose keys: [{ look, t }], idle first, switching where poseAt does. */
+export function looks(keys) {
+  const out = [{ look: POSES.idle.look, t: -Infinity }];
+  keys.forEach(([t1, b, ease = IO], k) => {
+    const t0 = k ? keys[k - 1][0] : t1;
+    if (b.look !== out.at(-1).look) out.push({ look: b.look, t: t0 + (t1 - t0) * switchAt(ease) });
+  });
+  return out;
+}
+
+const WINDUPS = ['ready', 'gather', 'crouch']; // looks that lead into an action
+
+/**
+ * Seconds into its run at t for the look `ls` (looks()) has then: a wind-up's run ends as the action after it comes in
+ * (holding its first frame when it has longer), anything else's starts with the look.
+ */
+export function into(ls, t, run) {
+  const i = ls.findLastIndex(l => l.t <= t + 1e-9), next = ls[i + 1];
+  return WINDUPS.includes(ls[i].look) && next && next.look !== 'idle' ? seconds(run) - (next.t - t) : t - ls[i].t;
 }
 
 /**
@@ -221,7 +254,7 @@ function mirror(out, W, H) {
  * effects play the same.
  */
 export function createStage(steps, o = {}, show = {}) {
-  const P = plan(steps), first = P.acts.find(a => a.role.pose) ?? P.acts[0], who = P.who;
+  const P = plan(steps), first = P.acts.find(a => a.role.pose) ?? P.acts[0], who = P.who, L = looks(P.keys);
   const pal = actorPalette(o.palette ?? first.opts?.palette ?? first.mod.meta.options?.palette ?? 'holy', [who, 'goblin']), C = pal.index;
   // the canvas holds the actors in every pose (stepping, hopping, knocked back), whether shown or not, so switching
   // one off keeps the layout, and every effect at each place it goes
@@ -238,7 +271,6 @@ export function createStage(steps, o = {}, show = {}) {
   const live = P.acts.map(a => ({ ...a, fx: null, frame: createFrame(...a.mod.meta.size, ...a.mod.meta.origin) }));
 
   const shadow = (p, x, r) => { for (let i = -r; i <= r; i++) p.blend(x + i, 0, C.ink[0], Math.abs(i) === r ? 0.2 : 0.4); };
-  const breath = t => Math.floor(t / 0.6) % 2; // idle frames take turns
 
   return {
     size: [W, H], floor: -y0, fps: FPS, duration: P.duration, loop: P.loop, hits: P.hits, plan: P,
@@ -270,8 +302,9 @@ export function createStage(steps, o = {}, show = {}) {
       layer('back');
 
       if (show.caster !== false) {
-        const q = poseAt(P.keys, t), busy = P.keys.length && t >= P.keys[0][0] && t <= P.keys.at(-1)[0];
-        const f = frameOf(who, q.look, busy ? 0 : breath(t)), x = Math.round(q.x), y = -Math.round(q.lift), p = new Painter(clearFrame(hero));
+        // each look plays its run; idle loops, holding its first frame while the caster acts
+        const q = poseAt(P.keys, t), busy = P.keys.length && t >= P.keys[0][0] && t <= P.keys.at(-1)[0], run = runOf(who, q.look);
+        const f = !busy ? frameAt(run, t, true) : q.look === 'idle' ? run[0] : frameAt(run, into(L, t, run)), x = Math.round(q.x), y = -Math.round(q.lift), p = new Painter(clearFrame(hero));
         drawFrame(hero, f, C[who], x, y);
         if (f.tip && q.glow > 0 && CASTERS[who].glow) { // the spell gathers at the tip in its own colors
           p.glow(x + f.tip[0], y + f.tip[1], 8, C.glow[5], 0.7 * q.glow);
@@ -282,7 +315,8 @@ export function createStage(steps, o = {}, show = {}) {
       }
       if (P.foe && show.target !== false) {
         const g = targetAt(P.flinches, t);
-        drawFrame(clearFrame(goblin), frameOf('goblin', g.hurt ? 'hurt' : 'idle', breath(t + 0.3)), C.goblin, g.dx);
+        const since = t - Math.max(...P.flinches.filter(f => f.t <= t + 1e-9).map(f => f.t)); // the last hit, when hurt
+        drawFrame(clearFrame(goblin), g.hurt ? frameAt(runOf('goblin', 'hurt'), since) : frameAt(runOf('goblin', 'idle'), t + 0.3, true), C.goblin, g.dx);
         if (g.hit) flash(goblin, C.ink[1]); // the hit frame: a white silhouette
         shadow(new Painter(goblin), 0, 6);
         over(out, W, H, goblin, pal.table, P.D - goblin.ox - x0, -goblin.oy - y0);

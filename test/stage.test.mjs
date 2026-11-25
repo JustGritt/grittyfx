@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
-import { role, plan, poseAt, targetAt, realtime, createStage, HIT, NEAR, FAR, FPS } from '../src/stage/stage.js';
-import { CAST, frameOf } from '../src/stage/actors.js';
+import { role, plan, poseAt, looks, into, targetAt, realtime, createStage, HIT, NEAR, FAR, FPS } from '../src/stage/stage.js';
+import { CAST, frameOf, frameAt } from '../src/stage/actors.js';
 import { castModule, castFiles } from '../tools/cast.mjs';
 import { MOVES } from '../src/stage/moves.js';
 import { listIds, loadEffect } from '../tools/lib.mjs';
@@ -42,9 +42,13 @@ test('cast.js is up to date with the Aseprite files, and every caster draws ever
   for (const who of ['knight', 'mage', 'priest', 'archer', 'kunoichi']) {
     for (const pose of ['idle', 'ready', 'swing', 'follow', 'gather', 'point', 'raise', 'crouch', 'air']) assert.ok(frameOf(who, pose).rows.length, `${who} ${pose}`);
     assert.ok(frameOf(who, 'point').tip, `${who} shoots from a tip`);
-    assert.equal(CAST[who].idle.length, 2, `${who} breathes`);
+    assert.ok(CAST[who].idle.length >= 2, `${who} breathes`);
   }
   assert.ok(CAST.goblin.hurt);
+  for (const [who, poses] of Object.entries(CAST)) for (const [pose, run] of Object.entries(poses)) run.forEach((f, i) => {
+    const n = (f.ms / 1000) * FPS; // a frame between two of the stage's would show for one or two of them unevenly
+    assert.ok(n >= 1 && Math.abs(n - Math.round(n)) * (1000 / FPS) < 1, `${who} ${pose} frame ${i + 1} lasts ${f.ms} ms: make it 33, 67, 100...`);
+  });
 });
 
 test('plan: the wind-up comes before the effect, its hits land after its start, on a frame', () => {
@@ -113,6 +117,21 @@ test('realtime: a hit holds its frame for its freeze and shakes the view', () =>
   assert.deepEqual(at.slice(0, 15), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11]);
   assert.equal(fr.length, 23);
   assert.ok(fr.slice(10, 15).every(f => f.dx || f.dy) && !fr[9].dx && !fr.at(-1).dx, 'from the hit frame, for 0.2 s');
+});
+
+test('runs: each frame shows for its ms; a wind-up ends as the action comes in, which starts on its first frame', async () => {
+  const run = [{ ms: 100 }, { ms: 100 }, { ms: 200 }], at = (u, loop) => run.indexOf(frameAt(run, u, loop));
+  assert.deepEqual([-0.1, 0, 0.1, 0.35, 1].map(u => at(u)), [0, 0, 1, 2, 2], 'the first before it starts, the last once over');
+  assert.deepEqual([0.45, -0.3].map(u => at(u, true)), [0, 1], 'a loop wraps round');
+  const ls = [{ look: 'idle', t: -Infinity }, { look: 'ready', t: 1 }, { look: 'swing', t: 1.5 }, { look: 'idle', t: 2 }];
+  assert.deepEqual([1, 1.05, 1.2, 1.45].map(t => at(into(ls, t, run))), [0, 0, 1, 2], 'a wind-up holds its first frame, then ends its run as the action comes in');
+  near(into(ls, 1.6, run), 0.1);
+  for (const id of listIds()) {
+    const mod = await loadEffect(id);
+    if (role(mod.meta, id).pose !== 'strike') continue;
+    const p = plan([{ mod, id }]);
+    near(looks(p.keys).find(l => l.look === 'swing').t, p.acts[0].contact); // the swing lands with the hit
+  }
 });
 
 test('every effect and move plays on the stage, and draws something', async () => {

@@ -7,6 +7,9 @@
   and landings, a mage spells, statuses, auras and spell projectiles (the staff's orb glows in the spell's colors),
   an archer other projectiles, and a goblin takes the hits (knocked back, a white flash, a hurt face). Tags pick the
   caster, `meta.stage.cast` overrides it. Shots leave from the caster's staff or bow.
+- **Poses play as runs**: a cast pose can be several frames, each shown for its Aseprite duration (`ms` in
+  `cast.js`). Idle loops, a wind-up ends its run as the action comes in, and an action starts its run on its key and
+  holds its last frame: a strike's swing now lands on its contact, a frame later than before.
 - **Gallery**: Caster and Target toggles replace Stage, on by default, like pixelfx's character toggle: either can
   be switched off (`?caster=0`, `?target=0`), both off shows the effect alone. `createStage(steps, o, show)`.
 - **New effect** `projectiles/arrow` (8 headings), and an Arrow shot move.

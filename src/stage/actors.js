@@ -27,11 +27,25 @@ export const CASTERS = {
   kunoichi: { glow: false, look: { ready: 'ready', swing: 'slash', follow: 'follow', gather: 'gather', point: 'throw', raise: 'seal', crouch: 'crouch', air: 'crouch' } },
 };
 
-/** `who`'s frame for a pose: its tag's frame `i` (wrapping), idle when it has no drawing for the pose. */
+/** `who`'s frames for a pose, its run: its tag's, idle's when it has no drawing for the pose. */
+export const runOf = (who, pose) => CAST[who][CASTERS[who]?.look[pose] ?? pose] ?? CAST[who].idle;
+
+/** `who`'s frame for a pose: its run's frame `i` (wrapping). */
 export const frameOf = (who, pose, i = 0) => {
-  const tag = CAST[who][CASTERS[who]?.look[pose] ?? pose] ?? CAST[who].idle;
-  return tag[i % tag.length];
+  const run = runOf(who, pose);
+  return run[i % run.length];
 };
+
+/** How long a run plays, in seconds: each frame shows for its ms. */
+export const seconds = run => run.reduce((n, f) => n + f.ms, 0) / 1000;
+
+/** A run's frame u seconds in: its first before it starts, its last once it's over, or wrapping round with loop. */
+export function frameAt(run, u, loop = false) {
+  if (loop) u -= Math.floor(u / seconds(run)) * seconds(run);
+  let end = 0;
+  for (const f of run) if ((end += f.ms / 1000) > u + 1e-6) return f;
+  return run.at(-1);
+}
 
 /** The box [x0, y0, x1, y1] (local, x1 and y1 past the last pixel) that holds every frame of `who`. */
 export function bounds(who) {

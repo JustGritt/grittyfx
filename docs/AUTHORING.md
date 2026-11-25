@@ -299,8 +299,10 @@ freeze and shake. `render --stage <move>` writes `records/moves/<move>/`; the ga
 (`?page=moves`).
 
 **The cast's art** is in `src/stage/cast/<name>.aseprite`, one file per character: the feet at the bottom center of
-the canvas, a tag per pose (`idle` has two frames, a breath), and a hidden `tip` layer with one pixel where the glow
-sits and shots leave from. The knight draws `idle`, `ready`, `swing`, `raise`, `crouch`; the mage `idle`, `gather`,
+the canvas, a tag per pose, and a hidden `tip` layer with one pixel where the glow sits and shots leave from. A pose
+can be a run of frames, each shown for its Aseprite duration in whole stage frames (33, 67, 100 ms...): `idle` loops
+(at least two frames, a breath), a wind-up (`ready`, `gather`, `crouch`) ends its run as the action after it comes in,
+and any other pose starts its run with the look, a strike's on its contact, then holds its last frame. The knight draws `idle`, `ready`, `swing`, `raise`, `crouch`; the mage `idle`, `gather`,
 `cast`, `raise`; the archer `idle`, `draw`, `release`; the kunoichi `idle`, `ready`, `slash`, `follow`, `gather`,
 `throw`, `crouch`, `seal`; the goblin `idle`, `hurt` (`CASTERS` in `src/stage/actors.js` maps the stage's poses to
 them). After editing, `node tools/cast.mjs` writes `src/stage/cast.js`; a test fails while it is out of date.
