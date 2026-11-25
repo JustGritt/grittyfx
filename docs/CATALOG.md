@@ -1,7 +1,14 @@
 # Catalog
 
-33 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
+35 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
 Ramps read `option: default (steps)`; pass another ramp name or a list of colors to recolor.
+
+## earth
+
+| effect | kind | views | size | duration | ramps | tags | description |
+|---|---|---|---|---|---|---|---|
+| `earth/quake` | one-shot | side, top (8 headings) | 100x54 | 1.2 s | palette: stone (8), dust: dust (5) | earth, quake, shockwave, rock, ground, magic, spell | A shockwave runs along the floor from the caster to the target: slabs heave up and drop back behind a glowing crack, dust kicked up at its front, and a burst of rock where it reaches the target |
+| `earth/spike` | one-shot | side | 88x64 | 1.3 s | palette: stone (8), dust: dust (5) | earth, rock, spike, eruption, magic, spell | The floor cracks and trembles under the target, then a cluster of jagged spikes stabs up through it throwing debris and dust, holds, and crumbles into falling chunks |
 
 ## electric
 

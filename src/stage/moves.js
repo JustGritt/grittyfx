@@ -47,4 +47,19 @@ export const MOVES = {
     desc: 'A lance of light from the priest, a pillar of light where it strikes',
     steps: [{ fx: 'holy/holy-bolt' }, { fx: 'holy/light-pillar', on: 'hit' }],
   },
+  earthspike: {
+    name: 'Earthspike',
+    desc: 'The floor cracks under the goblin and rock spikes stab up through it',
+    steps: [{ fx: 'earth/spike' }],
+  },
+  'ice-lance': {
+    name: 'Ice lance',
+    desc: 'Ice spikes burst from the floor under the goblin and shatter',
+    steps: [{ fx: 'earth/spike', opts: { palette: 'ice' } }],
+  },
+  tremor: {
+    name: 'Tremor',
+    desc: 'A quake runs along the floor to the goblin and rock spikes erupt where it lands',
+    steps: [{ fx: 'earth/quake' }, { fx: 'earth/spike', on: 'hit' }],
+  },
 };
