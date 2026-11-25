@@ -12,8 +12,6 @@
 <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=satoshi@1&amp;display=swap">
 <style>
   /* A specimen catalog: the page is the drawer and its labels, the effects are the loudest thing on it. */
-  @font-face { font-family: Castoro; src: url(fonts/castoro.woff2) format("woff2"); font-display: swap; }
-  @font-face { font-family: Castoro; font-style: italic; src: url(fonts/castoro-italic.woff2) format("woff2"); font-display: swap; }
   :root {
     --page: oklch(0.155 0.006 60);
     --well: oklch(0.2 0.008 60);
@@ -26,7 +24,6 @@
     --on-accent: oklch(0.22 0.04 45);
     --bad: oklch(0.7 0.17 30);
     --stage: #1b1d26; /* the stage colors match BG in gallery.js, which paints the canvas the same */
-    --serif: Castoro, "Iowan Old Style", Georgia, serif;
     --sans: Satoshi, system-ui, sans-serif;
     --mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
     --space-xs: 4px; --space-sm: 8px; --space-md: 12px; --space-lg: 16px;
@@ -102,7 +99,7 @@
   }
 
   /* a page's title, its count, and the category index under it */
-  h2 { display: flex; align-items: baseline; gap: var(--space-md); margin: 0 0 var(--space-lg); font: 400 clamp(2.25rem, 1.4rem + 2.6vw, 3.5rem)/1 var(--serif); letter-spacing: -0.015em; }
+  h2 { display: flex; align-items: baseline; gap: var(--space-md); margin: 0 0 var(--space-lg); font: 700 clamp(2.25rem, 1.4rem + 2.6vw, 3.5rem)/1 var(--sans); letter-spacing: -0.035em; }
   h2 small { font: 500 14px var(--sans); color: var(--faint); letter-spacing: 0; font-variant-numeric: tabular-nums; }
   main > section > .desc { max-width: 60ch; margin: 0 0 var(--space-xl); font-size: 16px; }
   .chips { flex-wrap: wrap; gap: var(--space-xs) var(--space-xl); margin-bottom: var(--space-xl); }
@@ -124,7 +121,7 @@
   canvas { position: absolute; image-rendering: pixelated; }
   .info { display: flex; flex-direction: column; padding: var(--space-lg) var(--space-lg) var(--space-lg); transition: background-color 0.15s; }
   .card:hover .info { background: var(--well); }
-  .info h3 { margin: 0 0 var(--space-xs); font: italic 400 23px/1.15 var(--serif); }
+  .info h3 { margin: 0 0 var(--space-xs); font: 700 20px/1.2 var(--sans); letter-spacing: -0.01em; }
   .info a { text-decoration: none; }
   .desc { margin: 0 0 var(--space-lg); color: var(--muted); font-size: 14px; line-height: 1.55; }
   /* the specimen label: kind first, then size, length and id, in the same order on every card */
@@ -140,7 +137,7 @@
   .preview .top a { color: var(--muted); text-decoration: none; }
   .preview .top a:hover { color: var(--text); }
   .pager { display: flex; gap: var(--space-xl); }
-  .preview h1 { margin: var(--space-xl) 0 var(--space-sm); font: italic 400 clamp(2.5rem, 1.5rem + 3.6vw, 4.25rem)/1 var(--serif); letter-spacing: -0.015em; }
+  .preview h1 { margin: var(--space-xl) 0 var(--space-sm); font: 700 clamp(2.5rem, 1.5rem + 3.6vw, 4.25rem)/1 var(--sans); letter-spacing: -0.035em; }
   .preview .desc { max-width: 60ch; font-size: 17px; margin-bottom: var(--space-xl); }
   .preview .stage { min-height: max(18rem, var(--fit, 0px)); border: 1px solid var(--line); }
   .sound { position: absolute; top: 10px; right: 10px; min-height: 30px; font-size: 13px; color: var(--muted); }
@@ -162,7 +159,7 @@
   /* the colophon */
   footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-lg) var(--space-3xl); padding: var(--space-xl) 0 var(--space-3xl); border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); }
   footer p { margin: 0 0 var(--space-xs); max-width: 60ch; }
-  footer .colophon { font: italic 15px var(--serif); color: var(--faint); }
+  footer .colophon { color: var(--faint); }
   footer nav { display: flex; flex-wrap: wrap; align-content: flex-start; gap: var(--space-xs) var(--space-xl); }
   footer a { color: var(--muted); text-decoration: none; }
   footer a:hover { color: var(--text); text-decoration: underline; }
@@ -237,7 +234,7 @@
   <footer>
     <div>
       <p>Free to use in your games, MIT like the code: every effect, sound and character on these pages.</p>
-      <p class="colophon">Set in Castoro and Satoshi. The pixels are drawn live, in code.</p>
+      <p class="colophon">Set in Satoshi. The pixels are drawn live, in code.</p>
     </div>
     <nav aria-label="Documentation">
       <a href="https://github.com/JustGritt/grittyfx/blob/main/docs/CATALOG.md">Catalog</a>
