@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
-import { role, plan, targetAt, realtime, createStage, HIT, NEAR, FAR, FPS } from '../src/stage/stage.js';
+import { role, plan, poseAt, targetAt, realtime, createStage, HIT, NEAR, FAR, FPS } from '../src/stage/stage.js';
 import { CAST, frameOf } from '../src/stage/actors.js';
 import { castModule, castFiles } from '../tools/cast.mjs';
 import { MOVES } from '../src/stage/moves.js';
@@ -20,6 +20,7 @@ test('role: tags place an effect, the category when no tag does, meta.stage over
   assert.equal(at(['ambient']).pose, null, 'an ambient effect is not acted');
   assert.deepEqual([at(['slash']).pose, at(['impact', 'melee']).pose, at(['impact']).pose, at(['nova']).pose], ['strike', 'strike', 'point', 'raise']);
   assert.equal(at(['landing'], '', { at: 'ground' }).pose, 'hop');
+  assert.deepEqual([at(['jump'], '', { at: 'ground' }).pose, at(['landing', 'jump'], '', { at: 'ground' }).pose], ['leap', 'hop'], 'a jump takes off, a landing lands in it');
   assert.equal(at(['landing', 'hit']).pose, 'point', 'only a landing on the ground under the caster hops');
   assert.deepEqual([at(['buff']).ground, at(['nova']).ground, at(['impact']).ground], [0, 0, HIT]);
   assert.equal(at(['status']).ground, -CAST.goblin.idle[0].y, "a status sits on top of the goblin's head");
@@ -57,6 +58,15 @@ test('plan: the wind-up comes before the effect, its hits land after its start, 
   assert.deepEqual(p.hits.map(h => [h.freeze, h.shake]), [[0.1, 3]]);
   assert.deepEqual(p.flinches.map(f => f.t), p.hits.map(h => h.t));
   assert.ok(p.duration > p.hits[0].t + 0.5, 'time for the goblin to recover');
+});
+
+test('plan: a landing plays as the caster lands, a jump as they take off', () => {
+  const lift = (tags, dt) => {
+    const p = plan([{ mod: mod({ tags, stage: { at: 'ground' } }) }]);
+    return poseAt(p.keys, p.acts[0].start + dt).lift;
+  };
+  assert.deepEqual([lift(['landing'], -0.15) > 0, lift(['landing'], 0)], [true, 0], 'in the air before, down on the effect');
+  assert.deepEqual([lift(['jump'], -0.1), lift(['jump'], 0), lift(['jump'], 0.2)], [0, 0, 9], 'crouched, then up and away');
 });
 
 test('plan: on hit, a step lands with the previous one and their hits merge; otherwise it follows its end', () => {

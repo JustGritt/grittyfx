@@ -264,7 +264,7 @@ the target. Tag effects for what they are, and the stage follows:
 |---|---|---|---|---|
 | `projectile` | `projectiles` | `path` | from the caster's staff or bow to the goblin's chest, flying 200 px/s (a loop), arriving on its first hit, or at its end (a one-shot); a loop is removed on arrival | shoots |
 | `aura`, `buff`, `pickup` | `pickups` | `caster` | on the floor at the caster's feet | raises a sword or staff |
-| `nova` | | `ground` | on the floor at the caster's feet; a `landing` or `jump` tag makes them hop and land in it | raises, or hops |
+| `nova` | | `ground` | on the floor at the caster's feet; a `landing` tag makes them hop and land in it, a `jump` tag take off from it | raises, hops or leaps |
 | `status` | `status` | `above` | on top of the goblin's head | casts |
 | `ambient` (torches, portals, props) | | `aside` | on the floor next to the caster; nobody acts | idles |
 | anything else: impacts, explosions, beams, pillars | | `target` | on the goblin's chest, 14 px over the floor | strikes in sword's reach if it is tagged `melee` or `slash`, else casts |

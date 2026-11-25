@@ -1,6 +1,6 @@
 # Catalog
 
-53 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
+58 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
 Ramps read `option: default (steps)`; pass another ramp name or a list of colors to recolor.
 
 ## earth
@@ -65,6 +65,16 @@ Ramps read `option: default (steps)`; pass another ramp name or a list of colors
 | `magic/heal-aura` | loop | side | 48x56 | 2 s | palette: heal (8) | magic, heal, aura, buff, status | A soft ring of light at the feet, sparkles and little plus signs rising through a gentle glow |
 | `magic/lightning-strike` | one-shot | side | 72x104 | 0.8 s | palette: electric (8) | magic, lightning, electric, strike, spell | A glint and a creeping leader, then a jagged branching bolt with a white hero frame, re-strikes, ground sparks and afterglow |
 | `magic/twinkle` | loop | side | 36x36 | 1.5 s | palette: gold (8) | magic, sparkle, glint, pickup, idle | Star glints that pop up around a collectible one after another: a white core, four arms, a soft glow |
+
+## movement
+
+| effect | kind | views | size | duration | ramps | tags | description |
+|---|---|---|---|---|---|---|---|
+| `movement/dash-trail` | one-shot | side, top (8 headings) | 56x34 | 0.34 s | palette: dust (8) | dash, speed, trail, dust, movement | A burst of speed: streaks shooting out behind the body and peeling away, dust kicked back from the feet, a flash on the first frame |
+| `movement/double-jump` | one-shot | side, top | 44x30 | 0.4 s | palette: ice (8) | jump, air, ring, movement | A kick off thin air: a flash under the feet, a flat ring of air that flares, spreads and breaks into gusts, streaks of air driven down |
+| `movement/footstep` | loop | side | 32x14 | 0.5 s | palette: dust (8) | dust, footstep, run, step, movement | Dust scuffed up while running, a loop of two steps: each foot strikes, kicks a couple of small puffs back and a speck of grit, and the dust thins as the next foot lands |
+| `movement/jump-dust` | one-shot | side, top | 44x24 | 0.4 s | palette: dust (8) | dust, jump, takeoff, ground, movement | Dust pushed out from under the feet as a character takes off: a flat flash where they push off, two tight puffs shooting out low to each side, launch streaks rising, a few hopping specks |
+| `movement/wall-slide` | loop | side | 34x44 | 0.6 s | palette: dust (8) | dust, wall, slide, scrape, spark, movement | Scraping down a wall, a loop: grit and sparks spat out from where the hand drags on the wall, a bright scrape mark left above it, puffs of dust peeling off |
 
 ## nature
 
