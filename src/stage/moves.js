@@ -47,4 +47,19 @@ export const MOVES = {
     desc: 'A lance of light from the priest, a pillar of light where it strikes',
     steps: [{ fx: 'holy/holy-bolt' }, { fx: 'holy/light-pillar', on: 'hit' }],
   },
+  lunge: {
+    name: 'Lunge',
+    desc: 'A straight stab from the knight, sparking where the point goes in',
+    steps: [{ fx: 'impacts/thrust' }, { fx: 'impacts/hit-spark', on: 'hit' }],
+  },
+  whirlwind: {
+    name: 'Whirlwind',
+    desc: 'The knight spins twice on the spot, the blade cutting the goblin on each turn',
+    steps: [{ fx: 'impacts/spin-slash' }],
+  },
+  launcher: {
+    name: 'Launcher',
+    desc: 'An uppercut that throws sparks skyward, then a crushing blow that cracks the floor',
+    steps: [{ fx: 'impacts/uppercut' }, { fx: 'impacts/heavy-hit' }],
+  },
 };
