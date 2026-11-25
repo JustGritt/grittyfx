@@ -26,7 +26,7 @@ const LEAD = 0.4; // idle before the first wind-up
 const PLAY = 1.6; // a loop plays at least this long, then fades out
 const FADE = 0.3; // fx.stop()'s fade
 const SETTLE = 0.9; // the goblin recovers this long after a hit
-const WINDUP = { strike: 0.15, point: 0.3, raise: 0.3, hop: 0.4 }; // when act.windup is left out
+const WINDUP = { strike: 0.15, point: 0.3, raise: 0.3, hop: 0.4, leap: 0.25 }; // when act.windup is left out
 const KNIGHT = ['melee', 'pickup']; // tags a knight acts; a projectile that isn't magic is the archer's
 const ROGUE = ['slash', 'vanish', 'thrown']; // tags the kunoichi acts, and every shadow/ effect
 
@@ -69,20 +69,21 @@ const SHAKE = 0.2, JIGGLE = [[1, 0], [-1, 1], [1, -1], [-1, 0]]; // as in the ga
  * category, else target. `ground` is the floor's y in the effect's own coordinates (how high its anchor sits), `x`
  * shifts it toward the goblin, `speed` is a looping projectile's in px/s, `scenery` the SCENERY drawn behind it (a
  * prop's sconce, posts or pool). `pose` is how the caster acts it: strike (a
- * melee effect on the target), hop (landing or jump on the ground), raise (on the caster), point (anything else), none
+ * melee effect on the target), hop (a landing on the ground), leap (a jump: takes off from it), raise (on the caster), point (anything else), none
  * (aside). `cast` is who: meta.stage.cast, else the kunoichi for a slash, a vanish, a thrown weapon or a shadow/ effect, a knight
- * for a strike, a hop or a pickup, the priest for a holy/ effect, an archer for a projectile that isn't magic or a
+ * for a strike, a hop, a leap or a pickup, the priest for a holy/ effect, an archer for a projectile that isn't magic or a
  * spell, else a mage.
  */
 export function role(meta, id = '') {
   const tags = meta.tags ?? [], s = meta.stage ?? {};
   const at = s.at ?? BY_TAG[tags.find(t => BY_TAG[t])] ?? BY_CATEGORY[id.split('/')[0]] ?? 'target';
   const pose = at === 'aside' ? null
-    : at === 'ground' && (tags.includes('landing') || tags.includes('jump')) ? 'hop'
+    : at === 'ground' && tags.includes('landing') ? 'hop'
+    : at === 'ground' && tags.includes('jump') ? 'leap'
     : at === 'caster' || at === 'ground' ? 'raise'
     : at === 'target' && (tags.includes('melee') || tags.includes('slash')) ? 'strike' : 'point';
   const cast = s.cast ?? (tags.some(t => ROGUE.includes(t)) || id.startsWith('shadow/') ? 'kunoichi'
-    : pose === 'strike' || pose === 'hop' || tags.some(t => KNIGHT.includes(t)) || id.startsWith('pickups/') ? 'knight'
+    : pose === 'strike' || pose === 'hop' || pose === 'leap' || tags.some(t => KNIGHT.includes(t)) || id.startsWith('pickups/') ? 'knight'
     : id.startsWith('holy/') ? 'priest'
     : at === 'path' && !tags.includes('magic') && !tags.includes('spell') ? 'archer' : 'mage');
   const ground = s.ground ?? (at === 'target' || at === 'path' ? HIT : at === 'above' ? HEAD : 0);
@@ -98,6 +99,7 @@ const ACTING = {
   point: (s, c, w) => [[s - w * 0.6, 'gather', OUT], [Math.max(s - w * 0.6, s - 1 / FPS), 'gather'], [s, 'point', LINEAR], [Math.max(c, s + 0.2) + 0.15, 'point'], [Math.max(c, s + 0.2) + 0.55, 'idle', IO]],
   raise: (s, c, w) => [[s - w * 0.6, 'crouch', OUT], [Math.max(s - w * 0.6, s - 1 / FPS), 'crouch'], [s, 'raise', LINEAR], [Math.max(c, s + 0.3) + 0.2, 'raise'], [Math.max(c, s + 0.3) + 0.6, 'idle', IO]],
   hop: (s, c, w) => [[s - w * 0.8, 'crouch', OUT], [s - w * 0.4, 'air', OUT], [s, 'crouch', IN], [s + 0.15, 'crouch'], [s + 0.45, 'idle', IO]],
+  leap: (s, c, w) => [[s - w * 0.7, 'crouch', OUT], [s, 'crouch'], [s + 0.14, 'air', OUT], [s + 0.28, 'air'], [s + 0.42, 'crouch', IN], [s + 0.55, 'crouch'], [s + 0.85, 'idle', IO]],
 };
 
 /** The caster's pose at t from keys [[t, pose, ease], ...]: idle before the first; numbers ease, the look switches halfway. */
