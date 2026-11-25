@@ -1,6 +1,6 @@
 # Catalog
 
-33 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
+35 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
 Ramps read `option: default (steps)`; pass another ramp name or a list of colors to recolor.
 
 ## electric
@@ -8,6 +8,7 @@ Ramps read `option: default (steps)`; pass another ramp name or a list of colors
 | effect | kind | views | size | duration | ramps | tags | description |
 |---|---|---|---|---|---|---|---|
 | `electric/arc` | loop | side | 72x40 | 1.2 s | palette: electric (8) | electric, arc, ambient, spark, tesla, prop | A standing electric arc across a gap, a tesla coil or a broken cable: a jagged bolt that re-forms every few frames, forks, hot contact points, sparks spitting off them and a flickering glow |
+| `electric/chain-lightning` | one-shot | side, top (8 headings) | 138x50 | 0.8 s | palette: electric (8) | electric, lightning, chain, magic, spell | Lightning thrown from the staff that jumps on: it crackles at the tip, strikes the target with a white hero frame, then leaps to the floor behind it and on again, each jump later and dimmer, sparks spitting where each one lands |
 | `electric/shock` | one-shot | side | 76x68 | 0.72 s | palette: electric (8) | electric, shock, hit, impact, status, zap | A target takes a jolt: a white flash with bolts bursting off its outline, then crackling arcs that hop around the body, fewer and dimmer, spitting sparks |
 
 ## explosions
@@ -46,6 +47,7 @@ Ramps read `option: default (steps)`; pass another ramp name or a list of colors
 
 | effect | kind | views | size | duration | ramps | tags | description |
 |---|---|---|---|---|---|---|---|
+| `magic/beam` | one-shot | side, top (8 headings) | 78x36 | 0.8 s | palette: arcane (8) | magic, beam, ray, laser, spell | A ray held from the staff: light gathers at the tip, the beam snaps out to full length with a white hero frame, holds with a rippling core and a flaring contact point spitting sparks, then thins to a thread and breaks up |
 | `magic/frost-burst` | one-shot | side | 80x60 | 1.3 s | palette: ice (8) | magic, ice, frost, nova, spell | Cold gathers, then a crown of ice spikes bursts from the ground with flying shards and a frost ring; the spikes shatter and a cold mist settles |
 | `magic/heal-aura` | loop | side | 48x56 | 2 s | palette: heal (8) | magic, heal, aura, buff, status | A soft ring of light at the feet, sparkles and little plus signs rising through a gentle glow |
 | `magic/lightning-strike` | one-shot | side | 72x104 | 0.8 s | palette: electric (8) | magic, lightning, electric, strike, spell | A glint and a creeping leader, then a jagged branching bolt with a white hero frame, re-strikes, ground sparks and afterglow |

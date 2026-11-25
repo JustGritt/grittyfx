@@ -47,4 +47,20 @@ export const MOVES = {
     desc: 'A lance of light from the priest, a pillar of light where it strikes',
     steps: [{ fx: 'holy/holy-bolt' }, { fx: 'holy/light-pillar', on: 'hit' }],
   },
+  'arcane-ray': {
+    name: 'Arcane ray',
+    desc: 'A ray held from the staff onto the goblin, sparks splashing off where it lands',
+    steps: [{ fx: 'magic/beam' }],
+  },
+  sunbeam: {
+    name: 'Sunbeam',
+    desc: 'A ray of light held from the priest\'s staff onto the goblin',
+    // from the priest's tip (x 19, y -18 when pointing), 76 px from the goblin
+    steps: [{ fx: 'magic/beam', opts: { palette: 'holy' }, stage: { cast: 'priest', x: -57, ground: 18 } }],
+  },
+  'chain-lightning': {
+    name: 'Chain lightning',
+    desc: 'Lightning from the staff that strikes the goblin, then leaps to the floor behind it and on',
+    steps: [{ fx: 'electric/chain-lightning' }],
+  },
 };
