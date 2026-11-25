@@ -30,9 +30,19 @@ const el = (tag, props = {}, ...kids) => {
   return e;
 };
 
-// Settings live in the form and the URL, so a preview link keeps them.
-for (const name of Object.keys(PAL)) f.palette.add(new Option(name, name), f.palette.length - 1);
-HEADINGS.forEach((name, d) => f.view.add(new Option(`top ${name}`, d))); // effects without a top view stay side
+const swatches = colors => colors.map(c => {
+  const s = el('span');
+  s.style.background = `rgb(${c.slice(0, 3)})`;
+  return s;
+});
+
+// Settings live in the form and the URL, so a preview link keeps them. The palettes are radios, each with its colors.
+const pop = document.getElementById('palettes'), pick = document.querySelector('.pick');
+const palName = p => (p === 'custom' ? 'Custom…' : p ? p[0].toUpperCase() + p.slice(1) : "Effect's own");
+pop.append(...['', ...Object.keys(PAL), 'custom'].map(value =>
+  el('label', { className: 'tile' }, el('input', { type: 'radio', name: 'palette', value, checked: !value }),
+    el('span', { className: 'ramp' }, ...swatches((PAL[value] ?? []).map(hex))), palName(value))));
+HEADINGS.forEach((name, d) => f.view.add(new Option(`Top ${name}`, d))); // effects without a top view stay side
 for (const [k, v] of params) {
   if (k === 'flip' || k === 'hitstop' || k === 'caster' || k === 'target') f[k].checked = v === '1';
   else if (['palette', 'custom', 'seed', 'bg', 'view'].includes(k)) f[k].value = v;
@@ -71,16 +81,11 @@ function readCustom() {
   }
 }
 
-const swatches = colors => colors.map(c => {
-  const s = el('span');
-  s.style.background = `rgb(${c.slice(0, 3)})`;
-  return s;
-});
-
 function showSettings() {
   const pal = f.palette.value, colors = pal === 'custom' ? custom ?? [] : PAL[pal] ?? [];
   document.getElementById('custom-field').hidden = pal !== 'custom';
   document.getElementById('ramp').replaceChildren(...swatches(colors.map(hex)));
+  document.getElementById('palette-name').textContent = palName(pal).replace('…', '');
   document.body.dataset.bg = f.bg.value;
   refresh();
   for (const a of document.querySelectorAll('a[data-fx]')) a.href = query({ fx: a.dataset.fx });
@@ -499,7 +504,7 @@ document.addEventListener('input', e => { // the form's settings and the grid's 
   if (e.target.name === 'cat') (cat = e.target.value), filter();
   showSettings();
   history.replaceState(null, '', move ? query({ move }) : only ? query({ fx: only }) : home());
-  const restart = [f.palette, f.custom, f.seed, f.view, f.caster, f.target].includes(e.target);
+  const restart = ['palette', 'custom', 'seed', 'view', 'caster', 'target'].includes(e.target.name);
   for (const pl of players) if (!pl.error) restart ? pl.restart() : pl.redraw();
   // shown again (fit while hidden), or a new backdrop
   if ([f.caster, f.target].includes(e.target) || ['cat', 'bg'].includes(e.target.name)) relayout();
@@ -523,6 +528,19 @@ main.addEventListener('click', e => {
 });
 document.addEventListener('visibilitychange', () => audio.ctx?.[document.hidden ? 'suspend' : 'resume']()); // the pixels pause too
 document.getElementById('replay').addEventListener('click', () => players.forEach(pl => pl.error || pl.restart()));
+document.getElementById('dice').addEventListener('click', () => {
+  f.seed.value = 1 + (crypto.getRandomValues(new Uint32Array(1))[0] % 9999); // short enough to read out and share
+  f.seed.dispatchEvent(new Event('input', { bubbles: true }));
+});
+// The palettes open under their button; a click picks one and closes them, arrow keys recolor as they browse.
+pop.addEventListener('toggle', e => {
+  if (e.newState !== 'open') return;
+  const r = pick.getBoundingClientRect();
+  Object.assign(pop.style, { top: `${r.bottom + 6}px`, left: `${Math.max(8, Math.min(r.left, innerWidth - pop.offsetWidth - 8))}px`, maxHeight: `${innerHeight - r.bottom - 14}px` });
+});
+pop.addEventListener('click', e => e.detail && requestAnimationFrame(() => pop.hidePopover())); // detail 0: a key moved it
+pop.addEventListener('keydown', e => e.key === 'Enter' && pop.hidePopover());
+addEventListener('scroll', () => pop.matches(':popover-open') && pop.hidePopover(), { passive: true }); // it would drift from its button
 addEventListener('resize', relayout);
 
 readCustom();

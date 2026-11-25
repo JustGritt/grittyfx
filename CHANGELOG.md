@@ -24,7 +24,8 @@
   (one row on wide screens, "Cast" for the caster and target), then the specimens. Every card the same size: one zoom
   for the page (the largest every stage fits at, 2x on a laptop), one stage height with every floor on one line, labels
   of fixed height; cards are captioned from `fx-list.json` before their module loads; a colophon with the docs and
-  engine links.
+  engine links. The toolbar: the palette picked from a panel showing every palette's colors (arrow keys recolor as
+  they browse), a die for a random seed, Flip, Cast and Hit-stop as toggles, the backgrounds as their colors.
 - **More moves**: Shock arrow (archer), Tidal bolt and Hex (mage), Smite (priest), so every caster and the water,
   shadow, electric and holy effects play in one.
 - **Gallery ground**: a `ground` background, the default, like pixelfx's: a stone floor under the actors' feet (or
