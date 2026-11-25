@@ -47,7 +47,7 @@ test('cast.js is up to date with the Aseprite files, and every caster draws ever
   assert.ok(CAST.goblin.hurt);
   for (const [who, poses] of Object.entries(CAST)) for (const [pose, run] of Object.entries(poses)) run.forEach((f, i) => {
     const n = (f.ms / 1000) * FPS; // a frame between two of the stage's would show for one or two of them unevenly
-    assert.ok(n >= 1 && Math.abs(n - Math.round(n)) * (1000 / FPS) < 1, `${who} ${pose} frame ${i + 1} lasts ${f.ms} ms: make it 33, 67, 100...`);
+    assert.ok(Math.round(n) >= 1 && Math.abs(n - Math.round(n)) * (1000 / FPS) < 1, `${who} ${pose} frame ${i + 1} lasts ${f.ms} ms: make it 33, 67, 100...`);
   });
 });
 
