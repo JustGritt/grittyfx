@@ -1,6 +1,6 @@
 # Catalog
 
-41 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
+44 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
 Ramps read `option: default (steps)`; pass another ramp name or a list of colors to recolor.
 
 ## earth
@@ -49,6 +49,9 @@ Ramps read `option: default (steps)`; pass another ramp name or a list of colors
 | `impacts/heavy-hit` | one-shot | side | 104x64 | 0.9 s | palette: fire (8), debris: stone (4), dust: dust (5) | impact, hit, heavy, melee, crack, debris | A crushing blow: a white hero frame, a broken shock ring, then a glowing crack splits the floor under the target and throws up debris and dust |
 | `impacts/hit-spark` | one-shot | side | 56x40 | 0.46 s | palette: gold (8) | impact, hit, spark, melee | A sharp contact flash, a white hero frame, then a spray of sparks that streak, fall and bounce |
 | `impacts/slash` | one-shot | side, top (8 headings) | 60x60 | 0.3 s | palette: ice (8) | slash, melee, sword, impact, arc | A blade swing from the wielder at the anchor: a crescent sweeps down through the target in front, flashes as it cuts, and leaves a trail that cools and fades |
+| `impacts/spin-slash` | one-shot | side, top | 88x44 | 0.6 s | palette: ice (8) | spin, whirlwind, melee, sword, impact, arc | A whirlwind swing around the wielder at the anchor: the blade sweeps two full turns, its trail wrapping behind and in front of them, cutting the target in front on each pass, its path lingering as a fading ring |
+| `impacts/thrust` | one-shot | side, top (8 headings) | 64x40 | 0.34 s | palette: ice (8) | thrust, stab, melee, sword, spear, impact | A straight stab from the wielder at the anchor: a lance of light shoots forward with speed lines, a sharp star bursts where the point lands, sparks spray on through, and the lance pulls back as it fades |
+| `impacts/uppercut` | one-shot | side, top (8 headings) | 60x68 | 0.4 s | palette: gold (8), dust: dust (5) | uppercut, launcher, melee, sword, impact, arc | A rising blow from the wielder at the anchor: the blade scoops up off the floor in front, flashes as it cuts up through the target, launches sparks skyward with rising speed lines, and its crescent arcs on overhead and fades |
 
 ## magic
 

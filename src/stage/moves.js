@@ -88,4 +88,19 @@ export const MOVES = {
     desc: 'A blink across the gap, cutting the goblin as she reappears',
     steps: [{ fx: 'shadow/blink' }, { fx: 'impacts/slash', on: 'hit', opts: { palette: 'arcane' } }],
   },
+  lunge: {
+    name: 'Lunge',
+    desc: 'A straight stab from the knight, sparking where the point goes in',
+    steps: [{ fx: 'impacts/thrust' }, { fx: 'impacts/hit-spark', on: 'hit' }],
+  },
+  whirlwind: {
+    name: 'Whirlwind',
+    desc: 'The knight spins twice on the spot, the blade cutting the goblin on each turn',
+    steps: [{ fx: 'impacts/spin-slash' }],
+  },
+  launcher: {
+    name: 'Launcher',
+    desc: 'An uppercut that throws sparks skyward, then a crushing blow that cracks the floor',
+    steps: [{ fx: 'impacts/uppercut' }, { fx: 'impacts/heavy-hit' }],
+  },
 };
