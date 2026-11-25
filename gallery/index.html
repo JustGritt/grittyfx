@@ -171,6 +171,10 @@
   .preview .stage { min-height: max(18rem, var(--fit, 0px)); border: 1px solid var(--line); }
   .sound { position: absolute; top: 10px; right: 10px; min-height: 30px; font-size: 13px; color: var(--muted); }
   .sound[aria-pressed="true"] { color: var(--text); border-color: var(--accent); box-shadow: inset 0 -2px 0 var(--accent); }
+  .scrub { display: flex; align-items: center; gap: var(--space-md); margin-top: var(--space-sm); }
+  .play { min-width: 4.5rem; }
+  .time { flex: 1; min-width: 0; margin: 0; accent-color: var(--accent); }
+  .frame { min-width: 11rem; text-align: right; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
   .below { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr)); gap: var(--space-2xl) var(--space-4xl); margin: var(--space-2xl) 0 var(--space-4xl); }
   .below h2 { display: block; margin: 0 0 var(--space-md); padding-bottom: var(--space-sm); border-bottom: 1px solid var(--line); font: 700 11px var(--sans); text-transform: uppercase; letter-spacing: 0.09em; color: var(--faint); }
   .meta { display: grid; grid-template-columns: max-content 1fr; gap: var(--space-sm) var(--space-xl); margin: 0; font-size: 14px; }
@@ -304,6 +308,12 @@
     <h1></h1>
     <p class="desc"></p>
     <div class="stage"><canvas role="img"></canvas><button class="sound" type="button" aria-pressed="false">sound</button></div>
+    <!-- shown by gallery.js once it plays: the slider pauses it on a frame, arrow keys step one at a time -->
+    <div class="scrub" hidden>
+      <button class="play" type="button">pause</button>
+      <input class="time" type="range" min="0" max="0" step="1" value="0" aria-label="Frame">
+      <output class="frame"></output>
+    </div>
     <div class="below">
       <section><h2>Details</h2><dl class="meta"></dl></section>
       <section class="use" hidden>

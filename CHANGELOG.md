@@ -28,6 +28,9 @@
   they browse), a die for a random seed, Flip, Cast and Hit-stop as toggles, the backgrounds as their colors. A top
   view in View now wins over the cast: the 12 effects with one play it on their own, whether the cast is on or not
   (before, only with both characters off); cards say "top view", and View is hidden where none can play.
+- **Gallery: frame by frame**: a preview has a pause button and a slider under its stage, to hold any frame of the
+  effect, move or stage (arrow keys step one frame) with its number and time; palette, seed and flip recolor the held
+  frame, and play goes on from it.
 - **More moves**: Shock arrow (archer), Tidal bolt and Hex (mage), Smite (priest), so every caster and the water,
   shadow, electric and holy effects play in one.
 - **Gallery ground**: a `ground` background, the default, like pixelfx's: a stone floor under the actors' feet (or

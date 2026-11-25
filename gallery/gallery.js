@@ -158,7 +158,7 @@ function play(cue, late) {
   Object.assign(src, { buffer: buf, loop: !!cue.meta.loop });
   src.connect(gain).connect(ctx.destination);
   const t0 = ctx.currentTime - late; // when the cue's time 0 was, on the audio clock
-  src.start(0, late);
+  src.start(0, cue.meta.loop ? late % buf.duration : late); // a loop resumed many turns in, in step
   if (cue.meta.loop && cue.stop < Infinity) {
     gain.gain.setValueAtTime(1, t0 + cue.end - cue.at);
     gain.gain.linearRampToValueAtTime(0, t0 + cue.stop - cue.at);
@@ -170,16 +170,20 @@ function play(cue, late) {
 /**
  * Plays one effect on a canvas at its own frame rate, like its baked sheet, or acted out on the stage when a character
  * is on (a move, given as `steps`, always is). With hit-stop on, each hit freezes it for `freeze` seconds and shakes
- * the view by `shake` pixels: the effect's hits in meta.act, or the stage's.
+ * the view by `shake` pixels: the effect's hits in meta.act, or the stage's. The preview's bar pauses it and steps
+ * through its frames.
  */
 function player(mod, canvas, big, id, steps) {
-  const meta = mod?.meta, ctx = canvas.getContext('2d');
+  const meta = mod?.meta, ctx = canvas.getContext('2d'), bar = big && canvas.closest('.preview').querySelector('.scrub');
+  const [toggle, slider, readout] = bar ? ['.play', '.time', '.frame'].map(s => bar.querySelector(s)) : [];
   // w x h is the effect or the stage, drawn at (X, Y) on a canvas that fills the card; `under` is its piece of backdrop
   let fx, st, fps, hits, duration, loop, clock, base, next, freeze, shake, shown, w, h, ox, img, frame, floor, X = 0, Y = 0, under, cues = [], sounds = [];
+  let frames, paused = false;
   const pl = {
     canvas, big, zoom: 1, error: null,
     get w() { return w; }, get h() { return h; }, get floor() { return floor; },
-    restart() {
+    // From the top, or from `at` seconds in (paused, from the frame shown).
+    restart(at = paused ? clock - base : 0) {
       // A chosen top view wins over the cast, which acts side views only: the effect plays alone, at the chosen heading,
       // live, so any angle works; the canvas follows the view's size.
       const top = !steps && f.view.value !== '' && meta.views?.includes('top');
@@ -202,15 +206,31 @@ function player(mod, canvas, big, id, steps) {
         fx = createFx(mod, { ...options(), view });
         fx.angle = v.directions > 1 ? (f.view.value * Math.PI) / 4 : 0; // a radial top view has one heading
       }
-      clock = base = next = freeze = 0;
+      frames = Math.max(1, Math.ceil(duration * fps - 1e-6));
+      clock = Math.min(at, (frames - 1) / fps);
+      base = freeze = 0;
+      next = hits.filter(hit => hit.t < clock - 1e-6).length;
       shake = null;
       shown = -1;
+      // a stage only goes forward: through every frame before, so the loops in it stop and fade on time
+      if (st) for (let k = 0; k < Math.floor(clock * fps + 1e-6); k++) st.draw(k / fps, img.data, under, f.flip.checked);
+      if (slider) slider.max = frames - 1;
+      pl.listen();
+    },
+    // Each effect's sound from where it starts: the effect's from 0, a stage's from each act's start; none paused.
+    listen() {
       pl.hush();
-      // each effect's sound from where it starts: the effect's from 0, a stage's from each act's start
-      if (big && audio.on) {
+      if (big && audio.on && !paused) {
         cues = st ? st.plan.acts.map(a => ({ at: a.start, end: a.end, stop: a.stop, meta: a.mod.meta })) : [{ at: 0, end: Infinity, stop: Infinity, meta }];
         cues.sort((a, b) => a.at - b.at);
       }
+    },
+    /** Holds the frame shown (or the one `at` seconds in; after a one-shot, in its rest, its last), or plays on from it. */
+    pause(on, at) {
+      paused = on;
+      if (toggle) toggle.textContent = on ? 'play' : 'pause';
+      if (on) pl.restart(at);
+      else pl.listen();
     },
     hush() {
       sounds.forEach(s => s.stop());
@@ -242,7 +262,8 @@ function player(mod, canvas, big, id, steps) {
       shown = -1;
     },
     tick(dt) {
-      if (freeze > 0) freeze -= dt;
+      if (paused) shake = null; // time stands still, on the frame shown
+      else if (freeze > 0) freeze -= dt;
       else {
         const hit = hits[next];
         if (hit && clock + dt >= base + hit.t) {
@@ -278,6 +299,11 @@ function player(mod, canvas, big, id, steps) {
         composite(frame, fx.palette, img.data, under);
       }
       ctx.putImageData(img, X, Y);
+      if (bar) {
+        const k = Math.min(frames - 1, Math.floor((clock - base) * fps + 1e-6)); // the rest after a one-shot: its last frame
+        slider.value = k;
+        slider.ariaValueText = readout.textContent = `frame ${k + 1} of ${frames}, ${(k / fps).toFixed(2)} s`;
+      }
     },
     fail(e) {
       pl.hush();
@@ -285,6 +311,14 @@ function player(mod, canvas, big, id, steps) {
       broken(canvas.parentElement, e);
     },
   };
+  if (bar) {
+    toggle.addEventListener('click', () => pl.pause(!paused));
+    slider.addEventListener('input', e => {
+      e.stopPropagation(); // not a setting: the document's listener would restart it
+      pl.pause(true, slider.valueAsNumber / fps);
+    });
+    bar.hidden = false;
+  }
   return pl;
 }
 
@@ -531,7 +565,7 @@ main.addEventListener('click', e => {
   }
 });
 document.addEventListener('visibilitychange', () => audio.ctx?.[document.hidden ? 'suspend' : 'resume']()); // the pixels pause too
-document.getElementById('replay').addEventListener('click', () => players.forEach(pl => pl.error || pl.restart()));
+document.getElementById('replay').addEventListener('click', () => players.forEach(pl => pl.error || (pl.pause(false), pl.restart())));
 document.getElementById('dice').addEventListener('click', () => {
   f.seed.value = 1 + (crypto.getRandomValues(new Uint32Array(1))[0] % 9999); // short enough to read out and share
   f.seed.dispatchEvent(new Event('input', { bubbles: true }));
