@@ -63,4 +63,19 @@ export const MOVES = {
     desc: 'Lightning from the staff that strikes the goblin, then leaps to the floor behind it and on',
     steps: [{ fx: 'electric/chain-lightning' }],
   },
+  earthspike: {
+    name: 'Earthspike',
+    desc: 'The floor cracks under the goblin and rock spikes stab up through it',
+    steps: [{ fx: 'earth/spike' }],
+  },
+  'ice-lance': {
+    name: 'Ice lance',
+    desc: 'Ice spikes burst from the floor under the goblin and shatter',
+    steps: [{ fx: 'earth/spike', opts: { palette: 'ice' } }],
+  },
+  tremor: {
+    name: 'Tremor',
+    desc: 'A quake runs along the floor to the goblin and rock spikes erupt where it lands',
+    steps: [{ fx: 'earth/quake' }, { fx: 'earth/spike', on: 'hit' }],
+  },
 };
