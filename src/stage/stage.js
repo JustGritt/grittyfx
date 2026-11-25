@@ -7,8 +7,8 @@
 //
 // role(meta, id)         where and how an effect is acted: meta.stage over its tags, then its category
 // plan(steps)            when and where each step plays, the hits, the goblin's flinches, the caster's poses
-// createStage(steps, o, show)  { size, floor, fps, duration, loop, hits, draw(t, rgba, bg, flip) }; o: effect options
-//                        for every step, show: { caster, target }, the layers drawn
+// createStage(steps, o, show, cast)  { size, floor, fps, duration, loop, hits, draw(t, rgba, bg, flip) }; o: effect
+//                        options for every step, show: { caster, target }, the layers drawn, cast: { foe, tint }
 // realtime(hits, d, fps) the frames a game shows at fps, with hit-stop and shake: [{ t, dx, dy }]
 import { createFx, createFrame, clearFrame, Painter } from '../core/index.js';
 import { actorPalette, CAST, CASTERS, frameOf, bounds, drawFrame, flash } from './actors.js';
@@ -203,14 +203,15 @@ function mirror(out, W, H) {
  * step's own opts. draw(t, rgba, bg, flip) paints stage time t (seconds, never going back) into a Uint8ClampedArray of
  * size[0] x size[1] pixels over bg ([r, g, b], or an RGBA image of that size, which flip leaves unmirrored), mirrored
  * with flip. `floor` is the row the actors stand on. `show.caster` and `show.target` false leave that actor out; the
- * effects play the same.
+ * effects play the same. `cast.foe` takes the hits (the goblin, or the slime) and `cast.tint` recolors actors
+ * ({ name: tint }, see tinted() in actors.js).
  */
-export function createStage(steps, o = {}, show = {}) {
+export function createStage(steps, o = {}, show = {}, { foe = 'goblin', tint = {} } = {}) {
   const P = plan(steps), first = P.acts.find(a => a.role.pose) ?? P.acts[0], who = P.who;
-  const pal = actorPalette(o.palette ?? first.opts?.palette ?? first.mod.meta.options?.palette ?? 'holy', [who, 'goblin']), C = pal.index;
+  const pal = actorPalette(o.palette ?? first.opts?.palette ?? first.mod.meta.options?.palette ?? 'holy', [who, foe], tint), C = pal.index;
   // the canvas holds the actors in every pose (stepping, hopping, knocked back), whether shown or not, so switching
   // one off keeps the layout, and every effect at each place it goes
-  const [cx0, cy0, cx1] = bounds(who), [gx0, gy0, gx1] = bounds('goblin'), hop = P.keys.some(k => k[1].lift) ? POSES.air.lift : 0;
+  const [cx0, cy0, cx1] = bounds(who), [gx0, gy0, gx1] = bounds(foe), hop = P.keys.some(k => k[1].lift) ? POSES.air.lift : 0;
   const boxes = [[cx0 - 2, cy0 - hop - 1, cx1 + 4, 3]];
   if (P.foe) boxes.push([P.D + gx0 - 1, gy0 - 1, P.D + gx1 + PUSH + 1, 3]);
   for (const a of P.acts) {
@@ -267,7 +268,7 @@ export function createStage(steps, o = {}, show = {}) {
       }
       if (P.foe && show.target !== false) {
         const g = targetAt(P.flinches, t);
-        drawFrame(clearFrame(goblin), frameOf('goblin', g.hurt ? 'hurt' : 'idle', breath(t + 0.3)), C.goblin, g.dx);
+        drawFrame(clearFrame(goblin), frameOf(foe, g.hurt ? 'hurt' : 'idle', breath(t + 0.3)), C[foe], g.dx);
         if (g.hit) flash(goblin, C.ink[1]); // the hit frame: a white silhouette
         shadow(new Painter(goblin), 0, 6);
         over(out, W, H, goblin, pal.table, P.D - goblin.ox - x0, -goblin.oy - y0);

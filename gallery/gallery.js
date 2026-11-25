@@ -1,12 +1,13 @@
 // The gallery, three pages: the effects playing live from their modules, filtered by category (?cat=), or one large
 // with ?fx=<id> (the preview page, with its sound); the moves (?page=moves, one with ?move=<id>); the characters to
-// download (?page=characters). With either character on, the cast acts the effects out on a goblin.
+// download (?page=characters). With either character on, the cast acts the effects out on a monster.
 import { PAL, hex, fit, createFx, createFrame, clearFrame, composite, layout, HEADINGS, synth, SAMPLE_RATE } from '../src/core/index.js';
 import { createStage, role } from '../src/stage/stage.js';
 import { MOVES } from '../src/stage/moves.js';
-import { CAST, KEYS, bounds } from '../src/stage/actors.js';
+import { CAST, CASTERS, KEYS, bounds } from '../src/stage/actors.js';
 import { PALETTES } from '../src/stage/cast.js';
 
+const MONSTERS = Object.keys(CAST).filter(n => !CASTERS[n]); // who takes the hits: everyone who doesn't cast
 const BG = { ground: '#1b1d26', dark: '#1b1d26', mid: '#575b6b', light: '#d8d5cd' }; // the stage colors in index.html
 const STONE = ['#454a5e', '#2b2e3c', '#22242f', '#15161d'].map(hex); // the floor's lit edge, top course, deeper courses, mortar
 const GAP = 0.8; // a one-shot rests this long, empty, before it plays again
@@ -43,12 +44,14 @@ pop.append(...['', ...Object.keys(PAL), 'custom'].map(value =>
   el('label', { className: 'tile' }, el('input', { type: 'radio', name: 'palette', value, checked: !value }),
     el('span', { className: 'ramp' }, ...swatches((PAL[value] ?? []).map(hex))), palName(value))));
 HEADINGS.forEach((name, d) => f.view.add(new Option(`Top ${name}`, d))); // effects without a top view stay side
+for (const n of MONSTERS) f.foe.add(new Option(n[0].toUpperCase() + n.slice(1), n));
 for (const [k, v] of params) {
   if (k === 'flip' || k === 'hitstop' || k === 'caster' || k === 'target') f[k].checked = v === '1';
-  else if (['palette', 'custom', 'seed', 'bg', 'view'].includes(k)) f[k].value = v;
+  else if (['palette', 'custom', 'seed', 'bg', 'view', 'foe'].includes(k)) f[k].value = v;
 }
 f.custom.value ||= '#0b1a2e #14506a #1ca0a0 #6ff0c0 #f2fff6';
 if (!BG[f.bg.value]) f.bg.value = 'ground';
+f.foe.value ||= 'goblin'; // an unknown foe in the URL
 document.querySelector(`a[data-page="${page}"]`).setAttribute('aria-current', only || move ? 'true' : 'page');
 if (page) document.title = `${page[0].toUpperCase()}${page.slice(1)} · grittyfx`;
 
@@ -62,6 +65,7 @@ function query(extra = {}) {
   if (f.flip.checked) q.set('flip', 1);
   if (!f.caster.checked) q.set('caster', 0);
   if (!f.target.checked) q.set('target', 0);
+  if (f.foe.value !== 'goblin') q.set('foe', f.foe.value);
   if (f.bg.value !== 'ground') q.set('bg', f.bg.value);
   if (!f.hitstop.checked) q.set('hitstop', 0);
   return String(q) ? `?${String(q).replaceAll('%2F', '/')}` : './';
@@ -188,7 +192,7 @@ function player(mod, canvas, big, id, steps) {
       // live, so any angle works; the canvas follows the view's size.
       const top = !steps && f.view.value !== '' && meta.views?.includes('top');
       const acted = steps ?? (!top && acting() && [{ mod, id }]);
-      st = acted && createStage(acted, options(), { caster: f.caster.checked, target: f.target.checked });
+      st = acted && createStage(acted, options(), { caster: f.caster.checked, target: f.target.checked }, { foe: f.foe.value });
       const view = top ? 'top' : 'side', v = st ? null : layout(meta, view);
       const [sw, sh] = st ? st.size : v.size;
       // the floor: under the actors' feet, else as far under the anchor as the effect is acted; a top view has none
@@ -438,11 +442,13 @@ function castCard(who) {
     if (k >= 0) img.data.set(hex(PALETTES[who][k]), (Y * canvas.width + X) * 4);
   })));
   g.putImageData(img, 0, 0);
-  // one zoom for the whole cast, so their sizes compare; shortcut: a sheet over ~170 px wide overflows its card, fit then
-  Object.assign(canvas.style, { position: 'static', width: `${canvas.width * 2}px`, height: `${canvas.height * 2}px` });
+  // one zoom for the whole cast, so their sizes compare; a sheet too wide for the narrowest card (320 px less its
+  // padding) spans two, and shrinks to fit when the grid has one column
+  const wide = canvas.width * 2 > 296;
+  Object.assign(canvas.style, { position: 'static', width: `${canvas.width * 2}px`, maxWidth: '100%', height: 'auto' });
   let n = 0;
   const order = Object.entries(CAST[who]).map(([pose, fs]) => `${pose} ${fs.map(() => ++n).join(', ')}`);
-  return el('li', { className: 'card' },
+  return el('li', { className: wide ? 'card wide' : 'card' },
     el('div', { className: 'stage' }, canvas),
     el('div', { className: 'info' },
       el('h3', { textContent: who[0].toUpperCase() + who.slice(1) }),
@@ -500,10 +506,14 @@ async function start() {
     if (ids === all) cat = '';
     await show(entry, preview(ids, only, 'fx', id => list.find(e => e.id === id).meta?.name ?? id), true);
   } else if (page === 'characters') {
-    const who = Object.keys(CAST);
-    main.replaceChildren(el('section', {}, head('Characters', who.length),
-      el('p', { className: 'desc', textContent: 'The cast that acts the effects out, free to use in your own games (MIT, like the code).' }),
-      el('ul', { className: 'grid' }, ...who.map(castCard))));
+    const heroes = Object.keys(CASTERS);
+    main.replaceChildren(
+      el('section', {}, head('Characters', heroes.length),
+        el('p', { className: 'desc', textContent: 'The cast that acts the effects out, free to use in your own games (MIT, like the code).' }),
+        el('ul', { className: 'grid' }, ...heroes.map(castCard))),
+      el('section', {}, head('Monsters', MONSTERS.length),
+        el('p', { className: 'desc', textContent: 'The targets that take the hits: pick one under Cast. Free to use as well.' }),
+        el('ul', { className: 'grid' }, ...MONSTERS.map(castCard))));
   } else if (page === 'moves') {
     const ids = Object.keys(MOVES), ul = el('ul', { className: 'grid' });
     main.replaceChildren(el('section', {}, head('Moves', ids.length),
@@ -542,7 +552,7 @@ document.addEventListener('input', e => { // the form's settings and the grid's 
   if (e.target.name === 'cat') (cat = e.target.value), filter();
   showSettings();
   history.replaceState(null, '', move ? query({ move }) : only ? query({ fx: only }) : home());
-  const restart = ['palette', 'custom', 'seed', 'view', 'caster', 'target'].includes(e.target.name);
+  const restart = ['palette', 'custom', 'seed', 'view', 'caster', 'target', 'foe'].includes(e.target.name);
   for (const pl of players) if (!pl.error) restart ? pl.restart() : pl.redraw();
   // shown again (fit while hidden), or a new backdrop
   if ([f.caster, f.target].includes(e.target) || ['cat', 'bg'].includes(e.target.name)) relayout();

@@ -41,6 +41,11 @@
 - **Frost burst on the target**: `magic/frost-burst` bursts from the ground under the goblin (`stage: { at: 'target',
   ground: 0 }`), the mage pointing it there, not at the mage's own feet. A move's step can place its effect over its
   `meta.stage` (`{ fx, on, opts, stage }`): Frost nova's glints hang round the goblin with it.
+- **A slime** takes the hits in the goblin's place when picked under Cast in the gallery (`?foe=slime`), or with
+  `createStage(steps, o, show, { foe: 'slime' })` and `render.mjs --stage <id> --foe slime`. Shaded like jelly, it
+  recolors with any ramp (`{ tint: { slime: 'ice' } }`, `--tint ice`: `tinted()` in `src/stage/actors.js`), its eyes
+  and blush kept. Its sheet has idle, move, windup, attack, hurt and death. The Characters page lists the casters and
+  the monsters apart.
 - **More moves**: Shock arrow (archer), Tidal bolt and Hex (mage), Smite (priest), so every caster and the water,
   shadow, electric and holy effects play in one.
 - **Gallery ground**: a `ground` background, the default, like pixelfx's: a stone floor under the actors' feet (or

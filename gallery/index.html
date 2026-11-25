@@ -119,6 +119,7 @@
   .seg .sw { display: grid; place-items: center; width: 36px; height: 32px; padding: 0; }
   .seg .sw::before { content: ""; width: 16px; height: 16px; border-radius: 2px; background: var(--c); box-shadow: 0 0 0 1px oklch(1 0 0 / 0.16); }
   @media (max-width: 899px) { .sep { display: none; } }
+  @media (min-width: 720px) { .grid > .wide { grid-column: span 2; } } /* the grid has two columns from about here */
   @media (min-width: 900px) {
     .controls { position: sticky; top: 0; z-index: 2; }
     html { scroll-padding-top: 80px; } /* keep focused cards out from under the strip */
@@ -245,12 +246,13 @@
     </div>
     <div class="seg"><label><input id="flip" name="flip" type="checkbox"><span>Flip</span></label></div>
     <span class="sep" aria-hidden="true"></span>
-    <fieldset title="A caster from the cast acts each effect out on a goblin; switch either off">
+    <fieldset title="A caster from the cast acts each effect out on a monster; switch either off, or pick the monster">
       <legend>Cast</legend>
       <div class="seg">
         <label><input id="caster" name="caster" type="checkbox" checked><span>Caster</span></label>
         <label><input id="target" name="target" type="checkbox" checked><span>Target</span></label>
       </div>
+      <select id="foe" name="foe" aria-label="Target"></select>
     </fieldset>
     <fieldset>
       <legend>Background</legend>
