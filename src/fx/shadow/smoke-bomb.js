@@ -12,7 +12,7 @@ export const meta = {
   views: ['side'],
   ramps: { palette: 8, smoke: 8 },
   options: { palette: 'fire', smoke: 'smoke', seed: 1 },
-  act: { windup: 0.3, hits: [{ t: 3 / 30, freeze: 0.02, shake: 1 }] },
+  act: { windup: 0.3 },
   stage: { at: 'caster' }, // at her feet; she throws it down from her seal
   sound: [
     { t: 0, kind: 'whoosh', gain: 0.25, pitch: 2.4 }, // the throw
