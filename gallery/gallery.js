@@ -180,10 +180,12 @@ function player(mod, canvas, big, id, steps) {
     canvas, big, zoom: 1, error: null,
     get w() { return w; }, get h() { return h; }, get floor() { return floor; },
     restart() {
-      const acted = steps ?? (acting() && [{ mod, id }]);
+      // A chosen top view wins over the cast, which acts side views only: the effect plays alone, at the chosen heading,
+      // live, so any angle works; the canvas follows the view's size.
+      const top = !steps && f.view.value !== '' && meta.views?.includes('top');
+      const acted = steps ?? (!top && acting() && [{ mod, id }]);
       st = acted && createStage(acted, options(), { caster: f.caster.checked, target: f.target.checked });
-      // the top view at the chosen heading, live, so any angle works; the canvas follows the view's size
-      const view = !st && f.view.value && meta.views?.includes('top') ? 'top' : 'side', v = st ? null : layout(meta, view);
+      const view = top ? 'top' : 'side', v = st ? null : layout(meta, view);
       const [sw, sh] = st ? st.size : v.size;
       // the floor: under the actors' feet, else as far under the anchor as the effect is acted; a top view has none
       const fl = st ? st.floor : view === 'side' ? v.origin[1] + role(meta, id).ground : Infinity;
@@ -315,7 +317,7 @@ function broken(stage, e) {
 }
 
 const describe = meta => [meta.loop ? 'loop' : 'one-shot', `${meta.size[0]}×${meta.size[1]}`, `${meta.duration} s`]
-  .concat(meta.act?.hits?.length ? ['hits'] : []);
+  .concat(meta.act?.hits?.length ? ['hits'] : [], meta.views?.includes('top') ? ['top view'] : []);
 
 /** Imports an effect, captions `root` and plays it in root's canvas; a broken effect shows its error there instead. */
 async function show(entry, root, big) {
@@ -495,6 +497,8 @@ async function start() {
     filter();
   }
   form.hidden = !main.contains(form); // the settings sit under a page's title; the character sheets have none
+  // View only where a top view can play: not for moves, nor on the page of an effect without one
+  f.view.closest('.field').hidden = page === 'moves' || (!!only && !list.find(e => e.id === only)?.meta?.views?.includes('top'));
   showSettings();
 }
 

@@ -254,8 +254,8 @@ An effect reads best acted out. The stage (`src/stage/`) has a cast drawn in Ase
 (a knight, a mage, a priest, an archer or a kunoichi) winds up for `act.windup` (0.15 s for a strike, 0.3 s for a cast when left out), the
 effect plays where its role puts it, the game freezes and shakes on each hit while a goblin flashes white and is
 knocked back, then both recover. The gallery acts every effect out this way (its Caster and Target toggles switch
-either character off), and `render --stage` writes it. It is a preview, side view only, and not part of the package:
-games bring their own characters.
+either character off; a top view in its View plays the effects that have one on their own), and `render --stage`
+writes it. It is a preview, side view only, and not part of the package: games bring their own characters.
 
 **Roles.** The first of an effect's tags that has a role places it; with none, its category does; else it goes on
 the target. Tag effects for what they are, and the stage follows:
