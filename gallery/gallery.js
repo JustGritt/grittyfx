@@ -39,7 +39,6 @@ for (const [k, v] of params) {
 }
 f.custom.value ||= '#0b1a2e #14506a #1ca0a0 #6ff0c0 #f2fff6';
 if (!BG[f.bg.value]) f.bg.value = 'ground';
-form.hidden = page === 'characters'; // the settings play effects; the character sheets don't
 document.querySelector(`a[data-page="${page}"]`).setAttribute('aria-current', only || move ? 'true' : 'page');
 if (page) document.title = `${page[0].toUpperCase()}${page.slice(1)} · grittyfx`;
 
@@ -290,12 +289,20 @@ const describe = meta => [meta.loop ? 'loop' : 'one-shot', `${meta.size[0]}×${m
 /** Imports an effect, captions `root` and plays it in root's canvas; a broken effect shows its error there instead. */
 async function show(entry, root, big) {
   const canvas = root.querySelector('canvas'), name = root.querySelector(big ? 'h1' : 'h3 a');
-  name.textContent = entry.id;
+  const label = meta => {
+    name.textContent = meta.name;
+    root.querySelector('.desc').textContent = meta.desc ?? '';
+    if (!big) root.querySelector('.facts').replaceChildren(
+      ...describe(meta).map((s, i) => el('li', { className: i ? '' : 'kind', textContent: s })),
+      el('li', {}, el('code', { textContent: entry.id })),
+    );
+  };
+  if (entry.meta) label(entry.meta); // the list's copy of the meta captions the card while its module loads
+  else name.textContent = entry.id;
   if (!big) (name.href = query({ fx: entry.id })), (name.dataset.fx = entry.id);
   try {
     const mod = await import(`../src/fx/${entry.id}.js`), { meta } = mod, kind = meta.loop ? 'loop' : 'one-shot';
-    name.textContent = meta.name;
-    root.querySelector('.desc').textContent = meta.desc ?? '';
+    label(meta);
     canvas.setAttribute('aria-label', `${meta.name}, ${kind}`);
     if (big) {
       document.title = `${meta.name} · grittyfx`;
@@ -315,11 +322,6 @@ async function show(entry, root, big) {
         use.querySelector('.meta').replaceChildren(...useRows(entry.id));
       };
       refresh();
-    } else {
-      root.querySelector('.facts').append(
-        ...describe(meta).map((s, i) => el('li', { className: i ? '' : 'kind', textContent: s })),
-        el('li', {}, el('code', { textContent: entry.id })),
-      );
     }
     const pl = player(mod, canvas, big, entry.id);
     pl.restart();
@@ -400,7 +402,8 @@ function preview(ids, id, key, nameOf) {
   });
   if (key === 'move') root.querySelector('.back').textContent = '← all moves';
   else if (cat) root.querySelector('.back').textContent = `← all ${cat} effects`;
-  root.querySelector('.desc').after(form); // the page's own nav and title first, then the settings for its stage
+  root.querySelector('.desc').after(form); // as on every page: its title first, then the settings for its stage
+  form.hidden = false; // now, not once the effect has loaded, so the stage doesn't jump down
   main.replaceChildren(root);
   return root;
 }
@@ -435,7 +438,7 @@ async function start() {
   } else if (page === 'moves') {
     const ids = Object.keys(MOVES), ul = el('ul', { className: 'grid' });
     main.replaceChildren(el('section', {}, head('Moves', ids.length),
-      el('p', { className: 'desc', textContent: 'Effects played in a row as one attack, acted out by the cast.' }), ul));
+      el('p', { className: 'desc', textContent: 'Effects played in a row as one attack, acted out by the cast.' }), form, ul));
     for (const id of ids) {
       const card = clone('card-tpl');
       ul.append(card);
@@ -449,7 +452,7 @@ async function start() {
     const chips = el('fieldset', { className: 'chips', ariaLabel: 'Category' }, ...[['', list.length], ...Object.entries(counts)].map(([c, n]) =>
       el('label', {}, el('input', { type: 'radio', name: 'cat', value: c, checked: c === cat }), el('span', {}, `${c || 'all'} `, el('small', { textContent: n })))));
     const ul = el('ul', { className: 'grid' });
-    main.replaceChildren(el('section', {}, head('Effects', list.length), chips, ul));
+    main.replaceChildren(el('section', {}, head('Effects', list.length), chips, form, ul));
     for (const entry of list) {
       const card = clone('card-tpl');
       card.dataset.cat = entry.id.split('/')[0];
@@ -458,6 +461,7 @@ async function start() {
     }
     filter();
   }
+  form.hidden = !main.contains(form); // the settings sit under a page's title; the character sheets have none
   showSettings();
 }
 

@@ -44,7 +44,8 @@
   body[data-bg="light"] { --stage: #d8d5cd; }
   a { color: inherit; text-underline-offset: 3px; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .wrap { max-width: 78rem; margin: 0 auto; padding: 0 clamp(16px, 3vw, 32px); }
+  .wrap { max-width: 88rem; margin: 0 auto; padding: 0 clamp(16px, 3vw, 32px); }
+  main { padding-top: var(--space-2xl); }
 
   /* masthead */
   header { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-md) var(--space-2xl); padding: var(--space-xl) 0; }
@@ -59,8 +60,8 @@
 
   /* the viewing conditions: a ruled strip, held at the top while the drawer scrolls on wide screens */
   .controls {
-    display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-md) var(--space-xl);
-    padding: var(--space-md) 0; margin-bottom: var(--space-3xl);
+    display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-md) var(--space-lg);
+    padding: var(--space-md) 0; margin-bottom: var(--space-xl);
     background: var(--page); border-block: 1px solid var(--line);
   }
   .controls .field > label, .controls legend { color: var(--faint); font: 700 11px var(--sans); text-transform: uppercase; letter-spacing: 0.09em; }
@@ -94,7 +95,6 @@
   .seg label:hover span { color: var(--text); }
   .seg input:checked + span { background: var(--well); color: var(--text); box-shadow: inset 0 -2px 0 var(--accent); }
   .seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: -2px; }
-  .controls[hidden] + main { padding-top: var(--space-2xl); } /* a page without settings: the title keeps its distance */
   @media (min-width: 900px) {
     .controls { position: sticky; top: 0; z-index: 2; }
     html { scroll-padding-top: 80px; } /* keep focused cards out from under the strip */
@@ -112,7 +112,7 @@
   .chips input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   /* The drawer: cells ruled by hairlines, no gaps. Each card spans two rows, so stages and labels line up across a row. */
-  .grid { list-style: none; margin: 1px 1px var(--space-4xl); padding: 0; display: grid; gap: 1px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+  .grid { list-style: none; margin: 1px 1px var(--space-4xl); padding: 0; display: grid; gap: 1px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); } /* 360: wide enough that most stages fit at 3x */
   .card { position: relative; display: grid; grid-row: span 2; grid-template-rows: subgrid; row-gap: 0; background: var(--page); box-shadow: 0 0 0 1px var(--line); }
   /* the title's link covers the card; other links in it (a character's downloads) stay their own size */
   .card:has(h3 a:focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; z-index: 1; }
@@ -141,7 +141,6 @@
   .pager { display: flex; gap: var(--space-xl); }
   .preview h1 { margin: var(--space-xl) 0 var(--space-sm); font: italic 400 clamp(2.5rem, 1.5rem + 3.6vw, 4.25rem)/1 var(--serif); letter-spacing: -0.015em; }
   .preview .desc { max-width: 60ch; font-size: 17px; margin-bottom: var(--space-xl); }
-  .preview .controls { margin-bottom: var(--space-xl); }
   .preview .stage { min-height: max(18rem, var(--fit, 0px)); border: 1px solid var(--line); }
   .sound { position: absolute; top: 10px; right: 10px; min-height: 30px; font-size: 13px; color: var(--muted); }
   .sound[aria-pressed="true"] { color: var(--text); border-color: var(--accent); box-shadow: inset 0 -2px 0 var(--accent); }
@@ -158,6 +157,14 @@
   .use .note { font-size: 13px; margin: var(--space-lg) 0 0; max-width: 60ch; }
   .note { color: var(--muted); }
   .note code { color: var(--text); font-family: var(--mono); }
+
+  /* the colophon */
+  footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-lg) var(--space-3xl); padding: var(--space-xl) 0 var(--space-3xl); border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); }
+  footer p { margin: 0 0 var(--space-xs); max-width: 60ch; }
+  footer .colophon { font: italic 15px var(--serif); color: var(--faint); }
+  footer nav { display: flex; flex-wrap: wrap; align-content: flex-start; gap: var(--space-xs) var(--space-xl); }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--text); text-decoration: underline; }
 
   @media (max-width: 600px) {
     select, input, button { font-size: 16px; } /* iOS zooms into smaller inputs */
@@ -180,7 +187,8 @@
     <a class="src" href="https://github.com/JustGritt/grittyfx">source</a>
   </header>
 
-  <form class="controls" id="controls" aria-label="Playback settings">
+  <!-- hidden until gallery.js puts it under the page's title -->
+  <form class="controls" id="controls" aria-label="Playback settings" hidden>
     <div class="field">
       <label for="palette">Palette</label>
       <select id="palette" name="palette">
@@ -200,8 +208,8 @@
       </select>
     </div>
     <label class="check"><input id="flip" name="flip" type="checkbox"> Flip</label>
-    <fieldset title="A knight, a mage or an archer acts each effect out on a goblin; switch either off">
-      <legend>Characters</legend>
+    <fieldset title="A caster from the cast acts each effect out on a goblin; switch either off">
+      <legend>Cast</legend>
       <label class="check"><input id="caster" name="caster" type="checkbox" checked> caster</label>
       <label class="check"><input id="target" name="target" type="checkbox" checked> target</label>
     </fieldset>
@@ -224,6 +232,20 @@
   </form>
 
   <main id="main"></main>
+
+  <footer>
+    <div>
+      <p>Free to use in your games, MIT like the code: every effect, sound and character on these pages.</p>
+      <p class="colophon">Set in Castoro and Schibsted Grotesk. The pixels are drawn live, in code.</p>
+    </div>
+    <nav aria-label="Documentation">
+      <a href="https://github.com/JustGritt/grittyfx/blob/main/docs/CATALOG.md">Catalog</a>
+      <a href="https://github.com/JustGritt/grittyfx/blob/main/docs/AUTHORING.md">Authoring guide</a>
+      <a href="https://github.com/JustGritt/grittyfx/blob/main/engines/godot/README.md">Godot</a>
+      <a href="https://github.com/JustGritt/grittyfx/blob/main/engines/unity/README.md">Unity</a>
+      <a href="https://github.com/JustGritt/grittyfx/blob/main/CHANGELOG.md">Changelog</a>
+    </nav>
+  </footer>
 </div>
 
 <template id="card-tpl">

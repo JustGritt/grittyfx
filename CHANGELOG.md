@@ -20,7 +20,9 @@
   nav in the header, the settings following from one to the next; a preview's title sits above its settings.
 - **Gallery redesign**: a specimen catalog. Cards ruled by hairlines in one drawer, names set in Castoro, labels in
   Schibsted Grotesk (both OFL, self-hosted in `gallery/fonts/`), monospace for code only; a category index in place
-  of pills, and the settings strip held at the top on wide screens.
+  of pills, and the settings strip held at the top on wide screens. Every page puts its title first, then the settings
+  (one row on wide screens, "Cast" for the caster and target), then the specimens, wider so nearly all play at 3x;
+  cards are captioned from `fx-list.json` before their module loads; a colophon with the docs and engine links.
 - **More moves**: Shock arrow (archer), Tidal bolt and Hex (mage), Smite (priest), so every caster and the water,
   shadow, electric and holy effects play in one.
 - **Gallery ground**: a `ground` background, the default, like pixelfx's: a stone floor under the actors' feet (or
