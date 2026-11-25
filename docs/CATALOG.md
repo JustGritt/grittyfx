@@ -1,6 +1,6 @@
 # Catalog
 
-49 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
+53 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
 Ramps read `option: default (steps)`; pass another ramp name or a list of colors to recolor.
 
 ## earth
@@ -76,8 +76,12 @@ Ramps read `option: default (steps)`; pass another ramp name or a list of colors
 
 | effect | kind | views | size | duration | ramps | tags | description |
 |---|---|---|---|---|---|---|---|
+| `pickups/chest-open` | one-shot | side | 64x72 | 1.5 s | palette: gold (8), wood: #1e1008,#3a2010,#5a3418,#7c4a22,#9c6230,#c08048 (6) | pickup, chest, treasure, loot, open, reward, gold | A treasure chest: it rattles, its lid pops open, light pours out of it in rays with glints rising, then it fades away |
 | `pickups/coin-collect` | one-shot | side | 48x52 | 0.5 s | palette: gold (8) | pickup, coin, collect, sparkle, gold, reward | A coin picked up: a white flash, a gold ring that bursts out, glints and sparkles that fly up and wink out |
+| `pickups/gem` | one-shot | side | 56x56 | 0.85 s | palette: arcane (8) | pickup, gem, jewel, crystal, collect, sparkle, reward | A gem pickup: a cut gem pops up and turns, its facets catching the light, then flashes white as it is taken and bursts into glints |
+| `pickups/heart` | one-shot | side | 56x56 | 0.9 s | palette: blood (8) | pickup, heart, health, heal, collect, life | A heart pickup: it pops up and bobs, squashes as it is taken, flashes white, and bursts into small hearts that float up and wink out |
 | `pickups/power-up` | one-shot | side | 48x72 | 1 s | palette: electric (8) | pickup, power-up, buff, level-up, collect, aura | A power-up taken: a white pillar of light, rings that rise up the body one after another, a column of motes streaming up |
+| `pickups/xp-orbs` | one-shot | side | 80x56 | 1.2 s | palette: electric (8) | pickup, xp, experience, orb, collect, absorb, reward | Experience orbs: they pop out of a point beside the anchor, hang bobbing, then swoop in one after another to the anchor, the collector's chest, each flashing as it arrives |
 
 ## projectiles
 
