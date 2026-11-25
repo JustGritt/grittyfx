@@ -7,12 +7,13 @@
 <meta name="description" content="Pixel-art effects as code, playing live: recolor, reseed, flip and feel the hit-stop.">
 <title>grittyfx gallery</title>
 <link rel="icon" href="data:,">
-<link rel="preload" href="fonts/schibsted-grotesk.woff2" as="font" type="font/woff2" crossorigin>
+<!-- Satoshi (ITF Free Font License) comes from Fontshare: its license forbids putting the files in a public repo -->
+<link rel="preconnect" href="https://cdn.fontshare.com" crossorigin>
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=satoshi@1&amp;display=swap">
 <style>
   /* A specimen catalog: the page is the drawer and its labels, the effects are the loudest thing on it. */
   @font-face { font-family: Castoro; src: url(fonts/castoro.woff2) format("woff2"); font-display: swap; }
   @font-face { font-family: Castoro; font-style: italic; src: url(fonts/castoro-italic.woff2) format("woff2"); font-display: swap; }
-  @font-face { font-family: "Schibsted Grotesk"; font-weight: 400 800; src: url(fonts/schibsted-grotesk.woff2) format("woff2"); font-display: swap; }
   :root {
     --page: oklch(0.155 0.006 60);
     --well: oklch(0.2 0.008 60);
@@ -26,7 +27,7 @@
     --bad: oklch(0.7 0.17 30);
     --stage: #1b1d26; /* the stage colors match BG in gallery.js, which paints the canvas the same */
     --serif: Castoro, "Iowan Old Style", Georgia, serif;
-    --sans: "Schibsted Grotesk", system-ui, sans-serif;
+    --sans: Satoshi, system-ui, sans-serif;
     --mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
     --space-xs: 4px; --space-sm: 8px; --space-md: 12px; --space-lg: 16px;
     --space-xl: 24px; --space-2xl: 32px; --space-3xl: 48px; --space-4xl: 64px;
@@ -236,7 +237,7 @@
   <footer>
     <div>
       <p>Free to use in your games, MIT like the code: every effect, sound and character on these pages.</p>
-      <p class="colophon">Set in Castoro and Schibsted Grotesk. The pixels are drawn live, in code.</p>
+      <p class="colophon">Set in Castoro and Satoshi. The pixels are drawn live, in code.</p>
     </div>
     <nav aria-label="Documentation">
       <a href="https://github.com/JustGritt/grittyfx/blob/main/docs/CATALOG.md">Catalog</a>
