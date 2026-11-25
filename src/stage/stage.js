@@ -10,7 +10,7 @@
 // createStage(steps, o, show)  { size, floor, fps, duration, loop, hits, draw(t, rgba, bg, flip) }; o: effect options
 //                        for every step, show: { caster, target }, the layers drawn
 // realtime(hits, d, fps) the frames a game shows at fps, with hit-stop and shake: [{ t, dx, dy }]
-import { createFx, createFrame, clearFrame, Painter } from '../core/index.js';
+import { createFx, createFrame, clearFrame, Painter, rand } from '../core/index.js';
 import { actorPalette, CAST, CASTERS, frameOf, bounds, drawFrame, flash } from './actors.js';
 
 export const FPS = 30;
@@ -58,6 +58,19 @@ export const SCENERY = {
     for (let y = 0; y < depth; y++) {
       const half = Math.round((w / 2) * Math.sqrt(1 - (y / depth) ** 2));
       for (let x = -half; x < half; x++) put(x, y, y ? deep : top, y ? 0.6 : 0.9);
+    }
+  },
+  // a rock face from the floor up to a ledge 58 px over it, for water/waterfall to pour off: a stepped outline flaring
+  // into rubble at its foot, lit on its left, cracks either side of the water, the ledge jutting out on top
+  cliff: put => {
+    for (let y = -61; y < 0; y++) {
+      const ledge = y < -57, w = ledge ? 15 : 11 + Math.max(0, y + 9) * 0.6;
+      const l = Math.round(w + rand(y >> 2, 1) * 3), r = Math.round(w + rand(y >> 2, 2) * 3);
+      const crack = !ledge && rand(y, 3) < 0.25 ? (rand(y, 4) < 0.5 ? -l + 2 : r - 6) : null;
+      for (let x = -l; x < r; x++) {
+        const rim = x === -l || x === r - 1 || y === -61, cut = crack !== null && x >= crack && x < crack + 3;
+        put(x, y, INK[rim || cut ? 'k' : y === -60 || x < -l + 3 ? 'I' : 'i']);
+      }
     }
   },
 };
