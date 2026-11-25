@@ -1,6 +1,6 @@
 # Catalog
 
-33 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
+35 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
 Ramps read `option: default (steps)`; pass another ramp name or a list of colors to recolor.
 
 ## electric
@@ -74,6 +74,8 @@ Ramps read `option: default (steps)`; pass another ramp name or a list of colors
 | `shadow/curse` | loop | side | 30x40 | 2 s | palette: shadow (8), rim: arcane (8) | status, shadow, curse, debuff, skull, magic | A status over the target's head (the anchor): a ghostly skull turns side to side with glinting eye sockets inside a ring of runes and drips shadow onto it |
 | `shadow/dark-nova` | one-shot | side, top | 104x68 | 1.4 s | palette: shadow (8), rim: arcane (8) | nova, shadow, dark, magic, spell, blast | Darkness is pulled in to the caster's feet, then bursts out as a ring of shadow tendrils and dark motes along the ground under a violet rim light |
 | `shadow/portal` | loop | side | 60x76 | 2 s | palette: shadow (8), rim: arcane (8) | ambient, shadow, portal, magic, summon | A summoning portal standing on the ground: a swirling dark oval inside a flickering violet rim, motes drawn into it |
+| `shadow/seal` | one-shot | side | 56x56 | 0.6 s | palette: arcane (8) | shadow, seal, ninja, jutsu, buff, flash, glyph | A hand seal released: motes drawn into the hands, a white flash with a cross of light, a ring of glyph ticks snapping outward and a thin shock ring |
+| `shadow/smoke-bomb` | one-shot | side | 80x80 | 1.3 s | palette: fire (8), smoke: smoke (8) | vanish, smoke, bomb, ninja, escape, poof, shadow | A ninja vanish: a pellet dashed down at the feet, a pop of light, smoke rolling out along the floor and billowing into a column that hides whoever stood there, then thins away |
 
 ## status
 
