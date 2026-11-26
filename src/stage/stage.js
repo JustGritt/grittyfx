@@ -126,8 +126,9 @@ export function role(meta, id = '') {
 const snap = t => Math.round(t * FPS) / FPS; // hits land on a frame, as in a bundle
 
 /** Where an act is u (0 to 1) along its path: the straight line from `from` to `to`, lifted `arc` px at its middle. */
-// shortcut: the effect keeps its own heading along the arc; turn fx.angle by the slope when a javelin or an arrow arcs
 export const along = ({ from: [fx, fy], to: [tx, ty], role }, u) => [fx + (tx - fx) * u, fy + (ty - fy) * u - 4 * (role.arc ?? 0) * u * (1 - u)];
+/** Its heading there, radians clockwise from +x: a projectile points where it flies, down its line or over its arc. */
+export const heading = ({ from: [fx, fy], to: [tx, ty], role }, u) => Math.atan2(ty - fy - 4 * (role.arc ?? 0) * (1 - 2 * u), tx - fx);
 const IO = u => u * u * (3 - 2 * u), OUT = u => 1 - (1 - u) ** 2, IN = u => u * u, LINEAR = u => u;
 // The caster's keys for one acted step: [t, pose, ease into it], from its start s, first contact c, wind-up w and the
 // time h a held pose lasts to (a beam's end). A cast lands on the frame its spell or shot appears.
@@ -318,7 +319,11 @@ export function createStage(steps, o = {}, show = {}, { foe = 'goblin', tint = {
   const x0 = Math.floor(Math.min(...boxes.map(b => b[0]))) - 2, y0 = Math.floor(Math.min(...boxes.map(b => b[1]))) - 2;
   const W = Math.ceil(Math.max(...boxes.map(b => b[2]))) + 2 - x0, H = Math.ceil(Math.max(...boxes.map(b => b[3]))) + 2 - y0;
   const hero = createFrame(72, 64, 36, 58), goblin = createFrame(72, 64, 36, 58);
-  const live = P.acts.map(a => ({ ...a, fx: null, frame: createFrame(...a.mod.meta.size, ...a.mod.meta.origin) }));
+  const live = P.acts.map(a => {
+    const { size: [w, h], origin: [ox, oy] } = a.mod.meta, r = Math.ceil(Math.hypot(Math.max(ox, w - ox), Math.max(oy, h - oy)));
+    // a projectile turns with its heading: its frame is the square its canvas sweeps round its origin
+    return { ...a, fx: null, frame: a.role.at === 'path' ? createFrame(2 * r + 1, 2 * r + 1, r, r) : createFrame(w, h, ox, oy) };
+  });
 
   const shadow = (p, x, r) => { for (let i = -r; i <= r; i++) p.blend(x + i, 0, C.ink[0], Math.abs(i) === r ? 0.2 : 0.4); };
 
@@ -337,7 +342,8 @@ export function createStage(steps, o = {}, show = {}, { foe = 'goblin', tint = {
         const fps = a.mod.meta.fps ?? 30;
         a.fx.update(Math.floor(local * fps + 1e-6) / fps - a.fx.t);
         if (t >= a.end) a.fx.stop();
-        const [x, y] = along(a, a.travel ? Math.min(1, local / a.travel) : 0);
+        const u = a.travel ? Math.min(1, local / a.travel) : 0, [x, y] = along(a, u);
+        if (a.role.at === 'path') a.fx.angle = heading(a, u);
         shown.push([a, Math.round(x) - a.frame.ox - x0, Math.round(y) - a.frame.oy - y0]);
       }
       for (const [a, X, Y] of shown) if (a.role.scenery) SCENERY[a.role.scenery]((x, y, rgb, k = 1) => {
