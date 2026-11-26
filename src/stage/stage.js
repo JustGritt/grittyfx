@@ -98,7 +98,8 @@ const SHAKE = 0.2, JIGGLE = [[1, 0], [-1, 1], [1, -1], [-1, 0]]; // as in the ga
  * (hold, hide, move, looks, waits: see plan). `at` is one of PLACES, from meta.stage.at,
  * else its tags (projectile: path, aura, buff, pickup: caster, status: above, nova: ground, ambient: aside), else its
  * category, else target. `ground` is the floor's y in the effect's own coordinates (how high its anchor sits), `x`
- * shifts it toward the goblin, `speed` is a looping projectile's in px/s, `scenery` the SCENERY drawn behind it (a
+ * shifts it toward the goblin, `speed` is a looping projectile's in px/s, `arc` lifts a projectile's path into a
+ * parabola that many px high at its middle (a lob: thrown things fall), `scenery` the SCENERY drawn behind it (a
  * prop's sconce, posts or pool). `pose` is how the caster acts it: strike (a
  * melee effect on the target), hop (a landing on the ground), leap (a jump: takes off from it), airjump (a jump tagged
  * air: kicks off it in mid-air), raise (on the caster), point (anything else), none
@@ -123,6 +124,10 @@ export function role(meta, id = '') {
 }
 
 const snap = t => Math.round(t * FPS) / FPS; // hits land on a frame, as in a bundle
+
+/** Where an act is u (0 to 1) along its path: the straight line from `from` to `to`, lifted `arc` px at its middle. */
+// shortcut: the effect keeps its own heading along the arc; turn fx.angle by the slope when a javelin or an arrow arcs
+export const along = ({ from: [fx, fy], to: [tx, ty], role }, u) => [fx + (tx - fx) * u, fy + (ty - fy) * u - 4 * (role.arc ?? 0) * u * (1 - u)];
 const IO = u => u * u * (3 - 2 * u), OUT = u => 1 - (1 - u) ** 2, IN = u => u * u, LINEAR = u => u;
 // The caster's keys for one acted step: [t, pose, ease into it], from its start s, first contact c, wind-up w and the
 // time h a held pose lasts to (a beam's end). A cast lands on the frame its spell or shot appears.
@@ -308,7 +313,7 @@ export function createStage(steps, o = {}, show = {}, { foe = 'goblin', tint = {
   if (P.foe) boxes.push([P.D + gx0 - 1, gy0 - 1, P.D + gx1 + PUSH + 1, 3]);
   for (const a of P.acts) {
     const { size: [w, h], origin: [ox, oy] } = a.mod.meta;
-    for (const [x, y] of [a.from, a.to]) boxes.push([x - ox, y - oy, x - ox + w, y - oy + h]);
+    for (const [x, y] of [a.from, a.to, along(a, 0.5)]) boxes.push([x - ox, y - oy, x - ox + w, y - oy + h]); // its ends and its arc's peak
   }
   const x0 = Math.floor(Math.min(...boxes.map(b => b[0]))) - 2, y0 = Math.floor(Math.min(...boxes.map(b => b[1]))) - 2;
   const W = Math.ceil(Math.max(...boxes.map(b => b[2]))) + 2 - x0, H = Math.ceil(Math.max(...boxes.map(b => b[3]))) + 2 - y0;
@@ -332,8 +337,8 @@ export function createStage(steps, o = {}, show = {}, { foe = 'goblin', tint = {
         const fps = a.mod.meta.fps ?? 30;
         a.fx.update(Math.floor(local * fps + 1e-6) / fps - a.fx.t);
         if (t >= a.end) a.fx.stop();
-        const u = a.travel ? Math.min(1, local / a.travel) : 0, [fx, fy] = a.from, [tx, ty] = a.to;
-        shown.push([a, Math.round(fx + (tx - fx) * u) - a.frame.ox - x0, Math.round(fy + (ty - fy) * u) - a.frame.oy - y0]);
+        const [x, y] = along(a, a.travel ? Math.min(1, local / a.travel) : 0);
+        shown.push([a, Math.round(x) - a.frame.ox - x0, Math.round(y) - a.frame.oy - y0]);
       }
       for (const [a, X, Y] of shown) if (a.role.scenery) SCENERY[a.role.scenery]((x, y, rgb, k = 1) => {
         const px = X + a.frame.ox + x, py = Y + a.frame.oy + y, o = (py * W + px) * 4;
