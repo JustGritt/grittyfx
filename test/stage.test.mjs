@@ -189,3 +189,20 @@ test('the goblin only stands in for effects that strike it: a buff, a pickup or 
   const width = tags => createStage([{ mod: mod({ tags }) }]).size[0];
   assert.ok(width(['buff']) < width(['impact']) - 20, 'the canvas fits the caster alone');
 });
+
+test('the wall slide: the kunoichi clings to the wall, her hand on the scrape in every frame, and the stage loops', async () => {
+  const id = 'movement/wall-slide', fx = await loadEffect(id), r = role(fx.meta, id);
+  assert.deepEqual([r.cast, r.pose, r.scenery], ['kunoichi', 'cling', 'wall']);
+  const p = plan([{ mod: fx, id }]), [ax, ay] = p.acts[0].from, q = poseAt(p.keys, 1);
+  assert.equal(q.look, 'cling');
+  CAST.kunoichi.cling.forEach((f, i) => {
+    const x = ax - q.x - f.x, y = ay + q.lift - f.y;
+    assert.notEqual(f.rows[y][x], '.', `frame ${i + 1}: her hand on the anchor`);
+    assert.equal(f.rows[0].length - 1, x, `frame ${i + 1}: nothing of her past the wall's face`);
+  });
+  const st = createStage([{ mod: fx, id }]), [w, h] = st.size, a = new Uint8ClampedArray(w * h * 4), b = new Uint8ClampedArray(w * h * 4);
+  st.draw(0, a);
+  st.draw(st.duration, b);
+  assert.ok(st.loop);
+  assert.deepEqual(b, a, 'its last frame runs into its first');
+});

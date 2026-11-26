@@ -14,8 +14,8 @@
   cuts upward from the floor (`impacts/uppercut`, Launcher), spins twice (`impacts/spin-slash`, Whirlwind), runs on the
   spot (`movement/footstep`) and kneels to the chest, which stands there from the start (`pickups/chest-open`,
   `meta.stage.early`); the kunoichi dashes forward with her trail (`movement/dash-trail`), jumps
-  (`movement/jump-dust`), jumps again from the air (`movement/double-jump`) and dashes her smoke bomb down
-  (`shadow/smoke-bomb`); the mage slams his staff for the quake (`earth/quake`, Tremor). `check.mjs` checks the pose.
+  (`movement/jump-dust`), jumps again from the air (`movement/double-jump`), dashes her smoke bomb down
+  (`shadow/smoke-bomb`) and clings to the wall as the grit sprays from her hand (`movement/wall-slide`); the mage slams his staff for the quake (`earth/quake`, Tremor). `check.mjs` checks the pose.
 - **Gallery**: Caster and Target toggles replace Stage, on by default, like pixelfx's character toggle: either can
   be switched off (`?caster=0`, `?target=0`), both off shows the effect alone. `createStage(steps, o, show)`.
 - **New effect** `projectiles/arrow` (8 headings), and an Arrow shot move.

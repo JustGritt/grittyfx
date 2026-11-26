@@ -12,7 +12,8 @@ export const meta = {
   views: ['side'],
   ramps: { palette: 8 },
   options: { palette: 'dust', seed: 1 },
-  stage: { at: 'aside', ground: 18, x: 16, cast: 'knight', scenery: 'wall' }, // a hand on a wall beside the knight, its spray clear of him
+  // the kunoichi clinging: her hand's edge (13 px ahead of her feet, 19 up) on the anchor, at POSES.cling's lift of 10
+  stage: { at: 'aside', ground: 29, x: -13, cast: 'kunoichi', pose: 'cling', scenery: 'wall' },
   sound: [
     { t: 0, kind: 'crackle', gain: 0.25, pitch: 2.6 }, // the grind
     { t: 0.15, kind: 'crack', gain: 0.06, pitch: 3.2 },

@@ -28,7 +28,7 @@ export const CASTERS = {
 };
 
 // The stage's newer poses, and the older one each falls back to for a caster with no drawing of its own.
-export const LIKE = { aim: 'ready', lunge: 'swing', low: 'crouch', rise: 'raise', spin: 'swing', kneel: 'crouch', open: 'raise', lift: 'raise', slam: 'crouch', dash: 'swing', high: 'air' };
+export const LIKE = { aim: 'ready', lunge: 'swing', low: 'crouch', rise: 'raise', spin: 'swing', kneel: 'crouch', open: 'raise', lift: 'raise', slam: 'crouch', dash: 'swing', high: 'air', cling: 'air' };
 
 /** `who`'s frames for a pose, its run: its tag's, else the pose it is like's, else idle's. */
 export const runOf = (who, pose) => {

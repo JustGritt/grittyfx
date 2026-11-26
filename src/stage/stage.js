@@ -27,12 +27,12 @@ const LEAD = 0.4; // idle before the first wind-up
 const PLAY = 1.6; // a loop plays at least this long, then fades out
 const FADE = 0.3; // fx.stop()'s fade
 const SETTLE = 0.9; // the goblin recovers this long after a hit
-const WINDUP = { strike: 0.15, thrust: 0.15, uppercut: 0.15, spin: 0.15, point: 0.3, raise: 0.3, open: 0.3, slam: 0.3, dash: 0.25, hop: 0.4, leap: 0.25, double: 0.45, run: 0 }; // when act.windup is left out
+const WINDUP = { strike: 0.15, thrust: 0.15, uppercut: 0.15, spin: 0.15, point: 0.3, raise: 0.3, open: 0.3, slam: 0.3, dash: 0.25, hop: 0.4, leap: 0.25, double: 0.45, run: 0, cling: 0 }; // when act.windup is left out
 const KNIGHT = ['melee', 'pickup']; // tags a knight acts; a projectile that isn't magic is the archer's
 const ROGUE = ['slash', 'vanish', 'thrown']; // tags the kunoichi acts, and every shadow/ effect
 const MELEE = ['strike', 'thrust', 'uppercut', 'spin'];
 const DASH = 32, DASHING = 0.3; // px a dash carries the caster forward, in s
-const LOOPS = ['run']; // looks that loop, played from the start of the stage so that it loops too // acts in a sword's reach of the goblin
+const LOOPS = ['run', 'cling']; // looks that loop, played from the start of the stage so that it loops too // acts in a sword's reach of the goblin
 
 /**
  * The caster's poses, which each caster draws its own way (CASTERS in actors.js): x steps forward and lift raises the
@@ -42,7 +42,7 @@ export const POSES = Object.fromEntries(Object.entries({
   idle: [0, 0, 0], ready: [-1, 0, 0], swing: [2, 0, 0], follow: [2, 0, 0], gather: [-1, 0, 0.6],
   point: [1, 0, 1], raise: [0, 0, 1], crouch: [0, 0, 0], air: [0, 9, 0], aim: [-1, 0, 0], lunge: [3, 0, 0],
   low: [-1, 0, 0], rise: [1, 0, 0], spin: [0, 0, 0], run: [0, 0, 0], kneel: [0, 0, 0], open: [0, 0, 0],
-  lift: [-1, 0, 0.6], slam: [0, 0, 1], dash: [0, 0, 0], high: [0, 18, 0],
+  lift: [-1, 0, 0.6], slam: [0, 0, 1], dash: [0, 0, 0], high: [0, 18, 0], cling: [0, 10, 0],
 }).map(([look, [x, lift, glow]]) => [look, { look, x, lift, glow }]));
 // a pose that looks like another at another place: the dash's far end, and standing there after it
 POSES.dashed = { ...POSES.dash, x: DASH };
@@ -130,6 +130,7 @@ const ACTING = {
   uppercut: (s, c, w) => [[s - w * 0.5, 'low', OUT], [s, 'low'], [c, 'rise', LINEAR], [c + 0.3, 'rise'], [c + 0.7, 'idle', IO]],
   spin: (s, c, w) => [[s - w * 0.5, 'aim', OUT], [s, 'aim'], [c, 'spin', LINEAR], [c + 0.47, 'spin'], [c + 0.8, 'idle', IO]],
   run: s => [[s, 'run', LINEAR]],
+  cling: s => [[s, 'cling', LINEAR]], // on a wall to the right, held there while the loop runs
   open: (s, c, w) => [[s - w * 0.6, 'kneel', OUT], [Math.max(s - w * 0.6, s - 1 / FPS), 'kneel'], [s, 'open', LINEAR], [s + 0.9, 'open'], [s + 1.4, 'idle', IO]],
   slam: (s, c, w) => [[s - w * 0.6, 'lift', OUT], [Math.max(s - w * 0.6, s - 1 / FPS), 'lift'], [s, 'slam', LINEAR], [s + 0.5, 'slam'], [s + 0.9, 'idle', IO]],
   dash: (s, c, w) => [[s - w * 0.6, 'crouch', OUT], [Math.max(s - w * 0.6, s - 1 / FPS), 'crouch'], [s, 'dash', LINEAR], [s + DASHING, 'dashed', LINEAR], [s + DASHING + 0.15, 'arrived', OUT]],
