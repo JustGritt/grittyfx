@@ -42,6 +42,8 @@ export const CASTERS = {
   priest: { glow: true, look: { ready: 'gather', swing: 'cast', follow: 'cast', gather: 'gather', point: 'cast', raise: 'raise', crouch: 'gather' } },
   archer: { glow: false, look: { ready: 'draw', swing: 'release', follow: 'release', gather: 'draw', point: 'release', raise: 'draw', crouch: 'draw' } },
   kunoichi: { glow: false, look: { ready: 'ready', swing: 'slash', follow: 'follow', gather: 'gather', point: 'throw', raise: 'seal', crouch: 'crouch' } },
+  // the military effects: the soldier aims and shoots, throwing where an effect's looks say so
+  soldier: { glow: false, look: { ready: 'aim', swing: 'shoot', follow: 'shoot', gather: 'aim', point: 'shoot', raise: 'shoot', crouch: 'aim' } },
 };
 
 // The stage's newer poses, and the older one each falls back to for a caster with no drawing of its own.

@@ -9,7 +9,7 @@ export type Paint<A extends number[]> = number | ((...args: A) => number);
 /** An alpha or light intensity 0 to 1, or a function giving one. */
 export type Amount<A extends number[]> = number | ((...args: A) => number);
 
-export type SoundKind = 'thump' | 'crack' | 'whoosh' | 'crackle' | 'zap' | 'chime';
+export type SoundKind = 'thump' | 'crack' | 'whoosh' | 'crackle' | 'zap' | 'chime' | 'shot';
 export interface Cue { t: number; kind: SoundKind; gain?: number; pitch?: number }
 export interface Hit { t: number; freeze?: number; shake?: number }
 export type View = 'side' | 'top';

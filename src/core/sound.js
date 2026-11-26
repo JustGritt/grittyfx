@@ -118,6 +118,25 @@ export const SOUNDS = {
     for (let i = 0; i < n; i++) out[i] *= Math.min(1, (i / SAMPLE_RATE) * p / 0.002);
     return out;
   },
+  /**
+   * Gunfire: a pop of noise loudest in its first milliseconds, a low boom (a sine dropping from 130 to 50 Hz under
+   * rumbling noise) and a quieter tail of echo. Unlike crack, whose body holds near its peak for 50 ms, it falls away
+   * fast after the pop: a bang, not a crunch.
+   */
+  shot(rng, p) {
+    const n = Math.round((0.6 / p) * SAMPLE_RATE), out = new Float64Array(n), kr = lpk(500 * p), kt = lpk(900 * p), kl = lpk(250 * p);
+    for (let i = 0, ph = 0, r = 0, th = 0, tl = 0; i < n; i++) {
+      const t = (i / SAMPLE_RATE) * p, x = rng.next() * 2 - 1;
+      r += kr * (x - r);
+      th += kt * (x - th);
+      tl += kl * (x - tl);
+      ph += (TAU * p * (50 + 80 * decay(t, 0.025))) / SAMPLE_RATE;
+      const pop = x * decay(t, 0.004), boom = 0.4 * Math.sin(ph) * decay(t, 0.08) + 1.6 * r * decay(t, 0.04);
+      const tail = 0.9 * (th - tl) * decay(t, 0.15) * Math.min(1, t / 0.02); // band-passed noise ringing off the surroundings
+      out[i] = Math.tanh(3 * pop + boom + tail) * Math.min(1, t / 0.0003);
+    }
+    return out;
+  },
 };
 
 /** The cues an effect's sound plays, defaults filled in: `meta.sound`, else a thump on each act hit; [] for silence. */

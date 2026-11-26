@@ -138,4 +138,56 @@ export const MOVES = {
     desc: 'Arrows loosed high out of the frame, then the volley falling across the goblin and thudding into the floor round it',
     steps: [{ fx: 'projectiles/sky-shot' }, { fx: 'projectiles/arrow-rain' }],
   },
+  // military, acted by the soldier
+  'rifle-burst': {
+    name: 'Rifle burst',
+    desc: 'Three quick shots from the soldier\'s rifle, a bullet striking the goblin with each',
+    // the rifle stays up between shots: the wind-up of the second and third is the aim itself
+    steps: [
+      { fx: 'firearms/muzzle-flash' }, { fx: 'firearms/bullet-hit', on: 'hit' },
+      { fx: 'firearms/muzzle-flash', opts: { seed: 2 }, stage: { looks: { gather: 'shoot' } } }, { fx: 'firearms/bullet-hit', on: 'hit', opts: { seed: 2 } },
+      { fx: 'firearms/muzzle-flash', opts: { seed: 3 }, stage: { looks: { gather: 'shoot' } } }, { fx: 'firearms/bullet-hit', on: 'hit', opts: { seed: 3 } },
+    ],
+  },
+  'sniper-shot': {
+    name: 'Sniper shot',
+    desc: 'One aimed round, its tracer streaking across to strike the goblin',
+    steps: [{ fx: 'firearms/tracer' }, { fx: 'firearms/bullet-hit', on: 'hit' }],
+  },
+  grenade: {
+    name: 'Grenade',
+    desc: 'A frag grenade lobbed at the goblin, bursting at its feet in a flash and a spray of shrapnel',
+    steps: [{ fx: 'projectiles/grenade' }, { fx: 'explosions/grenade-blast', on: 'hit' }],
+  },
+  'smoke-screen': {
+    name: 'Smoke screen',
+    desc: 'A smoke grenade lobbed at the goblin, its cloud billowing up and swallowing it',
+    steps: [{ fx: 'projectiles/grenade' }, { fx: 'explosions/smoke-grenade', on: 'hit', stage: { at: 'target', x: -16, ground: 0 } }], // the canister lands at its feet, the front of the cloud over it
+  },
+  molotov: {
+    name: 'Molotov',
+    desc: 'A burning bottle lobbed at the goblin, smashing at its feet and setting the floor alight round it',
+    steps: [{ fx: 'projectiles/molotov' }, { fx: 'explosions/fire-splash', on: 'hit' }],
+  },
+  flashbang: {
+    name: 'Flashbang',
+    desc: 'A stun grenade lobbed at the goblin, going off in a white flash that holds it stunned',
+    steps: [{ fx: 'projectiles/grenade', opts: { palette: 'stone' } }, { fx: 'explosions/flashbang', on: 'hit' }], // a grey stun canister, not the olive frag
+  },
+  demolition: {
+    name: 'Demolition',
+    desc: 'A bundle of dynamite left at the goblin\'s feet, its fuse fizzing down, then the blast',
+    steps: [{ fx: 'explosions/dynamite' }],
+  },
+  breach: {
+    name: 'Breach',
+    desc: 'A C4 charge stuck at the goblin\'s feet, its light beeping faster and faster, then the sharp blast',
+    steps: [{ fx: 'explosions/c4' }],
+  },
+  minefield: {
+    name: 'Minefield',
+    desc: 'Two mines in the floor round the goblin: the one in front of it clicks and erupts, then the one behind it',
+    // the second lies there from the start (waits), going off once the first has settled
+    steps: [{ fx: 'explosions/landmine' }, { fx: 'explosions/landmine', opts: { seed: 2 }, stage: { x: 16, waits: true } }],
+  },
 };

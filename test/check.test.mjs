@@ -56,7 +56,7 @@ test('sound: unknown kinds, cues outside the effect, a bad gain or pitch', () =>
   const sound = [{ t: 0.1, kind: 'boing' }, { t: 0.7, kind: 'thump' }, { t: 0, kind: 'zap', pitch: 0 }];
   const lines = checkEffect('t/sound', { ...good, meta: { ...meta, sound } });
   assert.equal(lines.length, 3, lines.join('\n'));
-  assert.match(lines[0], /^t\/sound: sound: cue 0 has an unknown kind "boing" \(thump, crack, whoosh, crackle, zap, chime\)$/);
+  assert.match(lines[0], /^t\/sound: sound: cue 0 has an unknown kind "boing" \(thump, crack, whoosh, crackle, zap, chime, shot\)$/);
   assert.match(lines[1], /cue 1 at t = 0.7 is outside the effect \(0 to 0.5\)/);
   assert.match(lines[2], /cue 2 needs a gain of 0 or more and a pitch over 0/);
   assert.match(checkEffect('t/sound', { ...good, meta: { ...meta, sound: 'boom' } }).join(), /must be a list of cues/);
