@@ -1,12 +1,13 @@
-// The gallery: plays every effect live from its module, filtered by category (?cat=), or one large with ?fx=<id> (the
-// preview page, with its sound). With either character on, a knight, a mage or an archer acts them out on a goblin,
-// and the moves (?move=<id>) show above them.
+// The gallery, three pages: the effects playing live from their modules, filtered by category (?cat=), or one large
+// with ?fx=<id> (the preview page, with its sound); the moves (?page=moves, one with ?move=<id>); the characters to
+// download (?page=characters). With either character on, the cast acts the effects out on a monster.
 import { PAL, hex, fit, createFx, createFrame, clearFrame, composite, layout, HEADINGS, synth, SAMPLE_RATE } from '../src/core/index.js';
 import { createStage, role } from '../src/stage/stage.js';
 import { MOVES } from '../src/stage/moves.js';
-import { CAST, KEYS, bounds } from '../src/stage/actors.js';
-import { PALETTE } from '../src/stage/cast.js';
+import { CAST, CASTERS, KEYS, bounds } from '../src/stage/actors.js';
+import { PALETTES } from '../src/stage/cast.js';
 
+const MONSTERS = Object.keys(CAST).filter(n => !CASTERS[n]); // who takes the hits: everyone who doesn't cast
 const BG = { ground: '#1b1d26', dark: '#1b1d26', mid: '#575b6b', light: '#d8d5cd' }; // the stage colors in index.html
 const STONE = ['#454a5e', '#2b2e3c', '#22242f', '#15161d'].map(hex); // the floor's lit edge, top course, deeper courses, mortar
 const GAP = 0.8; // a one-shot rests this long, empty, before it plays again
@@ -17,6 +18,7 @@ const JIGGLE = [[1, 0], [-1, 1], [1, -1], [-1, 0]];
 const calm = matchMedia('(prefers-reduced-motion: reduce)');
 const form = document.getElementById('controls'), f = form.elements, main = document.getElementById('main');
 const params = new URLSearchParams(location.search), only = params.get('fx'), move = params.get('move');
+const asked = params.get('page'), page = move ? 'moves' : !only && ['moves', 'characters'].includes(asked) ? asked : ''; // '' is the effects
 const players = [];
 const audio = { ctx: null, on: false }; // sound plays on the preview page only, once its button is pressed
 let custom = null; // the last valid custom ramp
@@ -29,15 +31,29 @@ const el = (tag, props = {}, ...kids) => {
   return e;
 };
 
-// Settings live in the form and the URL, so a preview link keeps them.
-for (const name of Object.keys(PAL)) f.palette.add(new Option(name, name), f.palette.length - 1);
-HEADINGS.forEach((name, d) => f.view.add(new Option(`top ${name}`, d))); // effects without a top view stay side
+const swatches = colors => colors.map(c => {
+  const s = el('span');
+  s.style.background = `rgb(${c.slice(0, 3)})`;
+  return s;
+});
+
+// Settings live in the form and the URL, so a preview link keeps them. The palettes are radios, each with its colors.
+const pop = document.getElementById('palettes'), pick = document.querySelector('.pick');
+const palName = p => (p === 'custom' ? 'Custom…' : p ? p[0].toUpperCase() + p.slice(1) : "Effect's own");
+pop.append(...['', ...Object.keys(PAL), 'custom'].map(value =>
+  el('label', { className: 'tile' }, el('input', { type: 'radio', name: 'palette', value, checked: !value }),
+    el('span', { className: 'ramp' }, ...swatches((PAL[value] ?? []).map(hex))), palName(value))));
+HEADINGS.forEach((name, d) => f.view.add(new Option(`Top ${name}`, d))); // effects without a top view stay side
+for (const n of MONSTERS) f.foe.add(new Option(n[0].toUpperCase() + n.slice(1), n));
 for (const [k, v] of params) {
   if (k === 'flip' || k === 'hitstop' || k === 'caster' || k === 'target') f[k].checked = v === '1';
-  else if (['palette', 'custom', 'seed', 'bg', 'view'].includes(k)) f[k].value = v;
+  else if (['palette', 'custom', 'seed', 'bg', 'view', 'foe'].includes(k)) f[k].value = v;
 }
 f.custom.value ||= '#0b1a2e #14506a #1ca0a0 #6ff0c0 #f2fff6';
 if (!BG[f.bg.value]) f.bg.value = 'ground';
+f.foe.value ||= 'goblin'; // an unknown foe in the URL
+document.querySelector(`a[data-page="${page}"]`).setAttribute('aria-current', only || move ? 'true' : 'page');
+if (page) document.title = `${page[0].toUpperCase()}${page.slice(1)} · grittyfx`;
 
 function query(extra = {}) {
   const q = new URLSearchParams(extra), pal = f.palette.value;
@@ -49,10 +65,14 @@ function query(extra = {}) {
   if (f.flip.checked) q.set('flip', 1);
   if (!f.caster.checked) q.set('caster', 0);
   if (!f.target.checked) q.set('target', 0);
+  if (f.foe.value !== 'goblin') q.set('foe', f.foe.value);
   if (f.bg.value !== 'ground') q.set('bg', f.bg.value);
   if (!f.hitstop.checked) q.set('hitstop', 0);
   return String(q) ? `?${String(q).replaceAll('%2F', '/')}` : './';
 }
+
+/** The link to a page's list: its grid of effects, moves or characters. */
+const home = (p = page) => query(p ? { page: p } : {});
 
 function readCustom() {
   try {
@@ -65,22 +85,17 @@ function readCustom() {
   }
 }
 
-const swatches = colors => colors.map(c => {
-  const s = el('span');
-  s.style.background = `rgb(${c.slice(0, 3)})`;
-  return s;
-});
-
 function showSettings() {
   const pal = f.palette.value, colors = pal === 'custom' ? custom ?? [] : PAL[pal] ?? [];
   document.getElementById('custom-field').hidden = pal !== 'custom';
   document.getElementById('ramp').replaceChildren(...swatches(colors.map(hex)));
+  document.getElementById('palette-name').textContent = palName(pal).replace('…', '');
   document.body.dataset.bg = f.bg.value;
   refresh();
-  document.getElementById('moves')?.toggleAttribute('hidden', !acting());
   for (const a of document.querySelectorAll('a[data-fx]')) a.href = query({ fx: a.dataset.fx });
   for (const a of document.querySelectorAll('a[data-move]')) a.href = query({ move: a.dataset.move });
-  for (const a of document.querySelectorAll('a.back')) a.href = query();
+  for (const a of document.querySelectorAll('a[data-page]')) a.href = home(a.dataset.page);
+  for (const a of document.querySelectorAll('a.back')) a.href = home();
 }
 
 /** The stage's backdrop, w x h RGBA: its color, and on 'ground' a stone floor from row `floor` down. */
@@ -147,7 +162,7 @@ function play(cue, late) {
   Object.assign(src, { buffer: buf, loop: !!cue.meta.loop });
   src.connect(gain).connect(ctx.destination);
   const t0 = ctx.currentTime - late; // when the cue's time 0 was, on the audio clock
-  src.start(0, late);
+  src.start(0, cue.meta.loop ? late % buf.duration : late); // a loop resumed many turns in, in step
   if (cue.meta.loop && cue.stop < Infinity) {
     gain.gain.setValueAtTime(1, t0 + cue.end - cue.at);
     gain.gain.linearRampToValueAtTime(0, t0 + cue.stop - cue.at);
@@ -159,19 +174,26 @@ function play(cue, late) {
 /**
  * Plays one effect on a canvas at its own frame rate, like its baked sheet, or acted out on the stage when a character
  * is on (a move, given as `steps`, always is). With hit-stop on, each hit freezes it for `freeze` seconds and shakes
- * the view by `shake` pixels: the effect's hits in meta.act, or the stage's.
+ * the view by `shake` pixels: the effect's hits in meta.act, or the stage's. The preview's bar pauses it and steps
+ * through its frames.
  */
 function player(mod, canvas, big, id, steps) {
-  const meta = mod?.meta, ctx = canvas.getContext('2d');
+  const meta = mod?.meta, ctx = canvas.getContext('2d'), bar = big && canvas.closest('.preview').querySelector('.scrub');
+  const [toggle, slider, readout] = bar ? ['.play', '.time', '.frame'].map(s => bar.querySelector(s)) : [];
   // w x h is the effect or the stage, drawn at (X, Y) on a canvas that fills the card; `under` is its piece of backdrop
   let fx, st, fps, hits, duration, loop, clock, base, next, freeze, shake, shown, w, h, ox, img, frame, floor, X = 0, Y = 0, under, cues = [], sounds = [];
+  let frames, paused = false;
   const pl = {
-    canvas, zoom: 1, error: null,
-    restart() {
-      const acted = steps ?? (acting() && [{ mod, id }]);
-      st = acted && createStage(acted, options(), { caster: f.caster.checked, target: f.target.checked });
-      // the top view at the chosen heading, live, so any angle works; the canvas follows the view's size
-      const view = !st && f.view.value && meta.views?.includes('top') ? 'top' : 'side', v = st ? null : layout(meta, view);
+    canvas, big, zoom: 1, error: null,
+    get w() { return w; }, get h() { return h; }, get floor() { return floor; },
+    // From the top, or from `at` seconds in (paused, from the frame shown).
+    restart(at = paused ? clock - base : 0) {
+      // A chosen top view wins over the cast, which acts side views only: the effect plays alone, at the chosen heading,
+      // live, so any angle works; the canvas follows the view's size.
+      const top = !steps && f.view.value !== '' && meta.views?.includes('top');
+      const acted = steps ?? (!top && acting() && [{ mod, id }]);
+      st = acted && createStage(acted, options(), { caster: f.caster.checked, target: f.target.checked }, { foe: f.foe.value });
+      const view = top ? 'top' : 'side', v = st ? null : layout(meta, view);
       const [sw, sh] = st ? st.size : v.size;
       // the floor: under the actors' feet, else as far under the anchor as the effect is acted; a top view has none
       const fl = st ? st.floor : view === 'side' ? v.origin[1] + role(meta, id).ground : Infinity;
@@ -179,7 +201,7 @@ function player(mod, canvas, big, id, steps) {
         const resized = !!img;
         [w, h, floor] = [sw, sh, fl];
         img = new ImageData(w, h);
-        if (resized) pl.fit();
+        if (resized) pl.fit(), relayout(); // fit now, before the next tick draws; then every card to the new sizes
       }
       if (st) ({ fps, hits, duration, loop } = st);
       else {
@@ -188,15 +210,31 @@ function player(mod, canvas, big, id, steps) {
         fx = createFx(mod, { ...options(), view });
         fx.angle = v.directions > 1 ? (f.view.value * Math.PI) / 4 : 0; // a radial top view has one heading
       }
-      clock = base = next = freeze = 0;
+      frames = Math.max(1, Math.ceil(duration * fps - 1e-6));
+      clock = Math.min(at, (frames - 1) / fps);
+      base = freeze = 0;
+      next = hits.filter(hit => hit.t < clock - 1e-6).length;
       shake = null;
       shown = -1;
+      // a stage only goes forward: through every frame before, so the loops in it stop and fade on time
+      if (st) for (let k = 0; k < Math.floor(clock * fps + 1e-6); k++) st.draw(k / fps, img.data, under, f.flip.checked);
+      if (slider) slider.max = frames - 1;
+      pl.listen();
+    },
+    // Each effect's sound from where it starts: the effect's from 0, a stage's from each act's start; none paused.
+    listen() {
       pl.hush();
-      // each effect's sound from where it starts: the effect's from 0, a stage's from each act's start
-      if (big && audio.on) {
+      if (big && audio.on && !paused) {
         cues = st ? st.plan.acts.map(a => ({ at: a.start, end: a.end, stop: a.stop, meta: a.mod.meta })) : [{ at: 0, end: Infinity, stop: Infinity, meta }];
         cues.sort((a, b) => a.at - b.at);
       }
+    },
+    /** Holds the frame shown (or the one `at` seconds in; after a one-shot, in its rest, its last), or plays on from it. */
+    pause(on, at) {
+      paused = on;
+      if (toggle) toggle.textContent = on ? 'play' : 'pause';
+      if (on) pl.restart(at);
+      else pl.listen();
     },
     hush() {
       sounds.forEach(s => s.stop());
@@ -206,18 +244,20 @@ function player(mod, canvas, big, id, steps) {
     redraw() {
       shown = -1;
     },
-    // Zooms the effect to fit, and fills the stage with the canvas and its backdrop (hidden, it waits to be shown).
+    // Zooms the effect to fit, and fills the stage with the canvas and its backdrop (hidden, it waits to be shown). A
+    // card takes the zoom and floor every card shares (relayout); the preview, its own.
     fit() {
       const stage = canvas.parentElement;
       if (!stage.clientWidth) return;
-      const z = (pl.zoom = Math.max(1, Math.floor(Math.min((stage.clientWidth - 24) / w, big ? (innerHeight * 0.6) / h : 3, big ? 12 : 3))));
-      stage.style.setProperty('--fit', `${h * z + 24}px`); // 24: the stage's padding
-      // EDGE px past the sides and the bottom, so a shake shows no gap. The floor DEPTH screen px above the bottom, level
-      // from card to card where the effect fits; without one, the effect in the middle.
+      const z = (pl.zoom = big ? Math.max(1, Math.floor(Math.min((stage.clientWidth - 24) / w, (innerHeight * 0.6) / h, 12))) : cards.zoom);
+      if (big) stage.style.setProperty('--fit', `${h * z + 24}px`); // 24: the stage's padding
+      // EDGE px past the sides and the bottom, so a shake shows no gap. The floor `depth` screen px above the bottom,
+      // level from card to card; without one, the effect in the middle.
+      const depth = big ? DEPTH : cards.below;
       const vw = Math.ceil(stage.clientWidth / z), vh = Math.ceil(stage.clientHeight / z), W = Math.max(w, vw) + 2 * EDGE, H = Math.max(h, vh) + EDGE;
       const room = H - EDGE - h;
       [canvas.width, canvas.height, X] = [W, H, (W - w) >> 1];
-      Y = Math.max(0, Math.min(room, Number.isFinite(floor) ? room + h - Math.ceil(DEPTH / z) - floor : room >> 1));
+      Y = Math.max(0, Math.min(room, Number.isFinite(floor) ? room + h - Math.ceil(depth / z) - floor : room >> 1));
       Object.assign(canvas.style, { width: `${W * z}px`, left: `${-EDGE * z}px`, bottom: `${-EDGE * z}px` });
       const back = backdrop(f.bg.value, W, H, Y + floor);
       ctx.putImageData(new ImageData(back, W, H), 0, 0);
@@ -226,7 +266,8 @@ function player(mod, canvas, big, id, steps) {
       shown = -1;
     },
     tick(dt) {
-      if (freeze > 0) freeze -= dt;
+      if (paused) shake = null; // time stands still, on the frame shown
+      else if (freeze > 0) freeze -= dt;
       else {
         const hit = hits[next];
         if (hit && clock + dt >= base + hit.t) {
@@ -262,6 +303,11 @@ function player(mod, canvas, big, id, steps) {
         composite(frame, fx.palette, img.data, under);
       }
       ctx.putImageData(img, X, Y);
+      if (bar) {
+        const k = Math.min(frames - 1, Math.floor((clock - base) * fps + 1e-6)); // the rest after a one-shot: its last frame
+        slider.value = k;
+        slider.ariaValueText = readout.textContent = `frame ${k + 1} of ${frames}, ${(k / fps).toFixed(2)} s`;
+      }
     },
     fail(e) {
       pl.hush();
@@ -269,7 +315,38 @@ function player(mod, canvas, big, id, steps) {
       broken(canvas.parentElement, e);
     },
   };
+  if (bar) {
+    toggle.addEventListener('click', () => pl.pause(!paused));
+    slider.addEventListener('input', e => {
+      e.stopPropagation(); // not a setting: the document's listener would restart it
+      pl.pause(true, slider.valueAsNumber / fps);
+    });
+    bar.hidden = false;
+  }
   return pl;
+}
+
+const cards = { zoom: 2, below: DEPTH }; // what every card on a page shares, set by relayout()
+let pending = 0;
+
+/**
+ * Lays every card out alike, so they match across the page: one zoom, the largest (up to 3) at which every stage fits
+ * a card's width, and one stage height that holds them all with their floors on one line, `below` px above the
+ * bottom. Then refits every player. Batched to once a frame, as cards arrive one by one.
+ */
+function relayout() {
+  pending ||= requestAnimationFrame(() => {
+    pending = 0;
+    const ps = players.filter(pl => !pl.big && !pl.error), width = Math.max(0, ...[...document.querySelectorAll('.grid .stage')].map(s => s.clientWidth));
+    if (ps.length && width) {
+      const z = (cards.zoom = Math.max(1, Math.min(3, ...ps.map(pl => Math.floor(width / pl.w)))));
+      const floored = ps.filter(pl => Number.isFinite(pl.floor));
+      cards.below = Math.max(DEPTH, ...floored.map(pl => (pl.h - pl.floor) * z));
+      const height = Math.max(...floored.map(pl => pl.floor * z + cards.below), ...ps.map(pl => pl.h * z)) + 24; // 24: headroom
+      document.querySelectorAll('.grid').forEach(g => g.style.setProperty('--fit', `${height}px`));
+    }
+    players.forEach(pl => pl.error || pl.fit());
+  });
 }
 
 function broken(stage, e) {
@@ -278,17 +355,25 @@ function broken(stage, e) {
 }
 
 const describe = meta => [meta.loop ? 'loop' : 'one-shot', `${meta.size[0]}×${meta.size[1]}`, `${meta.duration} s`]
-  .concat(meta.act?.hits?.length ? ['hits'] : []);
+  .concat(meta.act?.hits?.length ? ['hits'] : [], meta.views?.includes('top') ? ['top view'] : []);
 
 /** Imports an effect, captions `root` and plays it in root's canvas; a broken effect shows its error there instead. */
 async function show(entry, root, big) {
   const canvas = root.querySelector('canvas'), name = root.querySelector(big ? 'h1' : 'h3 a');
-  name.textContent = entry.id;
+  const label = meta => {
+    name.textContent = meta.name;
+    root.querySelector('.desc').textContent = meta.desc ?? '';
+    if (!big) root.querySelector('.facts').replaceChildren(
+      ...describe(meta).map((s, i) => el('li', { className: i ? '' : 'kind', textContent: s })),
+      el('li', {}, el('code', { textContent: entry.id })),
+    );
+  };
+  if (entry.meta) label(entry.meta); // the list's copy of the meta captions the card while its module loads
+  else name.textContent = entry.id;
   if (!big) (name.href = query({ fx: entry.id })), (name.dataset.fx = entry.id);
   try {
     const mod = await import(`../src/fx/${entry.id}.js`), { meta } = mod, kind = meta.loop ? 'loop' : 'one-shot';
-    name.textContent = meta.name;
-    root.querySelector('.desc').textContent = meta.desc ?? '';
+    label(meta);
     canvas.setAttribute('aria-label', `${meta.name}, ${kind}`);
     if (big) {
       document.title = `${meta.name} · grittyfx`;
@@ -308,16 +393,12 @@ async function show(entry, root, big) {
         use.querySelector('.meta').replaceChildren(...useRows(entry.id));
       };
       refresh();
-    } else {
-      root.querySelector('.facts').append(
-        ...describe(meta).map((s, i) => el('li', { className: i ? '' : 'kind', textContent: s })),
-        el('li', {}, el('code', { textContent: entry.id })),
-      );
     }
     const pl = player(mod, canvas, big, entry.id);
     pl.restart();
     pl.fit();
     players.push(pl);
+    relayout();
   } catch (e) {
     broken(root.querySelector('.stage'), e);
   }
@@ -334,12 +415,13 @@ async function showMove(id, root, big) {
   if (big) {
     document.title = `${m.name} · grittyfx`;
     root.querySelector('.meta').append(...[['move', id], ['steps', steps.join(', then ')]].flatMap(([k, v]) => [el('dt', { textContent: k }), el('dd', { textContent: v })]));
-  } else root.querySelector('.facts').append(el('li', { className: 'kind', textContent: 'move' }), ...steps.map(s => el('li', {}, el('code', { textContent: s }))));
+  } else root.querySelector('.facts').append(...steps.map(s => el('li', {}, el('code', { textContent: s }))));
   try {
     const pl = player(null, canvas, big, id, await Promise.all(m.steps.map(async s => ({ ...s, id: s.fx, mod: await import(`../src/fx/${s.fx}.js`) }))));
     pl.restart();
     pl.fit();
     players.push(pl);
+    relayout();
   } catch (e) {
     broken(root.querySelector('.stage'), e);
   }
@@ -357,14 +439,16 @@ function castCard(who) {
   const g = canvas.getContext('2d'), img = g.createImageData(canvas.width, canvas.height);
   frames.forEach(({ f }, n) => f.rows.forEach((line, j) => [...line].forEach((ch, i) => {
     const k = KEYS.indexOf(ch), X = (n % cols) * w + f.x - x0 + i, Y = Math.floor(n / cols) * h + f.y - y0 + j;
-    if (k >= 0) img.data.set(hex(PALETTE[k]), (Y * canvas.width + X) * 4);
+    if (k >= 0) img.data.set(hex(PALETTES[who][k]), (Y * canvas.width + X) * 4);
   })));
   g.putImageData(img, 0, 0);
-  // one zoom for the whole cast, so their sizes compare; shortcut: a sheet over ~170 px wide overflows its card, fit then
-  Object.assign(canvas.style, { position: 'static', width: `${canvas.width * 2}px`, height: `${canvas.height * 2}px` });
+  // one zoom for the whole cast, so their sizes compare; a sheet too wide for the narrowest card (320 px less its
+  // padding) spans two, and shrinks to fit when the grid has one column
+  const wide = canvas.width * 2 > 296;
+  Object.assign(canvas.style, { position: 'static', width: `${canvas.width * 2}px`, maxWidth: '100%', height: 'auto' });
   let n = 0;
   const order = Object.entries(CAST[who]).map(([pose, fs]) => `${pose} ${fs.map(() => ++n).join(', ')}`);
-  return el('li', { className: 'card' },
+  return el('li', { className: wide ? 'card wide' : 'card' },
     el('div', { className: 'stage' }, canvas),
     el('div', { className: 'info' },
       el('h3', { textContent: who[0].toUpperCase() + who.slice(1) }),
@@ -378,6 +462,7 @@ function castCard(who) {
 }
 
 const note = (...kids) => main.replaceChildren(el('p', { className: 'note', role: 'status' }, ...kids));
+const head = (text, n) => el('h2', {}, text, el('small', { textContent: n }));
 const clone = id => document.getElementById(id).content.firstElementChild.cloneNode(true);
 
 /** The preview page for `id`, linked to the ones before and after it in `ids` (round the ends); key is 'fx' or 'move'. */
@@ -390,7 +475,10 @@ function preview(ids, id, key, nameOf) {
     a.textContent = k ? `${nameOf(other)} ›` : `‹ ${nameOf(other)}`;
     a.setAttribute('aria-label', `${k ? 'Next' : 'Previous'}: ${nameOf(other)}`);
   });
-  if (key === 'fx' && cat) root.querySelector('.back').textContent = `← all ${cat} effects`;
+  if (key === 'move') root.querySelector('.back').textContent = '← all moves';
+  else if (cat) root.querySelector('.back').textContent = `← all ${cat} effects`;
+  root.querySelector('.desc').after(form); // as on every page: its title first, then the settings for its stage
+  form.hidden = false; // now, not once the effect has loaded, so the stage doesn't jump down
   main.replaceChildren(root);
   return root;
 }
@@ -417,6 +505,24 @@ async function start() {
     const all = list.map(e => e.id), mine = all.filter(id => id.startsWith(`${cat}/`)), ids = mine.includes(only) ? mine : all;
     if (ids === all) cat = '';
     await show(entry, preview(ids, only, 'fx', id => list.find(e => e.id === id).meta?.name ?? id), true);
+  } else if (page === 'characters') {
+    const heroes = Object.keys(CASTERS);
+    main.replaceChildren(
+      el('section', {}, head('Characters', heroes.length),
+        el('p', { className: 'desc', textContent: 'The cast that acts the effects out, free to use in your own games (MIT, like the code).' }),
+        el('ul', { className: 'grid' }, ...heroes.map(castCard))),
+      el('section', {}, head('Monsters', MONSTERS.length),
+        el('p', { className: 'desc', textContent: 'The targets that take the hits: pick one under Cast. Free to use as well.' }),
+        el('ul', { className: 'grid' }, ...MONSTERS.map(castCard))));
+  } else if (page === 'moves') {
+    const ids = Object.keys(MOVES), ul = el('ul', { className: 'grid' });
+    main.replaceChildren(el('section', {}, head('Moves', ids.length),
+      el('p', { className: 'desc', textContent: 'Effects played in a row as one attack, acted out by the cast.' }), form, ul));
+    for (const id of ids) {
+      const card = clone('card-tpl');
+      ul.append(card);
+      showMove(id, card, false);
+    }
   } else {
     if (!list.length) return note('No effects yet.');
     const counts = {};
@@ -424,18 +530,8 @@ async function start() {
     if (!counts[cat]) cat = '';
     const chips = el('fieldset', { className: 'chips', ariaLabel: 'Category' }, ...[['', list.length], ...Object.entries(counts)].map(([c, n]) =>
       el('label', {}, el('input', { type: 'radio', name: 'cat', value: c, checked: c === cat }), el('span', {}, `${c || 'all'} `, el('small', { textContent: n })))));
-    const ul = el('ul', { className: 'grid' }), moves = el('ul', { className: 'grid' });
-    const ids = Object.keys(MOVES), section = el('section', { id: 'moves', hidden: !acting() }, el('h2', { textContent: `${ids.length} moves` }), moves);
-    const cast = el('section', { id: 'cast' },
-      el('h2', { textContent: `${Object.keys(CAST).length} characters` }),
-      el('p', { className: 'desc',textContent: 'The cast that acts the effects out, free to use in your own games (MIT, like the code).' }),
-      el('ul', { className: 'grid' }, ...Object.keys(CAST).map(castCard)));
-    main.replaceChildren(section, cast, el('h2', { textContent: `${list.length} effects` }), chips, ul);
-    for (const id of ids) {
-      const card = clone('card-tpl');
-      moves.append(card);
-      showMove(id, card, false);
-    }
+    const ul = el('ul', { className: 'grid' });
+    main.replaceChildren(el('section', {}, head('Effects', list.length), chips, form, ul));
     for (const entry of list) {
       const card = clone('card-tpl');
       card.dataset.cat = entry.id.split('/')[0];
@@ -444,6 +540,9 @@ async function start() {
     }
     filter();
   }
+  form.hidden = !main.contains(form); // the settings sit under a page's title; the character sheets have none
+  // View only where a top view can play: not for moves, nor on the page of an effect without one
+  f.view.closest('.field').hidden = page === 'moves' || (!!only && !list.find(e => e.id === only)?.meta?.views?.includes('top'));
   showSettings();
 }
 
@@ -452,11 +551,11 @@ document.addEventListener('input', e => { // the form's settings and the grid's 
   if (e.target === f.custom) readCustom();
   if (e.target.name === 'cat') (cat = e.target.value), filter();
   showSettings();
-  history.replaceState(null, '', move ? query({ move }) : only ? query({ fx: only }) : query());
-  const restart = [f.palette, f.custom, f.seed, f.view, f.caster, f.target].includes(e.target);
+  history.replaceState(null, '', move ? query({ move }) : only ? query({ fx: only }) : home());
+  const restart = ['palette', 'custom', 'seed', 'view', 'caster', 'target', 'foe'].includes(e.target.name);
   for (const pl of players) if (!pl.error) restart ? pl.restart() : pl.redraw();
   // shown again (fit while hidden), or a new backdrop
-  if ([f.caster, f.target].includes(e.target) || ['cat', 'bg'].includes(e.target.name)) players.forEach(pl => pl.error || pl.fit());
+  if ([f.caster, f.target].includes(e.target) || ['cat', 'bg'].includes(e.target.name)) relayout();
 });
 main.addEventListener('click', e => {
   const sound = e.target.closest('.sound'), copy = e.target.closest('.copy');
@@ -476,8 +575,21 @@ main.addEventListener('click', e => {
   }
 });
 document.addEventListener('visibilitychange', () => audio.ctx?.[document.hidden ? 'suspend' : 'resume']()); // the pixels pause too
-document.getElementById('replay').addEventListener('click', () => players.forEach(pl => pl.error || pl.restart()));
-addEventListener('resize', () => players.forEach(pl => pl.error || pl.fit()));
+document.getElementById('replay').addEventListener('click', () => players.forEach(pl => pl.error || (pl.pause(false), pl.restart())));
+document.getElementById('dice').addEventListener('click', () => {
+  f.seed.value = 1 + (crypto.getRandomValues(new Uint32Array(1))[0] % 9999); // short enough to read out and share
+  f.seed.dispatchEvent(new Event('input', { bubbles: true }));
+});
+// The palettes open under their button; a click picks one and closes them, arrow keys recolor as they browse.
+pop.addEventListener('toggle', e => {
+  if (e.newState !== 'open') return;
+  const r = pick.getBoundingClientRect();
+  Object.assign(pop.style, { top: `${r.bottom + 6}px`, left: `${Math.max(8, Math.min(r.left, innerWidth - pop.offsetWidth - 8))}px`, maxHeight: `${innerHeight - r.bottom - 14}px` });
+});
+pop.addEventListener('click', e => e.detail && requestAnimationFrame(() => pop.hidePopover())); // detail 0: a key moved it
+pop.addEventListener('keydown', e => e.key === 'Enter' && pop.hidePopover());
+addEventListener('scroll', () => pop.matches(':popover-open') && pop.hidePopover(), { passive: true }); // it would drift from its button
+addEventListener('resize', relayout);
 
 readCustom();
 showSettings();

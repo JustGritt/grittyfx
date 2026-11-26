@@ -7,10 +7,10 @@
 //
 // role(meta, id)         where and how an effect is acted: meta.stage over its tags, then its category
 // plan(steps)            when and where each step plays, the hits, the goblin's flinches, the caster's poses
-// createStage(steps, o, show)  { size, floor, fps, duration, loop, hits, draw(t, rgba, bg, flip) }; o: effect options
-//                        for every step, show: { caster, target }, the layers drawn
+// createStage(steps, o, show, cast)  { size, floor, fps, duration, loop, hits, draw(t, rgba, bg, flip) }; o: effect
+//                        options for every step, show: { caster, target }, the layers drawn, cast: { foe, tint }
 // realtime(hits, d, fps) the frames a game shows at fps, with hit-stop and shake: [{ t, dx, dy }]
-import { createFx, createFrame, clearFrame, Painter } from '../core/index.js';
+import { createFx, createFrame, clearFrame, Painter, rand } from '../core/index.js';
 import { actorPalette, CAST, CASTERS, frameOf, bounds, drawFrame, flash } from './actors.js';
 
 export const FPS = 30;
@@ -26,7 +26,7 @@ const LEAD = 0.4; // idle before the first wind-up
 const PLAY = 1.6; // a loop plays at least this long, then fades out
 const FADE = 0.3; // fx.stop()'s fade
 const SETTLE = 0.9; // the goblin recovers this long after a hit
-const WINDUP = { strike: 0.15, point: 0.3, raise: 0.3, hop: 0.4 }; // when act.windup is left out
+const WINDUP = { strike: 0.15, point: 0.3, raise: 0.3, hop: 0.4, leap: 0.25, airjump: 0.4 }; // when act.windup is left out
 const KNIGHT = ['melee', 'pickup']; // tags a knight acts; a projectile that isn't magic is the archer's
 const ROGUE = ['slash', 'vanish', 'thrown']; // tags the kunoichi acts, and every shadow/ effect
 
@@ -38,43 +38,89 @@ export const POSES = Object.fromEntries(Object.entries({
   idle: [0, 0, 0], ready: [-1, 0, 0], swing: [2, 0, 0], follow: [2, 0, 0], gather: [-1, 0, 0.6],
   point: [1, 0, 1], raise: [0, 0, 1], crouch: [0, 0, 0], air: [0, 9, 0],
 }).map(([look, [x, lift, glow]]) => [look, { look, x, lift, glow }]));
+POSES.high = { ...POSES.air, lift: 18 }; // a second jump's height, drawn as the air pose
 const PUSH = 6; // px a goblin is knocked back at most
+
+// The set a prop stands in (meta.stage.scenery), drawn behind it from its anchor: put(x, y, rgb, k) blends px right and
+// down of it. Fixed colors, like the floor's: char, wood, iron; a pool takes its water from the effect's first ramp.
+const INK = { k: [36, 22, 15], w: [110, 68, 37], W: [160, 106, 56], i: [59, 63, 78], I: [107, 113, 134] };
+const paint = (put, rows, x) => rows.forEach((row, y) => [...row].forEach((c, i) => c !== '.' && put(x + i - (row.length >> 1), y, INK[c])));
+export const SCENERY = {
+  // a wall torch's charred head, its stick and the iron band holding it to the wall, under fire/torch's flame (which
+  // covers the top 6 rows)
+  sconce: put => paint(put, ['.kkkkk.', '.kWWwk.', '.kWWwk.', '..kWk..', '..kWk..', '..kWk..', 'IiiiiiI', '.iIIIi.',
+    '..kWk..', '..kWk..', '..kwk..', '..kwk..', '..kwk..', '...k...'], 0),
+  // the two terminals electric/arc jumps between: iron rods from its contact points, 18 px either side, to the floor
+  posts: (put, a) => [-18, 18].forEach(x => paint(put, Array.from({ length: a.role.ground }, (_, y) => (y < 2 ? '.iIi.' : y >= a.role.ground - 2 ? 'kiIik' : '.kik.')), x)),
+  // a pool level with the floor round the anchor, as wide as the effect and deep enough for its lower half, rounded
+  pool: (put, a) => {
+    const [w, h] = a.mod.meta.size, { from, steps } = a.fx.ramps[0], depth = h - a.mod.meta.origin[1] + 1;
+    const water = i => [...a.fx.palette.subarray(i * 4, i * 4 + 3)], deep = water(from + 1), top = water(from + (steps >> 1));
+    for (let y = 0; y < depth; y++) {
+      const half = Math.round((w / 2) * Math.sqrt(1 - (y / depth) ** 2));
+      for (let x = -half; x < half; x++) put(x, y, y ? deep : top, y ? 0.6 : 0.9);
+    }
+  },
+  // a rock face from the floor up to a ledge 58 px over it, for water/waterfall to pour off: a stepped outline flaring
+  // into rubble at its foot, lit on its left, cracks either side of the water, the ledge jutting out on top
+  cliff: put => {
+    for (let y = -61; y < 0; y++) {
+      const ledge = y < -57, w = ledge ? 15 : 11 + Math.max(0, y + 9) * 0.6;
+      const l = Math.round(w + rand(y >> 2, 1) * 3), r = Math.round(w + rand(y >> 2, 2) * 3);
+      const crack = !ledge && rand(y, 3) < 0.25 ? (rand(y, 4) < 0.5 ? -l + 2 : r - 6) : null;
+      for (let x = -l; x < r; x++) {
+        const rim = x === -l || x === r - 1 || y === -61, cut = crack !== null && x >= crack && x < crack + 3;
+        put(x, y, INK[rim || cut ? 'k' : y === -60 || x < -l + 3 ? 'I' : 'i']);
+      }
+    }
+  },
+};
 const SHAKE = 0.2, JIGGLE = [[1, 0], [-1, 1], [1, -1], [-1, 0]]; // as in the gallery
 
 /**
- * Where and how an effect is acted: { at, pose, cast, x, ground, speed }. `at` is one of PLACES, from meta.stage.at,
+ * Where and how an effect is acted: { at, pose, cast, x, ground, speed, scenery }, and meta.stage's other fields
+ * (hold, hide, move, looks, waits: see plan). `at` is one of PLACES, from meta.stage.at,
  * else its tags (projectile: path, aura, buff, pickup: caster, status: above, nova: ground, ambient: aside), else its
  * category, else target. `ground` is the floor's y in the effect's own coordinates (how high its anchor sits), `x`
- * shifts it toward the goblin, `speed` is a looping projectile's in px/s. `pose` is how the caster acts it: strike (a
- * melee effect on the target), hop (landing or jump on the ground), raise (on the caster), point (anything else), none
+ * shifts it toward the goblin, `speed` is a looping projectile's in px/s, `scenery` the SCENERY drawn behind it (a
+ * prop's sconce, posts or pool). `pose` is how the caster acts it: strike (a
+ * melee effect on the target), hop (a landing on the ground), leap (a jump: takes off from it), airjump (a jump tagged
+ * air: kicks off it in mid-air), raise (on the caster), point (anything else), none
  * (aside). `cast` is who: meta.stage.cast, else the kunoichi for a slash, a vanish, a thrown weapon or a shadow/ effect, a knight
- * for a strike, a hop or a pickup, the priest for a holy/ effect, an archer for a projectile that isn't magic or a
+ * for a strike, a hop, a leap or a pickup, the priest for a holy/ effect, an archer for a projectile that isn't magic or a
  * spell, else a mage.
  */
 export function role(meta, id = '') {
   const tags = meta.tags ?? [], s = meta.stage ?? {};
   const at = s.at ?? BY_TAG[tags.find(t => BY_TAG[t])] ?? BY_CATEGORY[id.split('/')[0]] ?? 'target';
   const pose = at === 'aside' ? null
-    : at === 'ground' && (tags.includes('landing') || tags.includes('jump')) ? 'hop'
+    : at === 'ground' && tags.includes('landing') ? 'hop'
+    : at === 'ground' && tags.includes('jump') ? (tags.includes('air') ? 'airjump' : 'leap')
     : at === 'caster' || at === 'ground' ? 'raise'
     : at === 'target' && (tags.includes('melee') || tags.includes('slash')) ? 'strike' : 'point';
   const cast = s.cast ?? (tags.some(t => ROGUE.includes(t)) || id.startsWith('shadow/') ? 'kunoichi'
-    : pose === 'strike' || pose === 'hop' || tags.some(t => KNIGHT.includes(t)) || id.startsWith('pickups/') ? 'knight'
+    : pose === 'strike' || pose === 'hop' || pose === 'leap' || pose === 'airjump' || tags.some(t => KNIGHT.includes(t)) || id.startsWith('pickups/') ? 'knight'
     : id.startsWith('holy/') ? 'priest'
     : at === 'path' && !tags.includes('magic') && !tags.includes('spell') ? 'archer' : 'mage');
   const ground = s.ground ?? (at === 'target' || at === 'path' ? HIT : at === 'above' ? HEAD : 0);
-  return { at, pose, cast, x: s.x ?? 0, ground, speed: s.speed ?? SPEED };
+  return { ...s, at, pose, cast, x: s.x ?? 0, ground, speed: s.speed ?? SPEED, scenery: s.scenery };
 }
 
 const snap = t => Math.round(t * FPS) / FPS; // hits land on a frame, as in a bundle
 const IO = u => u * u * (3 - 2 * u), OUT = u => 1 - (1 - u) ** 2, IN = u => u * u, LINEAR = u => u;
-// The caster's keys for one acted step: [t, pose, ease into it], from its start s, first contact c and wind-up w. A
-// cast lands on the frame its spell or shot appears.
+// The caster's keys for one acted step: [t, pose, ease into it], from its start s, first contact c, wind-up w and the
+// time h a held pose lasts to (a beam's end). A cast lands on the frame its spell or shot appears.
 const ACTING = {
   strike: (s, c, w) => [[s - w * 0.5, 'ready', OUT], [s, 'ready'], [c, 'swing', LINEAR], [c + 0.1, 'swing'], [c + 0.22, 'follow', OUT], [c + 0.6, 'idle', IO]],
-  point: (s, c, w) => [[s - w * 0.6, 'gather', OUT], [Math.max(s - w * 0.6, s - 1 / FPS), 'gather'], [s, 'point', LINEAR], [Math.max(c, s + 0.2) + 0.15, 'point'], [Math.max(c, s + 0.2) + 0.55, 'idle', IO]],
+  point: (s, c, w, h = 0) => {
+    const k = Math.max(c + 0.15, s + 0.35, h);
+    return [[s - w * 0.6, 'gather', OUT], [Math.max(s - w * 0.6, s - 1 / FPS), 'gather'], [s, 'point', LINEAR], [k, 'point'], [k + 0.4, 'idle', IO]];
+  },
   raise: (s, c, w) => [[s - w * 0.6, 'crouch', OUT], [Math.max(s - w * 0.6, s - 1 / FPS), 'crouch'], [s, 'raise', LINEAR], [Math.max(c, s + 0.3) + 0.2, 'raise'], [Math.max(c, s + 0.3) + 0.6, 'idle', IO]],
   hop: (s, c, w) => [[s - w * 0.8, 'crouch', OUT], [s - w * 0.4, 'air', OUT], [s, 'crouch', IN], [s + 0.15, 'crouch'], [s + 0.45, 'idle', IO]],
+  leap: (s, c, w) => [[s - w * 0.7, 'crouch', OUT], [s, 'crouch'], [s + 0.14, 'air', OUT], [s + 0.28, 'air'], [s + 0.42, 'crouch', IN], [s + 0.55, 'crouch'], [s + 0.85, 'idle', IO]],
+  // up off the floor in the wind-up, at the air pose's height on the effect, kicking higher off it, then down
+  airjump: (s, c, w) => [[s - w * 0.8, 'crouch', OUT], [s - w * 0.55, 'crouch'], [s - w * 0.2, 'air', OUT], [s, 'air'], [s + 0.14, 'high', OUT], [s + 0.3, 'high'], [s + 0.56, 'crouch', IN], [s + 0.66, 'crouch'], [s + 0.96, 'idle', IO]],
 };
 
 /** The caster's pose at t from keys [[t, pose, ease], ...]: idle before the first; numbers ease, the look switches halfway. */
@@ -87,25 +133,31 @@ export function poseAt(keys, t) {
 }
 
 /**
- * When and where each step plays. steps: [{ mod, id, on }]; a step starts once the one before it ends, after its own
- * wind-up, or with `on: 'hit'` so that its first hit lands with the previous step's first contact. Positions are in px
+ * When and where each step plays. steps: [{ mod, id, on, stage }]; a step starts once the one before it ends, after its
+ * own wind-up, or with `on: 'hit'` so that its first hit lands with the previous step's first contact; `stage` places it
+ * over its meta.stage. Positions are in px
  * with the caster's feet at (0, 0), the goblin's at (D, 0), y down. Returns { D, who, foe, acts, hits, flinches, keys,
  * duration, loop }: who acts (the first acted step's cast), whether the goblin is on stage (a step strikes it; a prop
  * aside stands NEAR the caster), acts [{ mod, role, start, end, stop, travel, from, to,
- * contact }], hits [{ t, freeze, shake }] merged where they coincide, the goblin's flinches [{ t, k }] and the caster's
- * pose keys. A projectile leaves from the caster's tip as it shoots.
+ * contact }], hits [{ t, freeze, shake }] merged where they coincide, the goblin's flinches [{ t, k }], the caster's
+ * pose keys, hidden [[t0, t1]] (spans the caster is out of sight) and moves [[t, dx]] (px the caster steps forward at
+ * t, for good). A projectile leaves from the caster's tip as it shoots. A step on hit acts nothing unless `acted`.
+ * meta.stage acting fields, in the effect's seconds: hold (true: a cast keeps pointing to the effect's end), hide
+ * ([t0, t1]: the caster is gone from t0 to t1, or for good), move ([t, dx]), looks ({ pose: tag or [tag, stand-in...] }:
+ * the caster's own tags for this effect, the first it has drawn); waits (true: createStage shows its first frame from the stage's start until
+ * it plays, the chest standing there).
  */
 export function plan(steps) {
-  const roles = steps.map(s => role(s.mod.meta, s.id));
+  const roles = steps.map(s => role(s.stage ? { ...s.mod.meta, stage: { ...s.mod.meta.stage, ...s.stage } } : s.mod.meta, s.id));
   const acting = roles.filter((r, i) => r.pose && !(i && steps[i].on === 'hit'));
   const foe = roles.some(r => STRUCK.includes(r.at));
   const D = !foe || (acting.length && acting.every(r => r.pose === 'strike')) ? NEAR : FAR;
   const who = (acting[0] ?? roles[0]).cast, tip = frameOf(who, 'point').tip;
-  const acts = [], hits = [], flinches = [], keys = [];
+  const acts = [], hits = [], flinches = [], keys = [], hidden = [], moves = [];
   steps.forEach((s, i) => {
     const r = roles[i], { meta } = s.mod, own = meta.act?.hits ?? [], prev = acts[i - 1], ride = prev && s.on === 'hit';
     const windup = ride || !r.pose ? 0 : meta.act?.windup ?? WINDUP[r.pose];
-    const start = snap(ride ? prev.contact - (own[0]?.t ?? 0) : (prev ? prev.end : LEAD) + windup);
+    const start = snap(ride ? prev.contact - (own[0]?.t ?? 0) : (prev ? prev.end : r.pose ? LEAD : 0) + windup); // a prop is there from the start
     const from = r.at === 'path' ? [tip[0] + POSES.point.x + r.x, tip[1]] : [{ target: D, above: D, caster: 0, ground: 0, aside: foe ? D / 2 : NEAR }[r.at] + r.x, -r.ground];
     const to = r.at === 'path' ? [D + r.x, -r.ground] : from;
     // a projectile arrives on its first hit, or at its end, or (a loop) after flying the distance
@@ -121,11 +173,14 @@ export function plan(steps) {
       if (struck) flinches.push({ t: snap(start + h.t), k: kick(h.shake ?? 0) });
     }
     if (r.at === 'path' && !own.length) flinches.push({ t: contact, k: kick(1) });
-    if (r.pose && !ride) {
-      const t0 = start - windup, now = poseAt(keys, t0);
+    if (r.pose && (!ride || s.acted)) {
+      const t0 = start - windup, now = poseAt(keys, t0), tag = name => [r.looks?.[name]].flat().find(t => CAST[who][t]);
+      const look = name => (tag(name) ? { ...POSES[name], look: tag(name) } : POSES[name]);
       while (keys.length && keys.at(-1)[0] >= t0) keys.pop();
-      keys.push([t0, now], ...ACTING[r.pose](start, contact, windup).map(([t, name, ease]) => [t, POSES[name], ease]));
+      keys.push([t0, now], ...ACTING[r.pose](start, contact, windup, r.hold ? end : 0).map(([t, name, ease]) => [t, look(name), ease]));
     }
+    if (r.hide) hidden.push([start + r.hide[0], start + (r.hide[1] ?? Infinity)]);
+    if (r.move) moves.push([start + r.move[0], r.move[1]]);
   });
   hits.sort((a, b) => a.t - b.t);
   const merged = hits.reduce((out, h) => {
@@ -138,7 +193,7 @@ export function plan(steps) {
   const duration = loop
     ? Math.ceil(2 / d) * d
     : Math.max(...acts.map(a => a.stop), ...flinches.map(f => f.t + SETTLE), keys.at(-1)?.[0] ?? 0) + 0.2;
-  return { D, who, foe, acts, hits: merged, flinches, keys, duration, loop };
+  return { D, who, foe, acts, hits: merged, flinches, keys, hidden, moves, duration, loop };
 }
 
 /**
@@ -179,15 +234,17 @@ function mirror(out, W, H) {
  * step's own opts. draw(t, rgba, bg, flip) paints stage time t (seconds, never going back) into a Uint8ClampedArray of
  * size[0] x size[1] pixels over bg ([r, g, b], or an RGBA image of that size, which flip leaves unmirrored), mirrored
  * with flip. `floor` is the row the actors stand on. `show.caster` and `show.target` false leave that actor out; the
- * effects play the same.
+ * effects play the same. `cast.foe` takes the hits (the goblin, or the slime) and `cast.tint` recolors actors
+ * ({ name: tint }, see tinted() in actors.js).
  */
-export function createStage(steps, o = {}, show = {}) {
+export function createStage(steps, o = {}, show = {}, { foe = 'goblin', tint = {} } = {}) {
   const P = plan(steps), first = P.acts.find(a => a.role.pose) ?? P.acts[0], who = P.who;
-  const pal = actorPalette(o.palette ?? first.opts?.palette ?? first.mod.meta.options?.palette ?? 'holy'), C = pal.index;
+  const pal = actorPalette(o.palette ?? first.opts?.palette ?? first.mod.meta.options?.palette ?? 'holy', [who, foe], tint), C = pal.index;
   // the canvas holds the actors in every pose (stepping, hopping, knocked back), whether shown or not, so switching
   // one off keeps the layout, and every effect at each place it goes
-  const [cx0, cy0, cx1] = bounds(who), [gx0, gy0, gx1] = bounds('goblin'), hop = P.keys.some(k => k[1].lift) ? POSES.air.lift : 0;
-  const boxes = [[cx0 - 2, cy0 - hop - 1, cx1 + 4, 3]];
+  const [cx0, cy0, cx1] = bounds(who), [gx0, gy0, gx1] = bounds(foe), hop = Math.max(0, ...P.keys.map(k => k[1].lift));
+  const stepped = t => P.moves.reduce((dx, m) => dx + (t >= m[0] ? m[1] : 0), 0), far = stepped(Infinity);
+  const boxes = [[cx0 - 2, cy0 - hop - 1, cx1 + 4, 3], [cx0 - 2 + far, cy0 - hop - 1, cx1 + 4 + far, 3]];
   if (P.foe) boxes.push([P.D + gx0 - 1, gy0 - 1, P.D + gx1 + PUSH + 1, 3]);
   for (const a of P.acts) {
     const { size: [w, h], origin: [ox, oy] } = a.mod.meta;
@@ -210,8 +267,8 @@ export function createStage(steps, o = {}, show = {}) {
       } else for (let i = 0; i < W * H * 4; i += 4) out.set([bg[0], bg[1], bg[2], 255], i);
       const shown = [];
       for (const a of live) {
-        const local = t - a.start;
-        if (local < 0 || t >= a.stop) continue;
+        const local = Math.max(0, t - a.start);
+        if ((t < a.start && !a.role.waits) || t >= a.stop) continue;
         a.fx ??= createFx(a.mod, { ...a.opts, ...o });
         const fps = a.mod.meta.fps ?? 30;
         a.fx.update(Math.floor(local * fps + 1e-6) / fps - a.fx.t);
@@ -219,6 +276,10 @@ export function createStage(steps, o = {}, show = {}) {
         const u = a.travel ? Math.min(1, local / a.travel) : 0, [fx, fy] = a.from, [tx, ty] = a.to;
         shown.push([a, Math.round(fx + (tx - fx) * u) - a.frame.ox - x0, Math.round(fy + (ty - fy) * u) - a.frame.oy - y0]);
       }
+      for (const [a, X, Y] of shown) if (a.role.scenery) SCENERY[a.role.scenery]((x, y, rgb, k = 1) => {
+        const px = X + a.frame.ox + x, py = Y + a.frame.oy + y, o = (py * W + px) * 4;
+        if (px >= 0 && px < W && py >= 0 && py < H) for (let c = 0; c < 3; c++) out[o + c] += (rgb[c] - out[o + c]) * k;
+      }, a);
       const layer = name => shown.forEach(([a, X, Y]) => {
         clearFrame(a.frame);
         a.fx.draw(a.frame, name);
@@ -226,20 +287,20 @@ export function createStage(steps, o = {}, show = {}) {
       });
       layer('back');
 
-      if (show.caster !== false) {
+      if (show.caster !== false && !P.hidden.some(([t0, t1]) => t >= t0 && t < t1)) {
         const q = poseAt(P.keys, t), busy = P.keys.length && t >= P.keys[0][0] && t <= P.keys.at(-1)[0];
         const f = frameOf(who, q.look, busy ? 0 : breath(t)), x = Math.round(q.x), y = -Math.round(q.lift), p = new Painter(clearFrame(hero));
-        drawFrame(hero, f, C, x, y);
+        drawFrame(hero, f, C[who], x, y);
         if (f.tip && q.glow > 0 && CASTERS[who].glow) { // the spell gathers at the tip in its own colors
           p.glow(x + f.tip[0], y + f.tip[1], 8, C.glow[5], 0.7 * q.glow);
           p.px(x + f.tip[0], y + f.tip[1], C.glow[7]);
         }
         shadow(p, x, q.lift > 4 ? 3 : 5);
-        over(out, W, H, hero, pal.table, -hero.ox - x0, -hero.oy - y0);
+        over(out, W, H, hero, pal.table, stepped(t) - hero.ox - x0, -hero.oy - y0);
       }
       if (P.foe && show.target !== false) {
         const g = targetAt(P.flinches, t);
-        drawFrame(clearFrame(goblin), frameOf('goblin', g.hurt ? 'hurt' : 'idle', breath(t + 0.3)), C, g.dx);
+        drawFrame(clearFrame(goblin), frameOf(foe, g.hurt ? 'hurt' : 'idle', breath(t + 0.3)), C[foe], g.dx);
         if (g.hit) flash(goblin, C.ink[1]); // the hit frame: a white silhouette
         shadow(new Painter(goblin), 0, 6);
         over(out, W, H, goblin, pal.table, P.D - goblin.ox - x0, -goblin.oy - y0);
