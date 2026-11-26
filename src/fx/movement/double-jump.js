@@ -13,7 +13,7 @@ export const meta = {
   top: { size: [44, 44] },
   ramps: { palette: 8 },
   options: { palette: 'ice', seed: 1 },
-  stage: { at: 'ground', ground: 9, cast: 'kunoichi', pose: 'double' }, // under her feet up in the air, as she kicks off it
+  stage: { at: 'ground', ground: 9, cast: 'kunoichi' }, // under her feet up in the air (a jump tagged air: airjump), as she kicks off it
   sound: [
     { t: 0, kind: 'whoosh', gain: 0.6, pitch: 1.9 }, // the kick, a short gust
     { t: 0, kind: 'chime', gain: 0.12, pitch: 1.5 },

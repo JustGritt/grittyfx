@@ -1,5 +1,8 @@
 import { rand } from '../../core/index.js';
 
+const HIT = 3 / 30; // she reappears
+const DIST = 54; // the step, px
+
 export const meta = {
   name: 'Blink',
   desc: 'A shadow step: a slit of light where the body was, afterimages and speed lines streaking ahead, a slit opening where it reappears, wisps of shadow at both ends',
@@ -14,7 +17,7 @@ export const meta = {
   ramps: { palette: 8, smoke: 8 },
   options: { palette: 'arcane', smoke: 'shadow', seed: 1 },
   act: { windup: 0.2, hits: [{ t: 3 / 30, freeze: 0.03, shake: 1 }] },
-  stage: { at: 'caster', ground: 14 }, // from her chest, 54 px on: where a slash at the goblin is swung from
+  stage: { at: 'caster', ground: 14, hide: [0, HIT], move: [HIT, DIST] }, // from her chest, 54 px on: where a slash at the goblin is swung from
   sound: [
     { t: 0, kind: 'whoosh', gain: 0.6, pitch: 2.2 }, // the zip
     { t: 3 / 30, kind: 'crack', gain: 0.3, pitch: 2.4 }, // the reappearance
@@ -22,8 +25,6 @@ export const meta = {
   ],
 };
 
-const HIT = 3 / 30; // she reappears
-const DIST = 54; // the step, px
 const H = 13; // half a body's height: the slits and afterimages
 const out = (u, k) => 1 - Math.exp(-Math.max(0, u) / k);
 const clamp = v => Math.max(0, Math.min(1, v));

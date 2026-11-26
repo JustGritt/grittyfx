@@ -17,7 +17,7 @@ export const meta = {
     windup: 0.25,
     hits: [{ t: 3 / 30, freeze: 0.06, shake: 2 }, { t: 7 / 30, freeze: 0.03, shake: 1 }, { t: 11 / 30, freeze: 0.02, shake: 1 }],
   },
-  stage: { at: 'target', x: -54, ground: 19 }, // from the mage's tip; the floor is 19 px below it
+  stage: { at: 'target', x: -54, ground: 19, hold: true }, // from the mage's tip; the floor is 19 px below it
   sound: [
     { t: 0, kind: 'zap', gain: 0.3, pitch: 1.8 }, // crackling at the tip
     { t: 3 / 30, kind: 'crack', gain: 0.8, pitch: 1.2 }, // the strike

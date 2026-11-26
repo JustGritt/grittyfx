@@ -13,7 +13,7 @@ export const meta = {
   ramps: { palette: 8, wood: 6, dust: 6 },
   options: { palette: 'smoke', wood: ['#2a160c', '#4a2a16', '#6e4024', '#94603a', '#b8854f', '#d8ae74'], dust: 'dust', seed: 1 },
   act: { windup: 0.3 },
-  stage: { at: 'caster' }, // where she stood
+  stage: { at: 'caster', hide: [1 / 30] }, // where she stood, the log in her place
   sound: [
     { t: 0, kind: 'crack', gain: 0.5, pitch: 0.6 }, // the pop
     { t: 0, kind: 'whoosh', gain: 0.5, pitch: 0.9 },

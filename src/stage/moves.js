@@ -1,6 +1,6 @@
 // Moves: effects chained and acted out on the stage, in the gallery and by `render --stage <move>`. A step plays once
-// the one before it has ended, after its own wind-up; `on: 'hit'` plays it with the previous step's first hit instead.
-// A step's `stage` places it over its effect's meta.stage.
+// the one before it has ended, after its own wind-up; `on: 'hit'` plays it with the previous step's first hit instead,
+// the caster acting nothing for it unless `acted: true`. A step's `stage` places it over its effect's meta.stage.
 export const MOVES = {
   'sword-combo': {
     name: 'Sword combo',
@@ -86,7 +86,7 @@ export const MOVES = {
   'shadow-step': {
     name: 'Shadow step',
     desc: 'A blink across the gap, cutting the goblin as she reappears',
-    steps: [{ fx: 'shadow/blink' }, { fx: 'impacts/slash', on: 'hit', opts: { palette: 'arcane' } }],
+    steps: [{ fx: 'shadow/blink' }, { fx: 'impacts/slash', on: 'hit', acted: true, opts: { palette: 'arcane' } }],
   },
   lunge: {
     name: 'Lunge',
@@ -102,5 +102,20 @@ export const MOVES = {
     name: 'Launcher',
     desc: 'An uppercut that throws sparks skyward, then a crushing blow that cracks the floor',
     steps: [{ fx: 'impacts/uppercut' }, { fx: 'impacts/heavy-hit' }],
+  },
+  'soak-and-shock': {
+    name: 'Soak and shock',
+    desc: 'A water bolt drenches the goblin, then lightning finds it wet',
+    steps: [{ fx: 'water/water-bolt' }, { fx: 'status/soaked', on: 'hit' }, { fx: 'electric/shock' }, { fx: 'status/shocked', on: 'hit' }],
+  },
+  'deep-freeze': {
+    name: 'Deep freeze',
+    desc: 'An ice orb that locks the goblin in a crust of ice',
+    steps: [{ fx: 'projectiles/energy-orb', opts: { palette: 'ice' } }, { fx: 'status/frozen', on: 'hit' }],
+  },
+  tempest: {
+    name: 'Tempest',
+    desc: 'A gust that shoves the goblin back, then a tornado that twists up round it',
+    steps: [{ fx: 'wind/gust' }, { fx: 'wind/tornado' }],
   },
 };

@@ -2,7 +2,9 @@ import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { role, plan, poseAt, looks, into, targetAt, realtime, createStage, HIT, NEAR, FAR, FPS } from '../src/stage/stage.js';
-import { CAST, frameOf, frameAt } from '../src/stage/actors.js';
+import { CAST, BODY, frameOf, frameAt, tinted } from '../src/stage/actors.js';
+import { PALETTES } from '../src/stage/cast.js';
+import { fit } from '../src/core/index.js';
 import { castModule, castFiles } from '../tools/cast.mjs';
 import { MOVES } from '../src/stage/moves.js';
 import { listIds, loadEffect } from '../tools/lib.mjs';
@@ -12,11 +14,11 @@ const near = (a, b) => assert.ok(Math.abs(a - b) < 1e-9, `${a} is not ${b}`);
 
 test('role: tags place an effect, the category when no tag does, meta.stage over both', () => {
   const at = (tags, id, stage) => role({ tags, stage }, id);
-  assert.deepEqual(at(['fire', 'projectile']), { at: 'path', pose: 'point', cast: 'archer', x: 0, ground: HIT, speed: 200, scenery: undefined, early: undefined });
+  assert.deepEqual(at(['fire', 'projectile']), { at: 'path', pose: 'point', cast: 'archer', x: 0, ground: HIT, speed: 200, scenery: undefined });
   assert.equal(at(['heal', 'aura', 'status']).at, 'caster', 'the first tag with a role wins');
   assert.deepEqual([at(['buff']).at, at(['pickup']).at, at(['status']).at, at(['nova']).at, at(['ambient']).at], ['caster', 'caster', 'above', 'ground', 'aside']);
   assert.deepEqual([at([], 'projectiles/arrow').at, at([], 'status/x').at, at([], 'pickups/gem').at, at([], 'fire/x').at], ['path', 'above', 'caster', 'target']);
-  assert.deepEqual(at(['status'], '', { at: 'target', ground: 16, x: -3 }), { at: 'target', pose: 'point', cast: 'mage', x: -3, ground: 16, speed: 200, scenery: undefined, early: undefined });
+  assert.deepEqual(at(['status'], '', { at: 'target', ground: 16, x: -3 }), { at: 'target', pose: 'point', cast: 'mage', x: -3, ground: 16, speed: 200, scenery: undefined });
   assert.equal(at(['ambient']).pose, null, 'an ambient effect is not acted');
   assert.deepEqual([at(['slash']).pose, at(['impact', 'melee']).pose, at(['impact']).pose, at(['nova']).pose], ['strike', 'strike', 'point', 'raise']);
   assert.equal(at(['landing'], '', { at: 'ground' }).pose, 'hop');
@@ -72,6 +74,32 @@ test('plan: a landing plays as the caster lands, a jump as they take off', () =>
   };
   assert.deepEqual([lift(['landing'], -0.15) > 0, lift(['landing'], 0)], [true, 0], 'in the air before, down on the effect');
   assert.deepEqual([lift(['jump'], -0.1), lift(['jump'], 0), lift(['jump'], 0.2)], [0, 0, 9], 'crouched, then up and away');
+  assert.deepEqual([lift(['jump', 'air'], 0), lift(['jump', 'air'], 0.2)], [9, 18], 'a jump tagged air: already up, kicking higher');
+});
+
+test('plan: an effect hides or moves the caster, holds a cast or picks its own looks; a step on hit acts if acted', () => {
+  const blink = mod({ tags: ['vanish'], act: { hits: [{ t: 0.1 }] }, stage: { at: 'caster', hide: [0, 0.1], move: [0.1, 54] } });
+  const cut = mod({ tags: ['slash'], act: { hits: [{ t: 0.05 }] } });
+  const p = plan([{ mod: blink }, { mod: cut, on: 'hit', acted: true }]), [a, b] = p.acts;
+  assert.deepEqual([p.hidden, p.moves], [[[a.start, a.start + 0.1]], [[a.start + 0.1, 54]]]);
+  assert.equal(poseAt(p.keys, b.contact).look, 'swing', 'she reappears swinging');
+  assert.equal(poseAt(plan([{ mod: blink }, { mod: cut, on: 'hit' }]).keys, b.contact).look, 'raise', 'not acted: still on the blink');
+
+  const ray = hold => { const q = plan([{ mod: mod({ duration: 0.8, stage: { hold } }) }]); return poseAt(q.keys, q.acts[0].start + 0.7).look; };
+  assert.deepEqual([ray(true), ray(false)], ['point', 'idle'], 'a held cast points while the beam lasts');
+
+  const ready = looks => { const q = plan([{ mod: mod({ tags: ['melee'], act: { hits: [{ t: 0.05 }] }, stage: { looks } }) }]); return poseAt(q.keys, q.acts[0].start).look; };
+  assert.deepEqual([ready(undefined), ready({ ready: 'crouch' }), ready({ ready: ['undrawn', 'crouch'] }), ready({ ready: 'undrawn' })], ['ready', 'crouch', 'crouch', 'ready'], 'the first tag drawn, else the pose');
+});
+
+test('createStage: an effect that waits stands on its first frame before it plays', () => {
+  const drawn = waits => {
+    let n = 0;
+    const st = createStage([{ mod: { ...mod({ tags: ['pickup'], stage: { waits } }), draw: () => n++ } }]);
+    st.draw(0, new Uint8ClampedArray(st.size[0] * st.size[1] * 4));
+    return n > 0;
+  };
+  assert.deepEqual([drawn(true), drawn(false)], [true, false]);
 });
 
 test('plan: on hit, a step lands with the previous one and their hits merge; otherwise it follows its end', () => {
@@ -205,4 +233,25 @@ test('the wall slide: the kunoichi clings to the wall, her hand on the scrape in
   st.draw(st.duration, b);
   assert.ok(st.loop);
   assert.deepEqual(b, a, 'its last frame runs into its first');
+});
+
+test("a tint swaps a character's body ramp and nothing else: the slime's outline, eyes and blush stay", () => {
+  const ice = fit('ice', BODY.slime.length), out = tinted('slime', 'ice');
+  PALETTES.slime.forEach((c, i) => assert.deepEqual(out[i], BODY.slime.includes(c) ? ice[BODY.slime.indexOf(c)] : c, c));
+  assert.equal(tinted('slime', { ramp: 'ice', swap: { '#fc95a5': '#c4302e' } })[PALETTES.slime.indexOf('#fc95a5')], '#c4302e');
+  assert.deepEqual(tinted('goblin', 'ice'), PALETTES.goblin, 'a character without a BODY keeps its colors');
+});
+
+test("another foe takes the hits: the slime in the goblin's place, tinted", async () => {
+  const steps = [{ mod: await loadEffect('impacts/hit-spark'), id: 'impacts/hit-spark' }];
+  const pixels = cast => {
+    const st = createStage(steps, {}, { caster: false }, cast), [w, h] = st.size, out = new Uint8ClampedArray(w * h * 4);
+    st.draw(0, out, [0, 0, 0]);
+    return out;
+  };
+  const goblin = pixels(), slime = pixels({ foe: 'slime' }), ice = pixels({ foe: 'slime', tint: { slime: 'ice' } });
+  assert.notDeepEqual(slime, goblin);
+  assert.notDeepEqual(ice, slime);
+  const lit = a => a.reduce((n, v, i) => n + (i % 4 < 3 && v > 0), 0);
+  assert.equal(lit(ice), lit(slime), 'a tint changes colors, not the drawing');
 });

@@ -14,7 +14,7 @@ export const meta = {
   ramps: { palette: 8 },
   options: { palette: 'arcane', seed: 1 },
   act: { windup: 0.2, hits: [{ t: 0.2, freeze: 0.06, shake: 2 }] },
-  stage: { at: 'target', x: -54, ground: 19 }, // from the mage's tip to the goblin
+  stage: { at: 'target', x: -54, ground: 19, hold: true }, // from the mage's tip to the goblin, held while it lasts
   sound: [
     { t: 0, kind: 'whoosh', gain: 0.5, pitch: 1.2 }, // the charge, peaking as the ray leaves
     { t: 0, kind: 'chime', gain: 0.25, pitch: 1.5 },

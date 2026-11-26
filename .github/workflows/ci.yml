@@ -33,6 +33,7 @@ jobs:
       contents: read
       pages: write
       id-token: write
+      actions: read
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
@@ -54,6 +55,15 @@ jobs:
       - uses: actions/upload-pages-artifact@v5
         with:
           name: github-pages-${{ github.run_attempt }}
+      # GitHub can list a new artifact seconds late, and deploy-pages looks only once: wait (up to 2 min) until it's listed
+      - run: |
+          for i in $(seq 60); do
+            gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts" --jq '.artifacts[].name' | grep -qx "github-pages-$GITHUB_RUN_ATTEMPT" && exit 0
+            sleep 2
+          done
+          exit 1
+        env:
+          GH_TOKEN: ${{ github.token }}
       - id: deploy
         uses: actions/deploy-pages@v5
         with:

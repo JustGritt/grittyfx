@@ -52,7 +52,7 @@ effect must not be flipped).
 ### Ramps and palette indices
 
 Each name in `meta.ramps` is an option holding a ramp: a name from `PAL` in `src/core/color.js` (fire, ember, ice,
-water, electric, arcane, holy, heal, poison, shadow, blood, smoke, dust, gold, stone, leaf) or a list of colors.
+water, electric, arcane, holy, heal, poison, shadow, blood, smoke, dust, gold, stone, leaf, wind) or a list of colors.
 `createFx` resamples it to its step count (fewer steps pick existing colors, more interpolate), dark to bright, lays
 every ramp into one 256-entry palette table (index 0 is "nothing", `palette` first, the others in `meta.ramps`
 order), and hands the effect **arrays of indices**: `o.palette[0]` is the darkest step, `o.palette[7]` the brightest
@@ -264,7 +264,7 @@ the target. Tag effects for what they are, and the stage follows:
 |---|---|---|---|---|
 | `projectile` | `projectiles` | `path` | from the caster's staff or bow to the goblin's chest, flying 200 px/s (a loop), arriving on its first hit, or at its end (a one-shot); a loop is removed on arrival | shoots |
 | `aura`, `buff`, `pickup` | `pickups` | `caster` | on the floor at the caster's feet | raises a sword or staff |
-| `nova` | | `ground` | on the floor at the caster's feet; a `landing` tag makes them hop and land in it, a `jump` tag take off from it | raises, hops or leaps |
+| `nova` | | `ground` | on the floor at the caster's feet; a `landing` tag makes them hop and land in it, a `jump` tag take off from it, `jump` with `air` kick off it in mid-air (a double jump) | raises, hops or leaps |
 | `status` | `status` | `above` | on top of the goblin's head | casts |
 | `ambient` (torches, portals, props) | | `aside` | on the floor next to the caster; nobody acts | idles |
 | anything else: impacts, explosions, beams, pillars | | `target` | on the goblin's chest, 14 px over the floor | strikes in sword's reach if it is tagged `melee` or `slash`, else casts |
@@ -283,12 +283,16 @@ staff's orb glowing in the spell's colors. In a move, the first acted step picks
 |---|---|
 | `at` | the place, over the role: `target`, `caster`, `ground`, `path`, `above` or `aside` |
 | `cast` | who acts it, over the tags: `knight`, `mage`, `priest`, `archer` or `kunoichi` |
-| `pose` | how it is acted, over the role's: `strike`, `thrust` (a level lunge), `uppercut` (from the blade by the floor up past the head), `spin` (two turns, a cut each), `point`, `raise`, `open` (kneel to it and lift a lid), `slam` (heave overhead, drive down at the feet), `dash` (crouch, then 32 px forward in 0.3 s, the effect going along), `hop`, `leap`, `double` (a jump, then a second from the air where the effect is), `run` (on the spot, looping from the stage's start), `cling` (10 px up a wall to the right, hand on it 13 px ahead of the feet and 19 up, looping like `run`: the wall slide puts its anchor there), or `null` for nobody |
-| `early` | `true` shows the effect's first frame from the stage's start, before the caster acts on it (the chest he kneels to) |
+| `pose` | how it is acted, over the role's: `strike`, `thrust` (a level lunge), `uppercut` (from the blade by the floor up past the head), `spin` (two turns, a cut each), `point`, `raise`, `open` (kneel to it and lift a lid), `slam` (heave overhead, drive down at the feet), `dash` (crouch, then 32 px forward in 0.3 s, the effect going along), `hop`, `leap`, `airjump` (a jump, then a second from the air where the effect is: a `jump` tagged `air` gets it), `run` (on the spot, looping from the stage's start), `cling` (10 px up a wall to the right, hand on it 13 px ahead of the feet and 19 up, looping like `run`: the wall slide puts its anchor there), or `null` for nobody |
 | `ground` | where the floor is in the effect's own coordinates, px below its anchor: how high the stage holds the anchor. `0` for an anchor on the floor (explosions, splashes, pillars, a status drawn from the feet), `14` for a hit drawn 14 px above its floor |
 | `x` | px toward the goblin from the place: the slash anchors at its wielder, so `x: -22`; the coin floats at the knight's side, `x: 16` |
 | `speed` | a looping projectile's, in px/s |
 | `scenery` | the set the stage draws behind a prop, from its anchor: `sconce` (a wall torch's stick, for the torch's flame), `posts` (two terminals 18 px either side, down to the floor, for the arc), `pool` (water level with the floor, from the effect's first ramp, for the ripple), `cliff` (a rock face up to a ledge 58 px over the floor, for the waterfall), `wall` (bricks from the floor up out of the frame, their face on the anchor, for the wall slide) |
+| `hold` | `true`: a cast keeps pointing until the effect ends (a beam) |
+| `hide` | `[t0, t1]`, seconds into the effect: the caster is gone from `t0` to `t1`, or for good without `t1` (a vanish, a blink) |
+| `move` | `[t, dx]`: the caster steps `dx` px toward the goblin at `t` and stays there (a blink's 54 px) |
+| `looks` | `{ pose: tag }`: the caster's own tags for this effect, a list for stand-ins (`{ raise: ['dash', 'crouch'] }`: `dash` once drawn, `crouch` until then). Any of the stage's poses: `ready`, `swing`, `follow` (a strike), `gather`, `point` (a cast), `crouch`, `raise`, `air`, and the ones the acts above use |
+| `waits` | `true`: the effect stands on its first frame from the stage's start until it plays (the chest the knight kneels to) |
 
 `render --stage <id>` and the effect's preview page (its `stage` row) show where it lands. Each hit of an effect on
 the goblin (`target`, `path`, `above`) knocks it back, and so does a projectile without hits when it arrives; hits on
@@ -296,7 +300,8 @@ the caster's side still freeze and shake.
 
 **Moves** (`src/stage/moves.js`) chain effects: `{ name, desc, steps: [{ fx, on, opts, stage }] }`. A step plays once the
 one before it has ended, after its own wind-up; `on: 'hit'` plays it with the previous step's first hit instead (a
-spark on the slash's cut, the explosion where the fireball lands), and a step's `stage` places it over its effect's `meta.stage` (Frost nova's glints round the goblin), and coinciding hits freeze once, at the stronger
+spark on the slash's cut, the explosion where the fireball lands), the caster acting nothing for it unless `acted: true`
+(Shadow step's slash as she reappears), and a step's `stage` places it over its effect's `meta.stage` (Frost nova's glints round the goblin), and coinciding hits freeze once, at the stronger
 freeze and shake. `render --stage <move>` writes `records/moves/<move>/`; the gallery shows them on its Moves page
 (`?page=moves`).
 
@@ -308,9 +313,10 @@ and any other pose starts its run with the look, a strike's on its contact, then
 draws `idle`, `ready`, `swing`, `follow`, `raise`, `crouch`, `aim`, `lunge`, `low`, `rise`, `spin`, `run`, `kneel`,
 `open`; the mage `idle`, `gather`, `cast`, `raise`, `lift`, `slam`, and the priest the first four; the archer `idle`,
 `draw`, `release`; the kunoichi `idle`, `ready`, `slash`, `follow`, `gather`, `throw`, `crouch`, `seal`, `dash`, `air`,
-`lift`, `slam`; the goblin `idle`, `hurt`, which plays from each hit for the 0.3 s he is hurt (`CASTERS` in
-`src/stage/actors.js` maps the stage's poses to them, and a pose a caster hasn't drawn falls back to the one `LIKE`
-names, then to idle). After editing, `node tools/cast.mjs` writes `src/stage/cast.js`; a test fails while it is out of date.
+`lift`, `slam`, `cling`; the goblin `idle`, `hurt`, which plays from each hit for the 0.3 s he is hurt. A tag named
+after a stage pose is drawn for it as soon as it exists; else `CASTERS` in `src/stage/actors.js` maps the pose to one
+of the caster's tags, else it falls back to the pose `LIKE` names, then to idle. After editing, `node tools/cast.mjs`
+writes `src/stage/cast.js`; a test fails while it is out of date.
 
 ## Sound
 

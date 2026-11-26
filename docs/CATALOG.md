@@ -1,6 +1,6 @@
 # Catalog
 
-58 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
+74 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
 Ramps read `option: default (steps)`; pass another ramp name or a list of colors to recolor.
 
 ## earth
@@ -118,9 +118,21 @@ Ramps read `option: default (steps)`; pass another ramp name or a list of colors
 
 | effect | kind | views | size | duration | ramps | tags | description |
 |---|---|---|---|---|---|---|---|
+| `status/asleep` | loop | side | 28x26 | 4.5 s | palette: ice (8) | status, debuff, sleep, asleep, zzz, snore, drowsy | A sleep status over the head: Zs drift up and sideways one after another, growing, swaying and fading, in a slow breathing rhythm |
+| `status/bleeding` | loop | side | 40x30 | 1.6 s | palette: blood (8) | status, debuff, bleed, blood, wound, dot, gore | A bleed status over a body: a gash that throbs with each heartbeat and spurts, drops that well up and fall, spatters on the floor that fade |
 | `status/burning` | loop | side | 44x56 | 1.5 s | palette: fire (8), smoke: smoke (6) | status, fire, burn, debuff, dot | A burn status over a body: small flame tongues flare up and die down all over it, embers rise, a little smoke |
+| `status/confused` | loop | side | 36x22 | 2.4 s | palette: gold (8) | status, debuff, confuse, confused, question, puzzled, dizzy, swirl | A confused status over the head: two question marks bob and tilt this way and that, then whirl round each other in a little swirl and trade places |
+| `status/enraged` | loop | side | 52x44 | 1.6 s | palette: fire (8), steam: smoke (6) | status, debuff, enraged, rage, berserk, anger, fury, steam | A berserk status over the head: a throbbing anger mark, steam huffing out both sides, a red heat shimmer round the body |
+| `status/frozen` | loop | side | 56x46 | 2.4 s | palette: ice (8) | status, ice, frozen, freeze, frost, debuff, cold | A frozen status over a body: a jagged crust of translucent ice from the feet up, light sliding across it, glints twinkling on its points, cold haze pouring off it |
+| `status/gassed` | loop | side | 48x40 | 2.4 s | palette: smoke (8) | status, debuff, gas, teargas, cough, choke, smoke, haze | A tear gas status over a body: fits of coughing throw grey puffs out of the mouth in jerks, a thin haze hangs round the body |
+| `status/haste` | loop | side | 60x46 | 1.2 s | palette: electric (8) | buff, status, haste, speed, quick, swift, wind, dash | A speed buff on its caster: speed lines streaming back off the body, a wind gust curling behind the feet, a light shimmer |
+| `status/marked` | loop | side | 56x38 | 2 s | palette: blood (8) | status, debuff, mark, target, reticle, crosshair, sniper, hunter, lock | A hunter's mark on a target: corner brackets close in on the chest and lock with a flash, then pulse, a faint sight line running back to the shooter |
 | `status/poisoned` | loop | side | 44x56 | 2 s | palette: poison (8) | status, poison, debuff, bubbles, toxic | A poison status over a body: green bubbles that rise and pop, a sickly drip that splashes at the feet, faint fumes |
+| `status/shocked` | loop | side | 48x48 | 1.5 s | palette: electric (8) | status, electric, shock, shocked, paralyze, lightning, debuff, static | An electrified status over a body: little forked arcs crawling over it, re-forming in a new spot every few frames, sparks spitting off them and a flicker of light |
+| `status/silenced` | loop | side | 36x32 | 2 s | palette: arcane (8) | status, debuff, silence, silenced, mute, seal, speech, magic | A silence status over the head: a struck-through speech bubble pulses; words try to form in it, the seal flashes and they break into glyph shards that fizzle out |
+| `status/soaked` | loop | side | 44x40 | 2.4 s | palette: water (8) | status, water, soaked, wet, drench, drip, debuff | A drenched status over a body: drops running down it, hanging and falling into a puddle round the feet that rings with ripples, a wet sheen glinting on it |
 | `status/stunned` | loop | side | 36x20 | 1.2 s | palette: gold (8) | status, stun, dizzy, daze, stars, debuff | A dazed status over the head: little stars orbiting in a flattened ring, twinkling, bright in front and dim behind |
+| `status/suppressed` | loop | side | 64x30 | 2.4 s | palette: gold (8), dust: dust (6), sweat: water (6) | status, debuff, military, suppression, bullets, suppressed, pinned, tracer, gunfire | A suppression status over the head: tracer rounds whizzing past just overhead, one clipping in sparks and dust, a bead of sweat |
 
 ## water
 
@@ -130,3 +142,12 @@ Ramps read `option: default (steps)`; pass another ramp name or a list of colors
 | `water/splash` | one-shot | side, top | 84x56 | 1.2 s | palette: water (8) | water, splash, impact, hit, landing, droplets | Something hits the water: a white burst, a crown of water thrown up that collapses into a foam ring, a jet from the middle, droplets that arc out and ripple where they land |
 | `water/water-bolt` | loop | side, top (8 headings) | 48x26 | 0.5 s | palette: water (8) | water, projectile, magic, bolt | A flying ball of churning water: swirling bands under a glinting skin, a foam bow wave, a wake of spray that breaks up behind and droplets shed as it goes |
 | `water/waterfall` | loop | side | 48x72 | 1 s | palette: water (8) | water, waterfall, cascade, ambient, prop | A narrow fall of water: it curls over a lip, pours down in streaks that race past, and churns into foam and drifting mist on a pool at its foot |
+
+## wind
+
+| effect | kind | views | size | duration | ramps | tags | description |
+|---|---|---|---|---|---|---|---|
+| `wind/air-blade` | loop | side, top (8 headings) | 36x30 | 0.4 s | palette: wind (8), dust: dust (6) | projectile, thrown, wind, air, blade, crescent, ninja | A crescent of pressed air flying edge first: a thin bright leading edge that shimmers, streaks peeling off its tips and curling as they fade, dust caught in its wake |
+| `wind/gust` | one-shot | side, top (8 headings) | 88x48 | 0.8 s | palette: wind (8), dust: dust (6), leaf: leaf (4) | wind, air, gust, magic, spell, push | A blast of air from the hand: wisps are sucked into the staff tip, then a widening cone of curling lines streams out to the target, its front slapping into it and splitting round it, dust and leaves kicked up from the floor below, the lines thinning and curling away |
+| `wind/tornado` | one-shot | side, top | 72x84 | 1.7 s | palette: wind (8), dust: dust (6), leaf: leaf (4) | wind, air, tornado, whirlwind, magic, spell | A twist on the floor shoots up into a spinning funnel round the target, bands of air and dust and leaves wound up it; it grinds three times, then unwinds upward and flings what it carried |
+| `wind/updraft` | loop | side | 48x64 | 1.6 s | palette: wind (8), leaf: leaf (5) | wind, air, updraft, buff, aura, levitate | A wind buff on its caster: a breathing ring of air at the feet, streaks spiralling up round the body and curling off, a few leaves riding up |
