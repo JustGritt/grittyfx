@@ -1,4 +1,4 @@
-// The stage acts effects out: a caster that fits the effect (a knight, a mage, a priest, an archer, a kunoichi or a soldier) winds up for its
+// The stage acts effects out: a caster that fits the effect (a knight, a mage, a priest, an archer, a kunoichi, a soldier or a gunner) winds up for its
 // act.windup, the effect plays where its role puts it, the game freezes and shakes on each hit while a goblin recoils,
 // then both recover. The goblin only stands in for effects that strike it: a buff, a pickup or a prop plays with the
 // caster alone. A move chains effects.
@@ -103,7 +103,7 @@ const SHAKE = 0.2, JIGGLE = [[1, 0], [-1, 1], [1, -1], [-1, 0]]; // as in the ga
  * prop's sconce, posts or pool). `pose` is how the caster acts it: strike (a
  * melee effect on the target), hop (a landing on the ground), leap (a jump: takes off from it), airjump (a jump tagged
  * air: kicks off it in mid-air), raise (on the caster), point (anything else), none
- * (aside). `cast` is who: meta.stage.cast, else the soldier for a military effect, else the kunoichi for a slash, a vanish, a thrown weapon or a shadow/ effect, a knight
+ * (aside). `cast` is who: meta.stage.cast, else the gunner for a military rocket and the soldier for any other military effect, else the kunoichi for a slash, a vanish, a thrown weapon or a shadow/ effect, a knight
  * for a strike, a hop, a leap or a pickup, the priest for a holy/ effect, an archer for a projectile that isn't magic or a
  * spell, else a mage.
  */
@@ -115,7 +115,7 @@ export function role(meta, id = '') {
     : at === 'ground' && tags.includes('jump') ? (tags.includes('air') ? 'airjump' : 'leap')
     : at === 'caster' || at === 'ground' ? 'raise'
     : at === 'target' && (tags.includes('melee') || tags.includes('slash')) ? 'strike' : 'point';
-  const cast = s.cast ?? (tags.includes('military') ? 'soldier'
+  const cast = s.cast ?? (tags.includes('military') ? (tags.includes('rocket') ? 'gunner' : 'soldier')
     : tags.some(t => ROGUE.includes(t)) || id.startsWith('shadow/') ? 'kunoichi'
     : MELEE.includes(pose) || pose === 'hop' || pose === 'leap' || pose === 'airjump' || tags.some(t => KNIGHT.includes(t)) || id.startsWith('pickups/') ? 'knight'
     : id.startsWith('holy/') ? 'priest'

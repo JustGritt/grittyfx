@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **The gunner**, a rocket launcher on his shoulder, desert tan like the soldier: he kneels and fires every `military`
+  effect tagged `rocket` (`rocket`, `missile`, `rocket-blast`, `backblast`). Moves: Rocket, and Rocket salvo, three
+  rockets fired one after another. The backblast blows out of the back of his tube, and a rocket or missile is drawn
+  behind the cast, so it slides out of the tube's mouth rather than over his helmet.
 - **Military**, 24 effects and a soldier to act them. A new `firearms/` category: `muzzle-flash`, `tracer`,
   `bullet-hit`, `ricochet`, `cover-hit`, `shell-casing`, `shotgun-blast`. In `projectiles/`: `grenade` and `molotov`
   (lobbed on an arc), `rocket`, `missile` and `syringe-dart`. In `explosions/`: `grenade-blast`, `rocket-blast`,
