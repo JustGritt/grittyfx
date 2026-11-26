@@ -1,5 +1,5 @@
 // node tools/serve.mjs [--port N]: serves the repo read-only on 127.0.0.1 for the gallery, with gallery/fx-list.json
-// built from the effects on each request.
+// built from the effects on each request. A port in use moves it to the next free one (8000 by default).
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
@@ -58,9 +58,14 @@ export function serve(port = 8000) {
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const { values: a } = parseArgs({ options: { port: { type: 'string', default: '8000' } } });
-  const server = serve(Number(a.port));
+  let port = Number(a.port);
+  const server = serve(port);
   server.on('listening', () => console.log(`http://127.0.0.1:${server.address().port}/gallery/`));
   server.on('error', e => {
+    if (e.code === 'EADDRINUSE' && port < 65535) {
+      console.error(`serve: port ${port} is in use, trying ${port + 1}`);
+      return server.listen(++port, '127.0.0.1'); // taken: the next one up, as vite does
+    }
     console.error(`serve: ${e.message}`);
     process.exitCode = 1;
   });
