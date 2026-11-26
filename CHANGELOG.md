@@ -61,6 +61,11 @@
   `?bg=dark` is the flat one. `composite()` takes a background image as well as a color.
 - **A palette per character**: `src/stage/cast.js` exports `PALETTES[name]` in place of the cast's one `PALETTE`, so
   each character has 89 colors of its own and the cast can grow past six. The stage draws the same pixels.
+- **12 new statuses**, each a loop with sound. On the body: `frozen` (an ice crust), `shocked` (arcs crawling over
+  it), `soaked` (drips into a puddle), `bleeding` (spurts on a heartbeat), `gassed` (coughing fits through a haze),
+  `marked` (a reticle that locks on the chest; the archer acts it). Over the head: `asleep`, `confused`, `silenced`,
+  `enraged`, `suppressed` (rounds whizzing just over it). On the caster: the `haste` buff. Two moves pair them: Soak
+  and shock (a water bolt soaks the goblin, then lightning finds it wet) and Deep freeze (an ice orb, then frozen).
 
 - **Edit in Aseprite**: `render.mjs <id> --aseprite <dir>` writes the side view as an `.aseprite` file (never over an
   existing one) (a color layer, a
