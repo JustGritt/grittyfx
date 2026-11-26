@@ -14,6 +14,7 @@ const GAP = 0.8; // a one-shot rests this long, empty, before it plays again
 const SHAKE = 0.2; // seconds a hit's shake takes to die down
 const EDGE = 4; // px of backdrop past the stage's sides and bottom, the most a hit shakes it
 const DEPTH = 64; // screen px of floor below the actors' feet, the same in every card: room for what an effect draws below
+const CROP = 6; // px a card may cut off each side of a stage too wide for it, its empty margin: so one a few px too wide keeps the others' zoom
 const JIGGLE = [[1, 0], [-1, 1], [1, -1], [-1, 0]];
 const calm = matchMedia('(prefers-reduced-motion: reduce)');
 const form = document.getElementById('controls'), f = form.elements, main = document.getElementById('main');
@@ -245,11 +246,11 @@ function player(mod, canvas, big, id, steps) {
       shown = -1;
     },
     // Zooms the effect to fit, and fills the stage with the canvas and its backdrop (hidden, it waits to be shown). A
-    // card takes the zoom and floor every card shares (relayout); the preview, its own.
+    // card takes the zoom and floor every card shares (relayout), or less if it only fits at less; the preview, its own.
     fit() {
       const stage = canvas.parentElement;
       if (!stage.clientWidth) return;
-      const z = (pl.zoom = big ? Math.max(1, Math.floor(Math.min((stage.clientWidth - 24) / w, (innerHeight * 0.45) / h, 12))) : cards.zoom);
+      const z = (pl.zoom = big ? Math.max(1, Math.floor(Math.min((stage.clientWidth - 24) / w, (innerHeight * 0.45) / h, 12))) : Math.min(cards.zoom, fitting(w, stage.clientWidth)));
       if (big) stage.style.setProperty('--fit', `${h * z + 24}px`); // 24: the stage's padding
       // EDGE px past the sides and the bottom, so a shake shows no gap. The floor `depth` screen px above the bottom,
       // level from card to card; without one, the effect in the middle.
@@ -258,7 +259,7 @@ function player(mod, canvas, big, id, steps) {
       const room = H - EDGE - h;
       [canvas.width, canvas.height, X] = [W, H, (W - w) >> 1];
       Y = Math.max(0, Math.min(room, Number.isFinite(floor) ? room + h - Math.ceil(depth / z) - floor : room >> 1));
-      Object.assign(canvas.style, { width: `${W * z}px`, left: `${-EDGE * z}px`, bottom: `${-EDGE * z}px` });
+      Object.assign(canvas.style, { width: `${W * z}px`, left: `${-((W - vw) >> 1) * z}px`, bottom: `${-EDGE * z}px` }); // centered, cropped alike both sides
       const back = backdrop(f.bg.value, W, H, Y + floor);
       ctx.putImageData(new ImageData(back, W, H), 0, 0);
       under = new Uint8ClampedArray(w * h * 4);
@@ -330,20 +331,24 @@ function player(mod, canvas, big, id, steps) {
 const cards = { zoom: 2, below: DEPTH }; // what every card on a page shares, set by relayout()
 let pending = 0;
 
+/** The largest zoom, up to 3, at which a stage `w` px wide fits `width` screen px, but for CROP px a side. */
+const fitting = (w, width) => Math.max(1, Math.min(3, Math.floor(width / Math.max(1, w - 2 * CROP))));
+
 /**
- * Lays every card out alike, so they match across the page: one zoom, the largest (up to 3) at which every stage fits
- * a card's width, and one stage height that holds them all with their floors on one line, `below` px above the
- * bottom. Then refits every player. Batched to once a frame, as cards arrive one by one.
+ * Lays every card out alike, so they match across the page: one zoom, the largest at which most stages fit a card
+ * (fitting), and one stage height that holds them all with their floors on one line, `below` px above the bottom. A
+ * stage too wide for that zoom takes the largest it fits in its own card, rather than every card with it. Then refits
+ * every player. Batched to once a frame, as cards arrive one by one.
  */
 function relayout() {
   pending ||= requestAnimationFrame(() => {
     pending = 0;
     const ps = players.filter(pl => !pl.big && !pl.error), width = Math.max(0, ...[...document.querySelectorAll('.grid .stage')].map(s => s.clientWidth));
     if (ps.length && width) {
-      const z = (cards.zoom = Math.max(1, Math.min(3, ...ps.map(pl => Math.floor(width / pl.w)))));
-      const floored = ps.filter(pl => Number.isFinite(pl.floor));
-      cards.below = Math.max(DEPTH, ...floored.map(pl => (pl.h - pl.floor) * z));
-      const height = Math.max(...floored.map(pl => pl.floor * z + cards.below), ...ps.map(pl => pl.h * z)) + 24; // 24: headroom
+      cards.zoom = ps.map(pl => fitting(pl.w, width)).sort((a, b) => a - b)[ps.length >> 1]; // the median: what most fit
+      const z = pl => Math.min(cards.zoom, fitting(pl.w, width)), floored = ps.filter(pl => Number.isFinite(pl.floor));
+      cards.below = Math.max(DEPTH, ...floored.map(pl => (pl.h - pl.floor) * z(pl)));
+      const height = Math.max(...floored.map(pl => pl.floor * z(pl) + cards.below), ...ps.map(pl => pl.h * z(pl))) + 24; // 24: headroom
       document.querySelectorAll('.grid').forEach(g => g.style.setProperty('--fit', `${height}px`));
     }
     players.forEach(pl => pl.error || pl.fit());
@@ -511,10 +516,10 @@ async function start() {
     main.replaceChildren(
       el('section', {}, head('Characters', heroes.length),
         el('p', { className: 'desc', textContent: 'The cast that acts the effects out, free to use in your own games (MIT, like the code).' }),
-        el('ul', { className: 'grid' }, ...heroes.map(castCard))),
+        el('ul', { className: 'grid cast' }, ...heroes.map(castCard))),
       el('section', {}, head('Monsters', MONSTERS.length),
         el('p', { className: 'desc', textContent: 'The targets that take the hits: pick one under Cast. Free to use as well.' }),
-        el('ul', { className: 'grid' }, ...MONSTERS.map(castCard))));
+        el('ul', { className: 'grid cast' }, ...MONSTERS.map(castCard))));
   } else if (page === 'moves') {
     const ids = Object.keys(MOVES), ul = el('ul', { className: 'grid' });
     main.replaceChildren(el('section', {}, head('Moves', ids.length),
