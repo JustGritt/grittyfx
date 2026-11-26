@@ -12,7 +12,7 @@ export const meta = {
   views: ['side'],
   ramps: { palette: 8 },
   options: { palette: 'dust', seed: 1 },
-  stage: { at: 'aside', x: -26, cast: 'knight' }, // under the knight's feet (aside: he isn't acted, the loop runs)
+  stage: { at: 'aside', x: -26, cast: 'knight', pose: 'run' }, // under the knight's feet as he runs on the spot
   sound: [
     { t: 0, kind: 'thump', gain: 0.22, pitch: 2.2 }, // a foot, then the other
     { t: 0, kind: 'crack', gain: 0.05, pitch: 3 },

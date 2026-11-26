@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
-import { role, plan, poseAt, targetAt, realtime, createStage, HIT, NEAR, FAR, FPS } from '../src/stage/stage.js';
-import { CAST, BODY, frameOf, tinted } from '../src/stage/actors.js';
+import { role, plan, poseAt, looks, into, targetAt, realtime, createStage, HIT, NEAR, FAR, FPS } from '../src/stage/stage.js';
+import { CAST, BODY, frameOf, frameAt, tinted } from '../src/stage/actors.js';
 import { PALETTES } from '../src/stage/cast.js';
 import { fit } from '../src/core/index.js';
 import { castModule, castFiles } from '../tools/cast.mjs';
@@ -24,6 +24,7 @@ test('role: tags place an effect, the category when no tag does, meta.stage over
   assert.equal(at(['landing'], '', { at: 'ground' }).pose, 'hop');
   assert.deepEqual([at(['jump'], '', { at: 'ground' }).pose, at(['landing', 'jump'], '', { at: 'ground' }).pose], ['leap', 'hop'], 'a jump takes off, a landing lands in it');
   assert.equal(at(['landing', 'hit']).pose, 'point', 'only a landing on the ground under the caster hops');
+  assert.deepEqual([at(['impact'], '', { pose: 'raise' }).pose, at(['melee'], '', { pose: null }).pose], ['raise', null], 'meta.stage.pose over the tags');
   assert.deepEqual([at(['buff']).ground, at(['nova']).ground, at(['impact']).ground], [0, 0, HIT]);
   assert.equal(at(['status']).ground, -CAST.goblin.idle[0].y, "a status sits on top of the goblin's head");
 });
@@ -44,9 +45,13 @@ test('cast.js is up to date with the Aseprite files, and every caster draws ever
   for (const who of ['knight', 'mage', 'priest', 'archer', 'kunoichi']) {
     for (const pose of ['idle', 'ready', 'swing', 'follow', 'gather', 'point', 'raise', 'crouch', 'air']) assert.ok(frameOf(who, pose).rows.length, `${who} ${pose}`);
     assert.ok(frameOf(who, 'point').tip, `${who} shoots from a tip`);
-    assert.equal(CAST[who].idle.length, 2, `${who} breathes`);
+    assert.ok(CAST[who].idle.length >= 2, `${who} breathes`);
   }
   assert.ok(CAST.goblin.hurt);
+  for (const [who, poses] of Object.entries(CAST)) for (const [pose, run] of Object.entries(poses)) run.forEach((f, i) => {
+    const n = (f.ms / 1000) * FPS; // a frame between two of the stage's would show for one or two of them unevenly
+    assert.ok(Math.round(n) >= 1 && Math.abs(n - Math.round(n)) * (1000 / FPS) < 1, `${who} ${pose} frame ${i + 1} lasts ${f.ms} ms: make it 33, 67, 100...`);
+  });
 });
 
 test('plan: the wind-up comes before the effect, its hits land after its start, on a frame', () => {
@@ -85,6 +90,18 @@ test('plan: an effect hides or moves the caster, holds a cast or picks its own l
 
   const ready = looks => { const q = plan([{ mod: mod({ tags: ['melee'], act: { hits: [{ t: 0.05 }] }, stage: { looks } }) }]); return poseAt(q.keys, q.acts[0].start).look; };
   assert.deepEqual([ready(undefined), ready({ ready: 'crouch' }), ready({ ready: ['undrawn', 'crouch'] }), ready({ ready: 'undrawn' })], ['ready', 'crouch', 'crouch', 'ready'], 'the first tag drawn, else the pose');
+});
+
+test('plan: a held charge stays raised while its loop plays, then winds straight up into the blow, in reach', () => {
+  const charge = hold => mod({ tags: ['aura'], loop: true, duration: 0.8, stage: { cast: 'knight', hold } });
+  const raised = hold => { const q = plan([{ mod: charge(hold) }]); return poseAt(q.keys, q.acts[0].end - 0.05).look; };
+  assert.deepEqual([raised(true), raised(false)], ['raise', 'idle'], 'raised until the loop ends');
+  const blow = mod({ tags: ['melee'], act: { windup: 0.2, hits: [{ t: 1 / 30 }] } });
+  const p = plan([{ mod: charge(true) }, { mod: blow }]), [a, b] = p.acts;
+  assert.equal(p.D, NEAR, 'a charge on the caster before a blow keeps the goblin in reach');
+  const ls = looks(p.keys).filter(l => l.t > a.start - 1e-9 && l.t < b.contact + 1e-9).map(l => l.look);
+  assert.deepEqual(ls, ['raise', 'ready', 'swing'], 'never idle between the charge and the blow');
+  assert.equal(plan([{ mod: charge(true) }, { mod: mod({ act: { hits: [{ t: 0 }] } }) }]).D, FAR, 'a cast after it still needs room');
 });
 
 test('createStage: an effect that waits stands on its first frame before it plays', () => {
@@ -143,6 +160,22 @@ test('realtime: a hit holds its frame for its freeze and shakes the view', () =>
   assert.ok(fr.slice(10, 15).every(f => f.dx || f.dy) && !fr[9].dx && !fr.at(-1).dx, 'from the hit frame, for 0.2 s');
 });
 
+test('runs: each frame shows for its ms; a wind-up ends as the action comes in, which starts on its first frame', async () => {
+  const run = [{ ms: 100 }, { ms: 100 }, { ms: 200 }], at = (u, loop) => run.indexOf(frameAt(run, u, loop));
+  assert.deepEqual([-0.1, 0, 0.1, 0.35, 1].map(u => at(u)), [0, 0, 1, 2, 2], 'the first before it starts, the last once over');
+  assert.deepEqual([0.45, -0.3].map(u => at(u, true)), [0, 1], 'a loop wraps round');
+  const ls = [{ look: 'idle', t: -Infinity }, { look: 'ready', t: 1 }, { look: 'swing', t: 1.5 }, { look: 'idle', t: 2 }];
+  assert.deepEqual([1, 1.05, 1.2, 1.45].map(t => at(into(ls, t, run))), [0, 0, 1, 2], 'a wind-up holds its first frame, then ends its run as the action comes in');
+  near(into(ls, 1.6, run), 0.1);
+  for (const id of listIds()) {
+    const mod = await loadEffect(id);
+    const hits = { strike: 'swing', thrust: 'lunge', uppercut: 'rise', spin: 'spin' }[role(mod.meta, id).pose];
+    if (!hits) continue;
+    const p = plan([{ mod, id }]);
+    near(looks(p.keys).find(l => l.look === hits).t, p.acts[0].contact); // the swing or lunge lands with the hit
+  }
+});
+
 test('every effect and move plays on the stage, and draws something', async () => {
   const stages = [
     ...await Promise.all(listIds().map(async id => [id, [{ mod: await loadEffect(id), id }]])),
@@ -195,6 +228,23 @@ test('the goblin only stands in for effects that strike it: a buff, a pickup or 
   assert.equal(plan([{ mod: mod({ tags: ['buff'], stage: { ground: 5 } }), stage: { at: 'target' } }]).acts[0].role.ground, 5, 'the rest of it kept');
   const width = tags => createStage([{ mod: mod({ tags }) }]).size[0];
   assert.ok(width(['buff']) < width(['impact']) - 20, 'the canvas fits the caster alone');
+});
+
+test('the wall slide: the kunoichi clings to the wall, her hand on the scrape in every frame, and the stage loops', async () => {
+  const id = 'movement/wall-slide', fx = await loadEffect(id), r = role(fx.meta, id);
+  assert.deepEqual([r.cast, r.pose, r.scenery], ['kunoichi', 'cling', 'wall']);
+  const p = plan([{ mod: fx, id }]), [ax, ay] = p.acts[0].from, q = poseAt(p.keys, 1);
+  assert.equal(q.look, 'cling');
+  CAST.kunoichi.cling.forEach((f, i) => {
+    const x = ax - q.x - f.x, y = ay + q.lift - f.y;
+    assert.notEqual(f.rows[y][x], '.', `frame ${i + 1}: her hand on the anchor`);
+    assert.equal(f.rows[0].length - 1, x, `frame ${i + 1}: nothing of her past the wall's face`);
+  });
+  const st = createStage([{ mod: fx, id }]), [w, h] = st.size, a = new Uint8ClampedArray(w * h * 4), b = new Uint8ClampedArray(w * h * 4);
+  st.draw(0, a);
+  st.draw(st.duration, b);
+  assert.ok(st.loop);
+  assert.deepEqual(b, a, 'its last frame runs into its first');
 });
 
 test("a tint swaps a character's body ramp and nothing else: the slime's outline, eyes and blush stay", () => {

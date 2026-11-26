@@ -37,21 +37,41 @@ export function actorPalette(glow = 'holy', who = Object.keys(CAST), tint = {}) 
  * instead, and whether its tip glows in the spell's colors. Every pose but idle falls back to idle.
  */
 export const CASTERS = {
-  knight: { glow: true, look: { ready: 'ready', swing: 'swing', follow: 'swing', gather: 'ready', point: 'swing', raise: 'raise', crouch: 'crouch', air: 'crouch' } },
+  knight: { glow: true, look: { ready: 'ready', swing: 'swing', follow: 'follow', gather: 'ready', point: 'swing', raise: 'raise', crouch: 'crouch', air: 'crouch' } },
   mage: { glow: true, look: { ready: 'gather', swing: 'cast', follow: 'cast', gather: 'gather', point: 'cast', raise: 'raise', crouch: 'gather' } },
   priest: { glow: true, look: { ready: 'gather', swing: 'cast', follow: 'cast', gather: 'gather', point: 'cast', raise: 'raise', crouch: 'gather' } },
   archer: { glow: false, look: { ready: 'draw', swing: 'release', follow: 'release', gather: 'draw', point: 'release', raise: 'draw', crouch: 'draw' } },
-  kunoichi: { glow: false, look: { ready: 'ready', swing: 'slash', follow: 'follow', gather: 'gather', point: 'throw', raise: 'seal', crouch: 'crouch', air: 'crouch' } },
+  kunoichi: { glow: false, look: { ready: 'ready', swing: 'slash', follow: 'follow', gather: 'gather', point: 'throw', raise: 'seal', crouch: 'crouch' } },
 };
 
+// The stage's newer poses, and the older one each falls back to for a caster with no drawing of its own.
+export const LIKE = { aim: 'ready', lunge: 'swing', low: 'crouch', rise: 'raise', spin: 'swing', kneel: 'crouch', open: 'raise', lift: 'raise', slam: 'crouch', dash: 'swing', high: 'air', cling: 'air' };
+
 /**
- * `who`'s frame for a pose: frame `i` (wrapping) of its own tag of that name once drawn (a knight's `air`), else of the
- * tag CASTERS stands in with, else of idle.
+ * `who`'s frames for a pose, its run: its own tag of that name once drawn (a knight's `air`), else the tag CASTERS
+ * stands in with; else the same for the pose it is LIKE; else idle's.
  */
-export const frameOf = (who, pose, i = 0) => {
-  const tag = CAST[who][pose] ?? CAST[who][CASTERS[who]?.look[pose]] ?? CAST[who].idle;
-  return tag[i % tag.length];
+export const runOf = (who, pose) => {
+  const tag = p => CAST[who][p] ?? CAST[who][CASTERS[who]?.look[p]];
+  return tag(pose) ?? tag(LIKE[pose]) ?? CAST[who].idle;
 };
+
+/** `who`'s frame for a pose: its run's frame `i` (wrapping). */
+export const frameOf = (who, pose, i = 0) => {
+  const run = runOf(who, pose);
+  return run[i % run.length];
+};
+
+/** How long a run plays, in seconds: each frame shows for its ms. */
+export const seconds = run => run.reduce((n, f) => n + f.ms, 0) / 1000;
+
+/** A run's frame u seconds in: its first before it starts, its last once it's over, or wrapping round with loop. */
+export function frameAt(run, u, loop = false) {
+  if (loop) u -= Math.floor(u / seconds(run)) * seconds(run);
+  let end = 0;
+  for (const f of run) if ((end += f.ms / 1000) > u + 1e-6) return f;
+  return run.at(-1);
+}
 
 /** The box [x0, y0, x1, y1] (local, x1 and y1 past the last pixel) that holds every frame of `who`. */
 export function bounds(who) {

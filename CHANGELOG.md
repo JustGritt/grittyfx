@@ -8,19 +8,51 @@
   `air-blade` (a crescent of air the kunoichi throws, streaks curling off its tips) and `updraft` (a buff loop, streaks
   and leaves spiralling up round the caster over a ring of air). Top views for all but the updraft. The Tempest move
   pairs the gust and the tornado.
+- **Caltrops** (`projectiles/caltrops`): a handful the kunoichi tosses in a low arc to the goblin's feet, tumbling
+  apart, clattering and hopping over the floor, settling spikes up and glinting one by one before they fade. Acted
+  with her `throw`.
+- **Unarmed hits**, tagged `unarmed` and `melee` for a monk to act (the knight stands in until there is one):
+  `impacts/punch` (a compact, heavy blow: a white flash and a ring of impact lines on a long hit-stop), `impacts/kick`
+  (a roundhouse sweeping a flat arc at chest height into a wider broken ring) and `impacts/palm-strike` (two palms,
+  then a shockwave on a second hit that shoves the goblin back). The Flurry move chains punch, punch, kick.
+- **Ground slam** (`impacts/ground-slam`): the knight drives his blade into the floor (a white flash, steel sparks,
+  cracks) and a shockwave of rolled-up dust and grit runs both ways along it, the far side bursting under the
+  goblin's feet as it hits. Acted with `slam`: his `raise`, then his `crouch` until his own slam is drawn.
+- **Charge-up** (`magic/charge-up`): a held charge on the knight's raised blade, motes drawn inward into it, its glow
+  building to a flare each beat, a flickering rim round him. The Charged strike move holds it, then brings the blade
+  down in a gold heavy hit. A held raise (`meta.stage.hold`) now stays up while its loop plays, like a held cast, and
+  a charge or buff on the caster before a melee blow keeps the goblin in reach.
+- **The priest's holy spells**: `holy/barrier` (a wall of light held out before her; a hostile bolt in its own `bolt`
+  ramp bursts on it, the wall flaring, denting and rippling, then crumbling into motes), `holy/revive` (soft light
+  comes down beside her on a body of light lying on the floor, lifted upright in a white flash) and `holy/cleanse` (a
+  taint in its own `taint` ramp, poison by default, bubbling over her until light from her staff washes it off at
+  her feet).
+- **The archer's fire and volley**: `projectiles/fire-arrow` (a burning head, flames streaming back off it, embers
+  peeling off into a trail; the flame is its palette, so it recolors to a frost or poison arrow),
+  `projectiles/sky-shot` (two arrows loosed high out of the frame) and `projectiles/arrow-rain` (a volley falling
+  steeply across the goblin, thudding into the floor round it, three of them striking it). The Fire arrow move sets
+  the goblin burning where it strikes; Arrow rain shoots high, then the volley falls.
 - **The stage acts the new effects right**: `meta.stage` can hide the caster (`hide`: the kunoichi gone in her smoke
   bomb, substitution and smoke puff), move them (`move`: the blink's 54 px, so Shadow step cuts the goblin as she
   reappears, with a move step's `acted: true`), hold a cast while a beam lasts (`hold`), pick the caster's own tags
-  (`looks`, with stand-ins: the thrust from a low guard, the uppercut from a crouch up to a raised blade, the dash and
-  the chest in a crouch until `dash` and `open` are drawn), and show an effect before it plays (`waits`: the chest is
-  there before the knight opens it). A jump tagged `air` kicks off in mid-air (the double jump); the smoke puff plays
-  at the feet of whoever vanishes in it, not on the goblin. A pose takes a character's tag of the same name once drawn.
+  for an effect (`looks`, a list of stand-ins until one is drawn), and show an effect before it plays (`waits`: the
+  chest is there before the knight kneels to it). A jump tagged `air` kicks off in mid-air (`airjump`: the double
+  jump); the smoke puff plays at the feet of whoever vanishes in it, not on the goblin. A pose takes a character's tag
+  of the same name once drawn.
 
 - **A cast that fits**: the stage's code-drawn swordsman and dummy are replaced by characters drawn in Aseprite
   (`src/stage/cast/*.aseprite`, made into `src/stage/cast.js` by `tools/cast.mjs`): a knight acts melee, pickups
   and landings, a mage spells, statuses, auras and spell projectiles (the staff's orb glows in the spell's colors),
   an archer other projectiles, and a goblin takes the hits (knocked back, a white flash, a hurt face). Tags pick the
   caster, `meta.stage.cast` overrides it. Shots leave from the caster's staff or bow.
+- **Poses play as runs**: a cast pose can be several frames, each shown for its Aseprite duration (`ms` in
+  `cast.js`). Idle loops, a wind-up ends its run as the action comes in, and an action starts its run on its key and
+  holds its last frame: a strike's swing now lands on its contact, a frame later than before.
+- **New poses, and `meta.stage.pose`** to name how an effect is acted: the knight thrusts (`impacts/thrust`, Lunge),
+  cuts upward from the floor (`impacts/uppercut`, Launcher), spins twice (`impacts/spin-slash`, Whirlwind), runs on the
+  spot (`movement/footstep`) and kneels to the chest (`pickups/chest-open`); the kunoichi dashes forward with her
+  trail (`movement/dash-trail`), jumps (`movement/jump-dust`), jumps again from the air (`movement/double-jump`),
+  dashes her smoke bomb down and is gone in it (`shadow/smoke-bomb`) and clings to the wall as the grit sprays from her hand (`movement/wall-slide`); the mage slams his staff for the quake (`earth/quake`, Tremor). `check.mjs` checks the pose.
 - **Gallery**: Caster and Target toggles replace Stage, on by default, like pixelfx's character toggle: either can
   be switched off (`?caster=0`, `?target=0`), both off shows the effect alone. `createStage(steps, o, show)`.
 - **New effect** `projectiles/arrow` (8 headings), and an Arrow shot move.
@@ -47,7 +79,7 @@
   frame, and play goes on from it.
 - **Props on the stage**: `meta.stage.scenery` names a set piece the stage draws behind a prop: the torch's flame
   sits on a wall sconce, the arc jumps between two terminal posts, the ripple spreads on a pool level with the floor
-  (in the effect's own colors). The arc and the ripple stand clear of the caster and no longer sink into the floor,
+  (in the effect's own colors), the wall slide scrapes down a brick wall (`wall`). The arc and the ripple stand clear of the caster and no longer sink into the floor,
   and props are there from the stage's first frame, without the 0.4 s an acted effect waits.
 - **`fire/torch` at the cast's scale**: the flame is 15 px tall, not 30 (a third of a 40 px character, not three
   quarters), on a 24x32 canvas instead of 32x48, its tongues, glow and embers scaled with it. The Unity demo keeps its

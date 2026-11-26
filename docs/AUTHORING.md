@@ -283,15 +283,16 @@ staff's orb glowing in the spell's colors. In a move, the first acted step picks
 |---|---|
 | `at` | the place, over the role: `target`, `caster`, `ground`, `path`, `above` or `aside` |
 | `cast` | who acts it, over the tags: `knight`, `mage`, `priest`, `archer` or `kunoichi` |
+| `pose` | how it is acted, over the role's: `strike`, `thrust` (a level lunge), `uppercut` (from the blade by the floor up past the head), `spin` (two turns, a cut each), `point`, `raise`, `open` (kneel to it and lift a lid), `slam` (heave overhead, drive down at the feet), `dash` (crouch, then 32 px forward in 0.3 s, the effect going along), `hop`, `leap`, `airjump` (a jump, then a second from the air where the effect is: a `jump` tagged `air` gets it), `run` (on the spot, looping from the stage's start), `cling` (10 px up a wall to the right, hand on it 13 px ahead of the feet and 19 up, looping like `run`: the wall slide puts its anchor there), or `null` for nobody |
 | `ground` | where the floor is in the effect's own coordinates, px below its anchor: how high the stage holds the anchor. `0` for an anchor on the floor (explosions, splashes, pillars, a status drawn from the feet), `14` for a hit drawn 14 px above its floor |
 | `x` | px toward the goblin from the place: the slash anchors at its wielder, so `x: -22`; the coin floats at the knight's side, `x: 16` |
 | `speed` | a looping projectile's, in px/s |
-| `scenery` | the set the stage draws behind a prop, from its anchor: `sconce` (a wall torch's stick, for the torch's flame), `posts` (two terminals 18 px either side, down to the floor, for the arc), `pool` (water level with the floor, from the effect's first ramp, for the ripple), `cliff` (a rock face up to a ledge 58 px over the floor, for the waterfall) |
-| `hold` | `true`: a cast keeps pointing until the effect ends (a beam) |
+| `scenery` | the set the stage draws behind a prop, from its anchor: `sconce` (a wall torch's stick, for the torch's flame), `posts` (two terminals 18 px either side, down to the floor, for the arc), `pool` (water level with the floor, from the effect's first ramp, for the ripple), `cliff` (a rock face up to a ledge 58 px over the floor, for the waterfall), `wall` (bricks from the floor up out of the frame, their face on the anchor, for the wall slide) |
+| `hold` | `true`: a cast keeps pointing, or a raise stays up, until the effect ends (a beam; a charge held while its loop plays, so a move's next step winds up straight from it) |
 | `hide` | `[t0, t1]`, seconds into the effect: the caster is gone from `t0` to `t1`, or for good without `t1` (a vanish, a blink) |
 | `move` | `[t, dx]`: the caster steps `dx` px toward the goblin at `t` and stays there (a blink's 54 px) |
-| `looks` | `{ pose: tag }`: the caster's own tags for this effect, a list for stand-ins (`{ raise: ['dash', 'crouch'] }`: `dash` once drawn, `crouch` until then). Poses: `ready`, `swing`, `follow` (a strike), `gather`, `point` (a cast), `crouch`, `raise`, `air` |
-| `waits` | `true`: the effect stands on its first frame from the stage's start until it plays (the chest the knight opens) |
+| `looks` | `{ pose: tag }`: the caster's own tags for this effect, a list for stand-ins (`{ raise: ['dash', 'crouch'] }`: `dash` once drawn, `crouch` until then). Any of the stage's poses: `ready`, `swing`, `follow` (a strike), `gather`, `point` (a cast), `crouch`, `raise`, `air`, and the ones the acts above use |
+| `waits` | `true`: the effect stands on its first frame from the stage's start until it plays (the chest the knight kneels to) |
 
 `render --stage <id>` and the effect's preview page (its `stage` row) show where it lands. Each hit of an effect on
 the goblin (`target`, `path`, `above`) knocks it back, and so does a projectile without hits when it arrives; hits on
@@ -301,15 +302,23 @@ the caster's side still freeze and shake.
 one before it has ended, after its own wind-up; `on: 'hit'` plays it with the previous step's first hit instead (a
 spark on the slash's cut, the explosion where the fireball lands), the caster acting nothing for it unless `acted: true`
 (Shadow step's slash as she reappears), and a step's `stage` places it over its effect's `meta.stage` (Frost nova's glints round the goblin), and coinciding hits freeze once, at the stronger
-freeze and shake. `render --stage <move>` writes `records/moves/<move>/`; the gallery shows them on its Moves page
+freeze and shake. A looping step plays at least 1.6 s, then fades over 0.3 s as the next step winds up. The goblin
+stands in a sword's reach when the move strikes in melee and its other acted steps play on the caster (Charged strike's
+charge). `render --stage <move>` writes `records/moves/<move>/`; the gallery shows them on its Moves page
 (`?page=moves`).
 
 **The cast's art** is in `src/stage/cast/<name>.aseprite`, one file per character: the feet at the bottom center of
-the canvas, a tag per pose (`idle` has two frames, a breath), and a hidden `tip` layer with one pixel where the glow
-sits and shots leave from. The knight draws `idle`, `ready`, `swing`, `raise`, `crouch`; the mage `idle`, `gather`,
-`cast`, `raise`; the archer `idle`, `draw`, `release`; the kunoichi `idle`, `ready`, `slash`, `follow`, `gather`,
-`throw`, `crouch`, `seal`; the goblin `idle`, `hurt` (`CASTERS` in `src/stage/actors.js` maps the stage's poses to
-them; a tag named after a pose, such as a knight's `air`, is drawn for it as soon as it exists). After editing, `node tools/cast.mjs` writes `src/stage/cast.js`; a test fails while it is out of date.
+the canvas, a tag per pose, and a hidden `tip` layer with one pixel where the glow sits and shots leave from. A pose
+can be a run of frames, each shown for its Aseprite duration in whole stage frames (33, 67, 100 ms...): `idle` loops
+(at least two frames, a breath), a wind-up (`ready`, `gather`, `crouch`) ends its run as the action after it comes in,
+and any other pose starts its run with the look, a strike's on its contact, then holds its last frame. The knight
+draws `idle`, `ready`, `swing`, `follow`, `raise`, `crouch`, `aim`, `lunge`, `low`, `rise`, `spin`, `run`, `kneel`,
+`open`; the mage `idle`, `gather`, `cast`, `raise`, `lift`, `slam`, and the priest the first four; the archer `idle`,
+`draw`, `release`; the kunoichi `idle`, `ready`, `slash`, `follow`, `gather`, `throw`, `crouch`, `seal`, `dash`, `air`,
+`lift`, `slam`, `cling`; the goblin `idle`, `hurt`, which plays from each hit for the 0.3 s he is hurt. A tag named
+after a stage pose is drawn for it as soon as it exists; else `CASTERS` in `src/stage/actors.js` maps the pose to one
+of the caster's tags, else it falls back to the pose `LIKE` names, then to idle. After editing, `node tools/cast.mjs`
+writes `src/stage/cast.js`; a test fails while it is out of date.
 
 ## Sound
 

@@ -1,6 +1,6 @@
 # Catalog
 
-74 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
+86 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
 Ramps read `option: default (steps)`; pass another ramp name or a list of colors to recolor.
 
 ## earth
@@ -41,16 +41,23 @@ Ramps read `option: default (steps)`; pass another ramp name or a list of colors
 
 | effect | kind | views | size | duration | ramps | tags | description |
 |---|---|---|---|---|---|---|---|
+| `holy/barrier` | one-shot | side | 96x68 | 1.85 s | palette: holy (8), bolt: arcane (8) | barrier, shield, ward, holy, light, magic, spell | A wall of light raised before the caster: it unfurls from the staff, shimmers and holds, a hostile bolt bursts on its face as it flares and ripples, then it crumbles into rising motes |
 | `holy/blessing` | one-shot | side | 52x72 | 1.1 s | palette: holy (8) | buff, holy, light, magic, spell | A buff on the caster: a glint over the head opens into a ring of light that settles down over the body to the feet, golden motes spiral up, a gentle shine |
+| `holy/cleanse` | one-shot | side | 64x64 | 1.7 s | palette: holy (8), taint: poison (8) | cleanse, cure, purify, buff, holy, light, magic, spell | A taint washed off the caster: sickly bubbles and fumes cling to her until light gathered over her head bursts and pours down over her, the taint flung off at her feet and gone in puffs, sparkles left on her |
 | `holy/holy-bolt` | loop | side, top (8 headings) | 52x22 | 0.5 s | palette: holy (8) | projectile, holy, light, magic, spell | A flying lance of light: a white-hot point in gold edges, a short trail of two strands that shimmer and weave, glints popping behind it |
 | `holy/light-pillar` | one-shot | side | 84x116 | 1.1 s | palette: holy (8) | impact, hit, holy, light, beam, spell, strike | A thin ray picks out the target, then a column of light slams down on it: a white hero frame, a flare racing over the ground, sparks rising as the beam thins and lifts away |
+| `holy/revive` | one-shot | side | 64x96 | 1.9 s | palette: holy (8) | revive, resurrect, heal, holy, light, magic, spell | A shaft of soft light comes down on a spot on the floor, motes falling into the glow of a body lying there; it rises and stands in a white flash, a ring flaring out over the ground, and the light lifts away in rising motes |
 
 ## impacts
 
 | effect | kind | views | size | duration | ramps | tags | description |
 |---|---|---|---|---|---|---|---|
+| `impacts/ground-slam` | one-shot | side | 136x48 | 1.1 s | palette: fire (8), debris: stone (6), dust: dust (6) | impact, slam, shockwave, ground, melee, crack, dust, debris | A blade driven into the floor: a white flash, sparks and cracks where it bites, then a shockwave of rolled-up dust and grit runs both ways along the floor, skimming it, the far side bursting under the target |
 | `impacts/heavy-hit` | one-shot | side | 104x64 | 0.9 s | palette: fire (8), debris: stone (4), dust: dust (5) | impact, hit, heavy, melee, crack, debris | A crushing blow: a white hero frame, a broken shock ring, then a glowing crack splits the floor under the target and throws up debris and dust |
 | `impacts/hit-spark` | one-shot | side | 56x40 | 0.46 s | palette: gold (8) | impact, hit, spark, melee | A sharp contact flash, a white hero frame, then a spray of sparks that streak, fall and bounce |
+| `impacts/kick` | one-shot | side | 76x60 | 0.42 s | palette: gold (8) | kick, unarmed, melee, impact, hit, arc | A fast roundhouse at chest height: the foot sweeps a flat arc round in front of the kicker and into the target, a white pop where it lands throws out a wide broken ring and sparks, the arc swinging on past behind it |
+| `impacts/palm-strike` | one-shot | side | 84x60 | 0.6 s | palette: wind (8), dust: dust (5) | palm, unarmed, melee, impact, hit, shockwave, knockback | Both palms driven into the target at once: two white flashes and a wall of force, then a shockwave that bursts out of its back and rolls on, crescent after crescent, with streaks of air and dust swept along the floor |
+| `impacts/punch` | one-shot | side | 60x48 | 0.3 s | palette: gold (8) | punch, unarmed, melee, impact, hit | A short, heavy fist blow on the target: speed lines close in, a round white flash lands, and a ring of impact lines bursts out round it with a shock ring, a few sparks knocked on through |
 | `impacts/slash` | one-shot | side, top (8 headings) | 60x60 | 0.3 s | palette: ice (8) | slash, melee, sword, impact, arc | A blade swing from the wielder at the anchor: a crescent sweeps down through the target in front, flashes as it cuts, and leaves a trail that cools and fades |
 | `impacts/spin-slash` | one-shot | side, top | 88x44 | 0.6 s | palette: ice (8) | spin, whirlwind, melee, sword, impact, arc | A whirlwind swing around the wielder at the anchor: the blade sweeps two full turns, its trail wrapping behind and in front of them, cutting the target in front on each pass, its path lingering as a fading ring |
 | `impacts/thrust` | one-shot | side, top (8 headings) | 64x40 | 0.34 s | palette: ice (8) | thrust, stab, melee, sword, spear, impact | A straight stab from the wielder at the anchor: a lance of light shoots forward with speed lines, a sharp star bursts where the point lands, sparks spray on through, and the lance pulls back as it fades |
@@ -61,6 +68,7 @@ Ramps read `option: default (steps)`; pass another ramp name or a list of colors
 | effect | kind | views | size | duration | ramps | tags | description |
 |---|---|---|---|---|---|---|---|
 | `magic/beam` | one-shot | side, top (8 headings) | 78x36 | 0.8 s | palette: arcane (8) | magic, beam, ray, laser, spell | A ray held from the staff: light gathers at the tip, the beam snaps out to full length with a white hero frame, holds with a rippling core and a flaring contact point spitting sparks, then thins to a thread and breaks up |
+| `magic/charge-up` | loop | side | 64x64 | 1.6 s | palette: gold (8) | aura, charge, charge-up, power, focus, weapon | A held charge on a fighter with the blade raised: motes drawn inward into the blade, its glow building to a flare each beat, a flickering rim round the body, grit drawn in along the floor |
 | `magic/frost-burst` | one-shot | side | 80x60 | 1.3 s | palette: ice (8) | magic, ice, frost, nova, spell | Cold gathers, then a crown of ice spikes bursts from the ground with flying shards and a frost ring; the spikes shatter and a cold mist settles |
 | `magic/heal-aura` | loop | side | 48x56 | 2 s | palette: heal (8) | magic, heal, aura, buff, status | A soft ring of light at the feet, sparkles and little plus signs rising through a gentle glow |
 | `magic/lightning-strike` | one-shot | side | 72x104 | 0.8 s | palette: electric (8) | magic, lightning, electric, strike, spell | A glint and a creeping leader, then a jagged branching bolt with a white hero frame, re-strikes, ground sparks and afterglow |
@@ -98,9 +106,13 @@ Ramps read `option: default (steps)`; pass another ramp name or a list of colors
 | effect | kind | views | size | duration | ramps | tags | description |
 |---|---|---|---|---|---|---|---|
 | `projectiles/arrow` | loop | side, top (8 headings) | 48x12 | 0.4 s | palette: blood (8), wood: dust (6), steel: stone (6) | projectile, arrow, bow, physical | An arrow in flight: a steel broadhead that glints, a shaft whose fletching shivers as it flies, streaks of air running off behind |
+| `projectiles/arrow-rain` | one-shot | side | 82x70 | 1.2 s | palette: blood (8), wood: dust (6), steel: stone (6), dust: dust (8) | projectile, arrow, bow, volley, rain, physical | A volley falling out of the sky: arrows streak down steeply across the target one after another and thud into the floor around it, quivering, dust and grit kicked up, then stand there and fade |
+| `projectiles/caltrops` | one-shot | side | 88x44 | 1.8 s | palette: stone (6), dust: dust (5) | thrown, ninja, trap, caltrops, spikes, scatter, physical | A handful of caltrops tossed in a low arc: they tumble apart, clatter and hop over the floor at the target's feet, settle spikes up, glint one by one, then fade |
 | `projectiles/energy-orb` | loop | side, top (8 headings) | 40x24 | 0.6 s | palette: arcane (8) | projectile, magic, energy, orb, arcane, bolt | A flying orb of energy: a pulsing core with a swirling shell, two sparks in orbit, echoes and motes trailing behind |
+| `projectiles/fire-arrow` | loop | side, top (8 headings) | 60x22 | 0.4 s | palette: fire (8), fletch: blood (8), wood: dust (6), steel: stone (6) | projectile, arrow, bow, fire, burning, physical | A burning arrow in flight: flames streaming back off a wrap behind the broadhead over the shaft, lighting it, embers peeling off into a trail that drifts up and cools |
 | `projectiles/kunai` | loop | side, top (8 headings) | 40x12 | 0.4 s | palette: blood (8), steel: stone (6) | projectile, thrown, kunai, knife, dagger, ninja, physical | A thrown kunai flying point first: a leaf blade lit along its ridge, a wrapped grip, a ring pommel and a tassel that flutters, air streaming off behind |
 | `projectiles/shuriken` | loop | side, top (8 headings) | 28x16 | 0.4 s | palette: stone (6) | projectile, thrown, shuriken, star, spin, ninja, physical | A spinning four-pointed throwing star: bevelled steel points around a dark hole, a glint as each point swings past the light, air streaming off behind |
+| `projectiles/sky-shot` | one-shot | side | 32x52 | 0.4 s | palette: blood (8), wood: dust (6), steel: stone (6) | projectile, arrow, bow, volley, physical | Two arrows loosed high from the bow one after the other, fanning apart as they streak up out of the top of the frame, air streaming off behind |
 
 ## shadow
 

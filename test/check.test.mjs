@@ -33,6 +33,7 @@ test('an unknown stage place', () => {
   assert.match(checkEffect('t/stage', { ...good, meta: { ...meta, stage: { at: 'head' } } }).join(), /stage.at is "head": one of target, caster/);
   assert.match(checkEffect('t/stage', { ...good, meta: { ...meta, stage: { cast: 'bard' } } }).join(), /stage.cast is "bard": one of knight, mage, priest, archer, kunoichi/);
   assert.match(checkEffect('t/stage', { ...good, meta: { ...meta, stage: { scenery: 'tree' } } }).join(), /stage.scenery is "tree": one of sconce, posts, pool/);
+  assert.match(checkEffect('t/stage', { ...good, meta: { ...meta, stage: { pose: 'dance' } } }).join(), /stage.pose is "dance": one of strike, /);
 });
 
 test('a loop that jumps back is a seam; a periodic one is not', () => {

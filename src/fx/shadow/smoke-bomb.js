@@ -13,7 +13,7 @@ export const meta = {
   ramps: { palette: 8, smoke: 8 },
   options: { palette: 'fire', smoke: 'smoke', seed: 1 },
   act: { windup: 0.3 },
-  stage: { at: 'caster', hide: [6 / 30], looks: { raise: 'throw-down' } }, // at her feet; she throws it down from her seal, gone once the smoke stands
+  stage: { at: 'caster', pose: 'slam', hide: [6 / 30] }, // at her feet: she dashes it down there, gone once the smoke stands
   sound: [
     { t: 0, kind: 'whoosh', gain: 0.25, pitch: 2.4 }, // the throw
     { t: 3 / 30, kind: 'crack', gain: 0.6, pitch: 0.7 }, // the pop

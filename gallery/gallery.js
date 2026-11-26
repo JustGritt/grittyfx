@@ -218,7 +218,7 @@ function player(mod, canvas, big, id, steps) {
       shown = -1;
       // a stage only goes forward: through every frame before, so the loops in it stop and fade on time
       if (st) for (let k = 0; k < Math.floor(clock * fps + 1e-6); k++) st.draw(k / fps, img.data, under, f.flip.checked);
-      if (slider) slider.max = frames - 1;
+      if (slider) (slider.max = frames - 1), slider.style.setProperty('--n', Math.max(1, frames - 1)); // --n: the timeline's ticks
       pl.listen();
     },
     // Each effect's sound from where it starts: the effect's from 0, a stage's from each act's start; none paused.
@@ -232,7 +232,7 @@ function player(mod, canvas, big, id, steps) {
     /** Holds the frame shown (or the one `at` seconds in; after a one-shot, in its rest, its last), or plays on from it. */
     pause(on, at) {
       paused = on;
-      if (toggle) toggle.textContent = on ? 'play' : 'pause';
+      toggle?.setAttribute('aria-pressed', on);
       if (on) pl.restart(at);
       else pl.listen();
     },
@@ -249,7 +249,7 @@ function player(mod, canvas, big, id, steps) {
     fit() {
       const stage = canvas.parentElement;
       if (!stage.clientWidth) return;
-      const z = (pl.zoom = big ? Math.max(1, Math.floor(Math.min((stage.clientWidth - 24) / w, (innerHeight * 0.6) / h, 12))) : cards.zoom);
+      const z = (pl.zoom = big ? Math.max(1, Math.floor(Math.min((stage.clientWidth - 24) / w, (innerHeight * 0.45) / h, 12))) : cards.zoom);
       if (big) stage.style.setProperty('--fit', `${h * z + 24}px`); // 24: the stage's padding
       // EDGE px past the sides and the bottom, so a shake shows no gap. The floor `depth` screen px above the bottom,
       // level from card to card; without one, the effect in the middle.
@@ -306,6 +306,7 @@ function player(mod, canvas, big, id, steps) {
       if (bar) {
         const k = Math.min(frames - 1, Math.floor((clock - base) * fps + 1e-6)); // the rest after a one-shot: its last frame
         slider.value = k;
+        slider.style.setProperty('--p', k / Math.max(1, frames - 1));
         slider.ariaValueText = readout.textContent = `frame ${k + 1} of ${frames}, ${(k / fps).toFixed(2)} s`;
       }
     },
@@ -363,7 +364,7 @@ async function show(entry, root, big) {
   const label = meta => {
     name.textContent = meta.name;
     root.querySelector('.desc').textContent = meta.desc ?? '';
-    if (!big) root.querySelector('.facts').replaceChildren(
+    root.querySelector('.facts').replaceChildren(
       ...describe(meta).map((s, i) => el('li', { className: i ? '' : 'kind', textContent: s })),
       el('li', {}, el('code', { textContent: entry.id })),
     );

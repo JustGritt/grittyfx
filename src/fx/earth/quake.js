@@ -14,7 +14,7 @@ export const meta = {
   ramps: { palette: 8, dust: 5 },
   options: { palette: 'stone', dust: 'dust', seed: 1 },
   act: { hits: [{ t: 11 / 30, freeze: 0.08, shake: 4 }] },
-  stage: { at: 'target', x: -62, ground: 0 }, // from the caster's front, along the floor to the goblin's feet
+  stage: { at: 'target', x: -62, ground: 0, pose: 'slam' }, // from the staff slammed down in front of the caster, along the floor to the goblin's feet
   sound: [
     { t: 0, kind: 'thump', gain: 0.7, pitch: 0.6 }, // the blow into the floor
     { t: 0, kind: 'crack', gain: 0.5, pitch: 0.3 }, // the rumble running ahead
