@@ -7,133 +7,202 @@
 <meta name="description" content="Pixel-art effects as code, playing live: recolor, reseed, flip and feel the hit-stop.">
 <title>grittyfx gallery</title>
 <link rel="icon" href="data:,">
+<!-- Satoshi (ITF Free Font License) comes from Fontshare: its license forbids putting the files in a public repo -->
+<link rel="preconnect" href="https://cdn.fontshare.com" crossorigin>
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=satoshi@1&amp;display=swap">
 <style>
+  /* A specimen catalog: the page is the drawer and its labels, the effects are the loudest thing on it. */
   :root {
-    --page: #0e0f14;
-    --panel: #15161e;
-    --raised: #1d1f2a;
-    --line: #2a2d3b;
-    --text: #ebe8e3;
-    --muted: #9b98a6;
-    --accent: #ffa02a;
-    --bad: #ff6b5a;
-    --stage: #1b1d26;
+    --page: oklch(0.155 0.006 60);
+    --well: oklch(0.2 0.008 60);
+    --line: oklch(0.29 0.009 60);
+    --line-strong: oklch(0.42 0.01 60);
+    --text: oklch(0.93 0.01 80);
+    --muted: oklch(0.72 0.012 75);
+    --faint: oklch(0.6 0.012 70); /* 4.5:1 on --page only */
+    --accent: oklch(0.79 0.155 65);
+    --on-accent: oklch(0.22 0.04 45);
+    --bad: oklch(0.7 0.17 30);
+    --stage: #1b1d26; /* the stage colors match BG in gallery.js, which paints the canvas the same */
+    --sans: Satoshi, system-ui, sans-serif;
     --mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+    --space-xs: 4px; --space-sm: 8px; --space-md: 12px; --space-lg: 16px;
+    --space-xl: 24px; --space-2xl: 32px; --space-3xl: 48px; --space-4xl: 64px;
   }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   html { scrollbar-gutter: stable; } /* filtering the grid adds or drops the scrollbar: keep the page from shifting */
   body {
     margin: 0;
     background: var(--page);
     color: var(--text);
-    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    font: 400 15px/1.6 var(--sans);
   }
   body[data-bg="mid"] { --stage: #575b6b; }
   body[data-bg="light"] { --stage: #d8d5cd; }
-  a { color: inherit; }
+  a { color: inherit; text-underline-offset: 3px; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .wrap { max-width: 76rem; margin: 0 auto; padding: 0 16px; }
+  .wrap { max-width: 88rem; margin: 0 auto; padding: 0 clamp(16px, 3vw, 32px); }
+  main { padding-top: var(--space-2xl); }
 
-  header { padding: 28px 0 20px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; }
-  .brand { font: 700 22px/1 var(--mono); text-decoration: none; letter-spacing: -0.02em; }
-  .brand::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 8px; background: var(--accent); box-shadow: 4px 4px 0 #c9380f; }
-  header p { margin: 0; color: var(--muted); flex: 1 1 16rem; }
-  header .src { color: var(--muted); font: 13px var(--mono); }
+  /* masthead */
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-md) var(--space-2xl); padding: var(--space-xl) 0; }
+  .brand { font: 800 21px/1 var(--sans); letter-spacing: -0.035em; text-decoration: none; }
+  .brand::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 9px; background: var(--accent); box-shadow: 4px 4px 0 #c9380f; }
+  header p { margin: 0; color: var(--muted); font-size: 14px; flex: 1 1 16rem; }
+  .pages { display: flex; gap: var(--space-xl); }
+  .pages a { padding: 6px 0; font-weight: 500; color: var(--muted); text-decoration: none; }
+  .pages a:hover { color: var(--text); }
+  .pages a[aria-current] { color: var(--text); text-decoration: underline 2px var(--accent); text-underline-offset: 8px; }
+  header .src { color: var(--muted); font-size: 14px; }
 
+  /* the viewing conditions: a ruled strip, held at the top while the drawer scrolls on wide screens */
   .controls {
-    display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px;
-    padding: 12px 16px; margin-bottom: 28px;
-    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-md) var(--space-lg);
+    padding: var(--space-md) 0; margin-bottom: var(--space-xl);
+    background: var(--page); border-block: 1px solid var(--line);
   }
-  .controls label, .controls legend { color: var(--muted); font: 12px var(--mono); text-transform: uppercase; letter-spacing: 0.06em; }
-  .field { display: flex; align-items: center; gap: 8px; }
+  .controls .field > label, .controls .label, .controls legend { color: var(--faint); font: 700 11px var(--sans); text-transform: uppercase; letter-spacing: 0.09em; }
+  .field { display: flex; align-items: center; gap: var(--space-sm); }
   select, input[type="number"], input[type="text"], button {
-    font: 14px var(--mono); color: var(--text); background: var(--raised);
-    border: 1px solid var(--line); border-radius: 6px; min-height: 36px; padding: 0 10px;
+    font: 500 14px var(--sans); color: var(--text); background: var(--well);
+    border: 1px solid var(--line); border-radius: 3px; min-height: 34px; padding: 0 var(--space-md);
   }
   select { padding-right: 6px; }
-  input[type="number"] { width: 6.5rem; }
-  input[type="text"] { flex: 0 1 24rem; min-width: 0; }
-  input[type="checkbox"] { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
-  .check { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  input[type="number"] { width: 5.5rem; font-variant-numeric: tabular-nums; }
+  input[type="text"] { flex: 0 1 24rem; min-width: 0; font-family: var(--mono); font-size: 13px; }
   [aria-invalid="true"] { border-color: var(--bad); }
-  button { cursor: pointer; font-weight: 600; }
-  button:hover, select:hover { border-color: #3d4154; }
-  #replay { background: var(--accent); color: #1f0a12; border-color: var(--accent); margin-left: auto; }
+  /* a field and its button as one control: the seed and its die */
+  .joined { display: flex; }
+  .joined input { border-radius: 3px 0 0 3px; }
+  .joined button { border-left: 0; border-radius: 0 3px 3px 0; }
+  .icon { display: grid; place-items: center; padding: 0 var(--space-sm); color: var(--muted); }
+  .icon:hover { color: var(--text); }
+  .sep { align-self: stretch; width: 1px; margin: 0 var(--space-xs); background: var(--line); }
+
+  /* the palette: a button with the chosen colors, opening every palette with its colors */
+  .pick { display: inline-flex; align-items: center; gap: var(--space-sm); }
+  .pick .ramp { width: 64px; }
+  .pick::after { content: ""; width: 6px; height: 6px; margin: -3px 2px 0; border: solid var(--muted); border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
+  .palettes {
+    inset: auto; margin: 0; width: min(34rem, calc(100vw - 16px)); padding: var(--space-sm);
+    color: var(--text); background: var(--page); border: 1px solid var(--line-strong); border-radius: 4px;
+    box-shadow: 0 16px 40px oklch(0.05 0.01 60 / 0.6);
+  }
+  .palettes:popover-open { display: grid; grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr)); gap: 2px; }
+  .tile { position: relative; display: grid; gap: 6px; padding: var(--space-sm) 10px; border: 1px solid transparent; border-radius: 3px; cursor: pointer; font-size: 13px; color: var(--muted); }
+  .tile input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+  .tile .ramp { min-width: 0; height: 12px; }
+  .tile .ramp:empty { display: block; background: repeating-linear-gradient(135deg, var(--line-strong) 0 1px, transparent 1px 5px); } /* own, custom: they vary */
+  .tile:hover { background: var(--well); color: var(--text); }
+  .tile:has(:checked) { border-color: var(--accent); color: var(--text); }
+  .tile:has(:focus-visible) { outline: 2px solid var(--accent); outline-offset: 1px; }
+  button { cursor: pointer; }
+  button:hover, select:hover, input:hover { border-color: var(--line-strong); }
+  #replay { margin-left: auto; background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 700; }
+  #replay:hover { background: oklch(0.84 0.13 68); }
   .custom { flex-basis: 100%; flex-wrap: wrap; }
-  .custom[hidden] { display: none; }
-  .ramp { display: flex; height: 18px; min-width: 64px; border-radius: 3px; overflow: hidden; }
+  .ramp { display: flex; height: 16px; min-width: 64px; border-radius: 2px; overflow: hidden; }
   .ramp span { flex: 1; min-width: 6px; }
   .ramp:empty { display: none; }
-  fieldset { border: 0; margin: 0; padding: 0; display: flex; align-items: center; gap: 8px; }
-  legend { float: left; margin-right: 8px; }
-  .seg { display: flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  fieldset { border: 0; margin: 0; padding: 0; display: flex; align-items: center; gap: var(--space-md); }
+  legend { float: left; margin-right: var(--space-xs); }
+  .seg { display: flex; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
   .seg label, .chips label { position: relative; cursor: pointer; }
   .seg input, .chips input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
-  .seg span { display: block; padding: 0 12px; line-height: 34px; font: 13px/34px var(--mono); color: var(--muted); text-transform: none; letter-spacing: 0; }
+  .seg span { display: block; padding: 0 var(--space-md); font: 500 13px/32px var(--sans); color: var(--muted); }
   .seg label + label span { border-left: 1px solid var(--line); }
-  .seg input:checked + span { background: var(--raised); color: var(--text); box-shadow: inset 0 -2px 0 var(--accent); }
+  .seg label:hover span { color: var(--text); }
+  .seg input:checked + span { background: var(--well); color: var(--text); box-shadow: inset 0 -2px 0 var(--accent); }
   .seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: -2px; }
-
-  h2 { font: 600 12px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin: 0 0 12px; }
-  .chips { flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
-  .chips span { display: block; padding: 0 10px; font: 13px/28px var(--mono); color: var(--muted); border: 1px solid var(--line); border-radius: 999px; }
-  .chips small { font-size: 11px; opacity: 0.7; }
-  .chips label:hover span { border-color: #3d4154; }
-  .chips input:checked + span { color: var(--text); background: var(--raised); border-color: var(--accent); }
-  .chips input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
-  /* Each card spans two rows of the grid, so pictures and captions line up across a row; no row gap inside a card. */
-  .grid { list-style: none; margin: 0 0 24px; padding: 0; display: grid; gap: 0 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); }
-  .card {
-    position: relative; display: grid; grid-row: span 2; grid-template-rows: subgrid; margin-bottom: 16px;
-    background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
-    transition: border-color 0.15s;
+  /* a background shown as its color, the name in its tooltip and label */
+  .seg .sw { display: grid; place-items: center; width: 36px; height: 32px; padding: 0; }
+  .seg .sw::before { content: ""; width: 16px; height: 16px; border-radius: 2px; background: var(--c); box-shadow: 0 0 0 1px oklch(1 0 0 / 0.16); }
+  @media (max-width: 899px) { .sep { display: none; } }
+  @media (min-width: 720px) { .grid > .wide { grid-column: span 2; } } /* the grid has two columns from about here */
+  @media (min-width: 900px) {
+    .controls { position: sticky; top: 0; z-index: 2; }
+    html { scroll-padding-top: 80px; } /* keep focused cards out from under the strip */
   }
-  .card[hidden] { display: none; }
-  .card:hover { border-color: #3d4154; }
-  .card:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .card a:focus-visible { outline: none; }
-  .card a::after { content: ""; position: absolute; inset: 0; }
+
+  /* a page's title, its count, and the category index under it */
+  h2 { display: flex; align-items: baseline; gap: var(--space-md); margin: 0 0 var(--space-lg); font: 700 clamp(2.25rem, 1.4rem + 2.6vw, 3.5rem)/1 var(--sans); letter-spacing: -0.035em; }
+  h2 small { font: 500 14px var(--sans); color: var(--faint); letter-spacing: 0; font-variant-numeric: tabular-nums; }
+  main > section > .desc { max-width: 60ch; margin: 0 0 var(--space-xl); font-size: 16px; }
+  .chips { flex-wrap: wrap; gap: var(--space-xs) var(--space-xl); margin-bottom: var(--space-xl); }
+  .chips span { display: block; font: 500 15px/30px var(--sans); color: var(--muted); text-transform: capitalize; }
+  .chips small { margin-left: 3px; font-size: 12px; color: var(--faint); font-variant-numeric: tabular-nums; }
+  .chips label:hover span { color: var(--text); }
+  .chips input:checked + span { color: var(--text); box-shadow: inset 0 -2px 0 var(--accent); }
+  .chips input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* The drawer: cells ruled by hairlines, no gaps, every card the same size (320: the widest stage fits at 2x, the zoom
+     every card shares, see relayout in gallery.js). */
+  .grid { list-style: none; margin: 1px 1px var(--space-4xl); padding: 0; display: grid; gap: 1px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); }
+  .card { position: relative; display: flex; flex-direction: column; background: var(--page); box-shadow: 0 0 0 1px var(--line); }
+  /* the title's link covers the card; other links in it (a character's downloads) stay their own size */
+  .card:has(h3 a:focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; z-index: 1; }
+  .card h3 a:focus-visible { outline: none; }
+  .card h3 a::after { content: ""; position: absolute; inset: 0; }
   /* the canvas fills the stage, a little past its sides and bottom; --fit is the effect's height at its zoom */
   .stage { position: relative; display: grid; place-items: center; min-height: max(14rem, var(--fit, 0px)); padding: 12px; background: var(--stage); overflow: hidden; transition: background-color 0.2s; }
   canvas { position: absolute; image-rendering: pixelated; }
-  .info { display: flex; flex-direction: column; padding: 12px 14px 14px; border-top: 1px solid var(--line); }
-  .info .facts { margin-top: auto; }
-  .info h3 { margin: 0; font-size: 16px; }
+  .info { display: flex; flex: 1; flex-direction: column; padding: var(--space-lg) var(--space-lg) var(--space-lg); transition: background-color 0.15s; }
+  .card:hover .info { background: var(--well); }
+  /* every label the same height, so every card is: a one-line name, four lines of description, two of facts */
+  .info h3 { margin: 0 0 var(--space-xs); font: 700 20px/1.2 var(--sans); letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .info .desc { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4; overflow: hidden; min-height: 4lh; }
   .info a { text-decoration: none; }
-  .desc { margin: 2px 0 8px; color: var(--muted); font-size: 13px; }
-  .facts { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; font: 12px var(--mono); color: var(--muted); }
-  .facts li { padding: 1px 7px; border: 1px solid var(--line); border-radius: 4px; }
-  .facts .kind { color: var(--text); }
+  .desc { margin: 0 0 var(--space-lg); color: var(--muted); font-size: 14px; line-height: 1.55; }
+  /* the specimen label: kind first, then size, length and id, in the same order on every card */
+  .facts { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-xs) var(--space-lg); margin: auto 0 0; padding: var(--space-md) 0 0; list-style: none; border-top: 1px solid var(--line); font: 500 13px/1.5 var(--sans); color: var(--muted); height: calc(2lh + var(--space-xs) + var(--space-md) + 1px); overflow: hidden; }
+  .facts .kind { color: var(--text); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; }
+  .facts code { font: 12px var(--mono); }
+  .facts a { color: var(--text); text-decoration: underline 1px var(--line-strong); }
+  .facts a:hover { text-decoration-color: var(--accent); }
   .error { color: var(--bad); font: 12px/1.4 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; padding: 12px; }
 
-  .preview .top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; font: 13px var(--mono); }
+  /* one specimen, large */
+  .preview .top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-sm) var(--space-lg); font-size: 14px; }
   .preview .top a { color: var(--muted); text-decoration: none; }
   .preview .top a:hover { color: var(--text); }
-  .pager { display: flex; gap: 20px; }
-  .pager[hidden] { display: none; }
-  .preview h1 { margin: 8px 0 0; font-size: 26px; line-height: 1.2; }
-  .preview .desc { font-size: 15px; margin-bottom: 16px; }
-  .preview .stage { min-height: max(18rem, var(--fit, 0px)); border: 1px solid var(--line); border-radius: 10px; }
+  .pager { display: flex; gap: var(--space-xl); }
+  .preview h1 { margin: var(--space-xl) 0 var(--space-sm); font: 700 clamp(2.5rem, 1.5rem + 3.6vw, 4.25rem)/1 var(--sans); letter-spacing: -0.035em; }
+  .preview .desc { max-width: 60ch; font-size: 17px; margin-bottom: var(--space-xl); }
+  .preview .stage { min-height: max(18rem, var(--fit, 0px)); border: 1px solid var(--line); }
   .sound { position: absolute; top: 10px; right: 10px; min-height: 30px; font-size: 13px; color: var(--muted); }
   .sound[aria-pressed="true"] { color: var(--text); border-color: var(--accent); box-shadow: inset 0 -2px 0 var(--accent); }
-  .below { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr)); gap: 28px 48px; margin: 24px 0 40px; }
-  .use .note { font-size: 13px; margin: 12px 0 0; }
-  .meta { display: grid; grid-template-columns: max-content 1fr; gap: 6px 20px; margin: 0; font: 13px var(--mono); }
+  .scrub { display: flex; align-items: center; gap: var(--space-md); margin-top: var(--space-sm); }
+  .play { min-width: 4.5rem; }
+  .time { flex: 1; min-width: 0; margin: 0; accent-color: var(--accent); }
+  .frame { min-width: 11rem; text-align: right; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .below { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr)); gap: var(--space-2xl) var(--space-4xl); margin: var(--space-2xl) 0 var(--space-4xl); }
+  .below h2 { display: block; margin: 0 0 var(--space-md); padding-bottom: var(--space-sm); border-bottom: 1px solid var(--line); font: 700 11px var(--sans); text-transform: uppercase; letter-spacing: 0.09em; color: var(--faint); }
+  .meta { display: grid; grid-template-columns: max-content 1fr; gap: var(--space-sm) var(--space-xl); margin: 0; font-size: 14px; }
   .meta dt { color: var(--muted); }
   .meta dd { margin: 0; overflow-wrap: anywhere; min-width: 0; }
-  .ramps { display: grid; grid-template-columns: max-content max-content max-content; align-items: center; gap: 4px 10px; }
-  .use dd { display: flex; align-items: flex-start; gap: 8px; }
-  .use pre { flex: 1; min-width: 0; margin: 0; white-space: pre-wrap; font: inherit; }
-  .copy { min-height: 24px; padding: 0 8px; font-size: 12px; font-weight: 400; color: var(--muted); }
+  .ramps { display: grid; grid-template-columns: max-content max-content max-content; align-items: center; gap: var(--space-xs) var(--space-md); }
+  .use dd { display: flex; align-items: flex-start; gap: var(--space-sm); }
+  .use pre { flex: 1; min-width: 0; margin: 0; white-space: pre-wrap; font: 13px/1.6 var(--mono); }
+  .copy { min-height: 26px; padding: 0 var(--space-sm); font-size: 12px; color: var(--muted); background: transparent; }
+  .copy:hover { color: var(--text); }
+  .use .note { font-size: 13px; margin: var(--space-lg) 0 0; max-width: 60ch; }
   .note { color: var(--muted); }
-  .note code { color: var(--text); }
+  .note code { color: var(--text); font-family: var(--mono); }
+
+  /* the colophon */
+  footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-lg) var(--space-3xl); padding: var(--space-xl) 0 var(--space-3xl); border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); }
+  footer p { margin: 0 0 var(--space-xs); max-width: 60ch; }
+  footer .colophon { color: var(--faint); }
+  footer nav { display: flex; flex-wrap: wrap; align-content: flex-start; gap: var(--space-xs) var(--space-xl); }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--text); text-decoration: underline; }
 
   @media (max-width: 600px) {
     select, input, button { font-size: 16px; } /* iOS zooms into smaller inputs */
   }
   @media (prefers-reduced-motion: reduce) {
-    .card, .stage { transition: none; }
+    .info, .stage { transition: none; }
   }
 </style>
 </head>
@@ -142,44 +211,60 @@
   <header>
     <a class="brand" href="./">grittyfx</a>
     <p>Pixel-art effects as code, playing live from their source.</p>
+    <nav class="pages" aria-label="Gallery">
+      <a data-page="" href="./">Effects</a>
+      <a data-page="moves" href="?page=moves">Moves</a>
+      <a data-page="characters" href="?page=characters">Characters</a>
+    </nav>
     <a class="src" href="https://github.com/JustGritt/grittyfx">source</a>
   </header>
 
-  <form class="controls" id="controls" aria-label="Playback settings">
+  <!-- hidden until gallery.js puts it under the page's title -->
+  <form class="controls" id="controls" aria-label="Playback settings" hidden>
     <div class="field">
-      <label for="palette">Palette</label>
-      <select id="palette" name="palette">
-        <option value="">effect's own</option>
-        <option value="custom">custom…</option>
-      </select>
-      <span class="ramp" id="ramp" aria-hidden="true"></span>
+      <span class="label" id="palette-label">Palette</span>
+      <button class="pick" type="button" popovertarget="palettes" aria-labelledby="palette-label palette-name">
+        <span class="ramp" id="ramp"></span><span id="palette-name">Effect's own</span>
+      </button>
+      <!-- the palettes as radios, filled in by gallery.js: still the form's `palette`, each shown with its colors -->
+      <div class="palettes" id="palettes" popover role="radiogroup" aria-label="Palette"></div>
     </div>
     <div class="field">
       <label for="seed">Seed</label>
-      <input id="seed" name="seed" type="number" step="1" inputmode="numeric" placeholder="default">
+      <span class="joined">
+        <input id="seed" name="seed" type="number" step="1" inputmode="numeric" placeholder="default">
+        <button class="icon" id="dice" type="button" aria-label="Random seed" title="Random seed">
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="5" cy="5" r="1.2" fill="currentColor"/><circle cx="11" cy="5" r="1.2" fill="currentColor"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="5" cy="11" r="1.2" fill="currentColor"/><circle cx="11" cy="11" r="1.2" fill="currentColor"/></svg>
+        </button>
+      </span>
     </div>
     <div class="field">
       <label for="view">View</label>
-      <select id="view" name="view">
-        <option value="">side</option>
+      <select id="view" name="view" title="A top view plays the effects that have one on their own: the cast acts side views only">
+        <option value="">Side</option>
       </select>
     </div>
-    <label class="check"><input id="flip" name="flip" type="checkbox"> Flip</label>
-    <fieldset title="A knight, a mage or an archer acts each effect out on a goblin; switch either off">
-      <legend>Characters</legend>
-      <label class="check"><input id="caster" name="caster" type="checkbox" checked> caster</label>
-      <label class="check"><input id="target" name="target" type="checkbox" checked> target</label>
+    <div class="seg"><label><input id="flip" name="flip" type="checkbox"><span>Flip</span></label></div>
+    <span class="sep" aria-hidden="true"></span>
+    <fieldset title="A caster from the cast acts each effect out on a monster; switch either off, or pick the monster">
+      <legend>Cast</legend>
+      <div class="seg">
+        <label><input id="caster" name="caster" type="checkbox" checked><span>Caster</span></label>
+        <label><input id="target" name="target" type="checkbox" checked><span>Target</span></label>
+      </div>
+      <select id="foe" name="foe" aria-label="Target"></select>
     </fieldset>
     <fieldset>
       <legend>Background</legend>
+      <!-- the stage colors, as in body[data-bg] and BG in gallery.js; ground is the dark sky over a stone floor -->
       <div class="seg">
-        <label><input type="radio" name="bg" value="ground" checked><span>ground</span></label>
-        <label><input type="radio" name="bg" value="dark"><span>dark</span></label>
-        <label><input type="radio" name="bg" value="mid"><span>mid</span></label>
-        <label><input type="radio" name="bg" value="light"><span>light</span></label>
+        <label title="ground"><input type="radio" name="bg" value="ground" aria-label="ground" checked><span class="sw" style="--c: linear-gradient(#1b1d26 55%, #454a5e 0 66%, #2b2e3c 0)"></span></label>
+        <label title="dark"><input type="radio" name="bg" value="dark" aria-label="dark"><span class="sw" style="--c: #1b1d26"></span></label>
+        <label title="mid"><input type="radio" name="bg" value="mid" aria-label="mid"><span class="sw" style="--c: #575b6b"></span></label>
+        <label title="light"><input type="radio" name="bg" value="light" aria-label="light"><span class="sw" style="--c: #d8d5cd"></span></label>
       </div>
     </fieldset>
-    <label class="check"><input id="hitstop" name="hitstop" type="checkbox" checked> Hit-stop</label>
+    <div class="seg"><label><input id="hitstop" name="hitstop" type="checkbox" checked><span>Hit-stop</span></label></div>
     <button id="replay" type="button">Replay</button>
     <div class="field custom" id="custom-field" hidden>
       <label for="custom">Colors</label>
@@ -189,6 +274,20 @@
   </form>
 
   <main id="main"></main>
+
+  <footer>
+    <div>
+      <p>Free to use in your games, MIT like the code: every effect, sound and character on these pages.</p>
+      <p class="colophon">Set in Satoshi. The pixels are drawn live, in code.</p>
+    </div>
+    <nav aria-label="Documentation">
+      <a href="https://github.com/JustGritt/grittyfx/blob/main/docs/CATALOG.md">Catalog</a>
+      <a href="https://github.com/JustGritt/grittyfx/blob/main/docs/AUTHORING.md">Authoring guide</a>
+      <a href="https://github.com/JustGritt/grittyfx/blob/main/engines/godot/README.md">Godot</a>
+      <a href="https://github.com/JustGritt/grittyfx/blob/main/engines/unity/README.md">Unity</a>
+      <a href="https://github.com/JustGritt/grittyfx/blob/main/CHANGELOG.md">Changelog</a>
+    </nav>
+  </footer>
 </div>
 
 <template id="card-tpl">
@@ -211,6 +310,12 @@
     <h1></h1>
     <p class="desc"></p>
     <div class="stage"><canvas role="img"></canvas><button class="sound" type="button" aria-pressed="false">sound</button></div>
+    <!-- shown by gallery.js once it plays: the slider pauses it on a frame, arrow keys step one at a time -->
+    <div class="scrub" hidden>
+      <button class="play" type="button">pause</button>
+      <input class="time" type="range" min="0" max="0" step="1" value="0" aria-label="Frame">
+      <output class="frame"></output>
+    </div>
     <div class="below">
       <section><h2>Details</h2><dl class="meta"></dl></section>
       <section class="use" hidden>
