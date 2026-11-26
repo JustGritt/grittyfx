@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Arcs on the stage**: `meta.stage.arc` lobs a projectile along a parabola that many px high, so thrown things
+  fall onto the goblin, landing where and when a straight shot would. For grenades, bombs and flasks to come.
 - **Wind**, a new `wind/` category and a `wind` palette (pale teal to mint white): `gust` (air drawn into the staff,
   then a cone of curling lines that shoves the goblin back, dust kicked off the floor), `tornado` (a funnel twisting up
   round the goblin, grinding it three times, then unwinding and flinging out the dust and leaves it carried),
