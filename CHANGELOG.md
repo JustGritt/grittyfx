@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **The stage acts the new effects right**: `meta.stage` can hide the caster (`hide`: the kunoichi gone in her smoke
+  bomb, substitution and smoke puff), move them (`move`: the blink's 54 px, so Shadow step cuts the goblin as she
+  reappears, with a move step's `acted: true`), hold a cast while a beam lasts (`hold`), pick the caster's own tags
+  (`looks`, with stand-ins: the thrust from a low guard, the uppercut from a crouch up to a raised blade, the dash and
+  the chest in a crouch until `dash` and `open` are drawn), and show an effect before it plays (`waits`: the chest is
+  there before the knight opens it). A jump tagged `air` kicks off in mid-air (the double jump); the smoke puff plays
+  at the feet of whoever vanishes in it, not on the goblin. A pose takes a character's tag of the same name once drawn.
+
 - **A cast that fits**: the stage's code-drawn swordsman and dummy are replaced by characters drawn in Aseprite
   (`src/stage/cast/*.aseprite`, made into `src/stage/cast.js` by `tools/cast.mjs`): a knight acts melee, pickups
   and landings, a mage spells, statuses, auras and spell projectiles (the staff's orb glows in the spell's colors),
@@ -16,11 +24,48 @@
   `projectiles/shuriken` (a spinning four-pointed star), both tagged `thrown`: the kunoichi throws them. 8 headings each.
 - **Gallery: the cast to download**: a card per character with every pose on a sheet, free to use (MIT): a PNG at
   1x (equal cells, feet at the same spot, the frame order listed) or the `.aseprite` it comes from.
+- **Gallery pages**: Effects, Moves (`?page=moves`) and Characters (`?page=characters`), each its own page under a
+  nav in the header, the settings following from one to the next; a preview's title sits above its settings.
+- **Gallery redesign**: a specimen catalog. Cards ruled by hairlines in one drawer, set in Satoshi (from Fontshare's
+  CDN, as its license keeps the files out of public repos), monospace for code only; a category index in place
+  of pills, and the settings strip held at the top on wide screens. Every page puts its title first, then the settings
+  (one row on wide screens, "Cast" for the caster and target), then the specimens. Every card the same size: one zoom
+  for the page (the largest every stage fits at, 2x on a laptop), one stage height with every floor on one line, labels
+  of fixed height; cards are captioned from `fx-list.json` before their module loads; a colophon with the docs and
+  engine links. The toolbar: the palette picked from a panel showing every palette's colors (arrow keys recolor as
+  they browse), a die for a random seed, Flip, Cast and Hit-stop as toggles, the backgrounds as their colors. A top
+  view in View now wins over the cast: the 12 effects with one play it on their own, whether the cast is on or not
+  (before, only with both characters off); cards say "top view", and View is hidden where none can play.
+- **Gallery: frame by frame**: a preview has a pause button and a slider under its stage, to hold any frame of the
+  effect, move or stage (arrow keys step one frame) with its number and time; palette, seed and flip recolor the held
+  frame, and play goes on from it.
+- **Props on the stage**: `meta.stage.scenery` names a set piece the stage draws behind a prop: the torch's flame
+  sits on a wall sconce, the arc jumps between two terminal posts, the ripple spreads on a pool level with the floor
+  (in the effect's own colors). The arc and the ripple stand clear of the caster and no longer sink into the floor,
+  and props are there from the stage's first frame, without the 0.4 s an acted effect waits.
+- **`fire/torch` at the cast's scale**: the flame is 15 px tall, not 30 (a third of a 40 px character, not three
+  quarters), on a 24x32 canvas instead of 32x48, its tongues, glow and embers scaled with it. The Unity demo keeps its
+  older export until it is re-exported with Unity 6000.3.
+- **Frost burst on the target**: `magic/frost-burst` bursts from the ground under the goblin (`stage: { at: 'target',
+  ground: 0 }`), the mage pointing it there, not at the mage's own feet. A move's step can place its effect over its
+  `meta.stage` (`{ fx, on, opts, stage }`): Frost nova's glints hang round the goblin with it.
+- **A slime** takes the hits in the goblin's place when picked under Cast in the gallery (`?foe=slime`), or with
+  `createStage(steps, o, show, { foe: 'slime' })` and `render.mjs --stage <id> --foe slime`. Shaded like jelly, it
+  recolors with any ramp (`{ tint: { slime: 'ice' } }`, `--tint ice`: `tinted()` in `src/stage/actors.js`), its eyes
+  and blush kept. Its sheet has idle, move, windup, attack, hurt and death. The Characters page lists the casters and
+  the monsters apart.
 - **More moves**: Shock arrow (archer), Tidal bolt and Hex (mage), Smite (priest), so every caster and the water,
   shadow, electric and holy effects play in one.
 - **Gallery ground**: a `ground` background, the default, like pixelfx's: a stone floor under the actors' feet (or
   under an effect alone, as high as the stage would act it), level from card to card, filling each card edge to edge.
   `?bg=dark` is the flat one. `composite()` takes a background image as well as a color.
+- **A palette per character**: `src/stage/cast.js` exports `PALETTES[name]` in place of the cast's one `PALETTE`, so
+  each character has 89 colors of its own and the cast can grow past six. The stage draws the same pixels.
+- **12 new statuses**, each a loop with sound. On the body: `frozen` (an ice crust), `shocked` (arcs crawling over
+  it), `soaked` (drips into a puddle), `bleeding` (spurts on a heartbeat), `gassed` (coughing fits through a haze),
+  `marked` (a reticle that locks on the chest; the archer acts it). Over the head: `asleep`, `confused`, `silenced`,
+  `enraged`, `suppressed` (rounds whizzing just over it). On the caster: the `haste` buff. Two moves pair them: Soak
+  and shock (a water bolt soaks the goblin, then lightning finds it wet) and Deep freeze (an ice orb, then frozen).
 
 - **Edit in Aseprite**: `render.mjs <id> --aseprite <dir>` writes the side view as an `.aseprite` file (never over an
   existing one) (a color layer, a

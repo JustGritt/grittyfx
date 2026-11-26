@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { performance } from 'node:perf_hooks';
 import { createFx, composite, layout, HEADINGS, soundCues, synth, SOUNDS } from '../src/core/index.js';
-import { PLACES } from '../src/stage/stage.js';
+import { PLACES, SCENERY } from '../src/stage/stage.js';
 import { CASTERS } from '../src/stage/actors.js';
 import { listIds, matchIds, loadEffect, drawAt, views } from './lib.mjs';
 
@@ -30,6 +30,7 @@ export function checkEffect(id, mod, source = '', { seeds = SEEDS } = {}) {
   if (![1, 8].includes(meta.top?.directions ?? 1)) say('meta', `top.directions is ${meta.top.directions}: 1 (radial) or 8 (directional)`);
   if (meta.stage?.at !== undefined && !PLACES.includes(meta.stage.at)) say('meta', `stage.at is "${meta.stage.at}": one of ${PLACES.join(', ')}`);
   if (meta.stage?.cast !== undefined && !CASTERS[meta.stage.cast]) say('meta', `stage.cast is "${meta.stage.cast}": one of ${Object.keys(CASTERS).join(', ')}`);
+  if (meta.stage?.scenery !== undefined && !SCENERY[meta.stage.scenery]) say('meta', `stage.scenery is "${meta.stage.scenery}": one of ${Object.keys(SCENERY).join(', ')}`);
   if (out.length) return out;
   try {
     const { duration, loop } = meta, fps = meta.fps ?? 30, n = Math.max(1, Math.round(duration * fps));

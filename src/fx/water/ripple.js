@@ -10,6 +10,7 @@ export const meta = {
   loop: true,
   fps: 15,
   views: ['side', 'top'],
+  stage: { x: 22, scenery: 'pool' }, // on a pool in the floor, clear of the caster
   top: { size: [64, 64] },
   ramps: { palette: 8 },
   options: { palette: 'water', seed: 1 },
