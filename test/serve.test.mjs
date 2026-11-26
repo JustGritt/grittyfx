@@ -1,6 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
+import { spawn } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { serve } from '../tools/serve.mjs';
 import { listIds } from '../tools/lib.mjs';
 
@@ -28,5 +30,21 @@ test('serves the repo read-only with module types and the manifest, and refuses 
   } finally {
     server.close();
     server.closeAllConnections();
+  }
+});
+
+test('moves to the next port when the one asked for is taken', async () => {
+  const taken = serve(0);
+  await once(taken, 'listening');
+  const port = taken.address().port;
+  const child = spawn(process.execPath, [fileURLToPath(new URL('../tools/serve.mjs', import.meta.url)), '--port', String(port)]);
+  try {
+    const [line] = await once(child.stdout, 'data');
+    const url = new URL(String(line).trim());
+    assert.ok(Number(url.port) > port, String(line));
+    assert.equal((await fetch(url)).status, 200);
+  } finally {
+    child.kill();
+    taken.close();
   }
 });
