@@ -92,6 +92,18 @@ test('plan: an effect hides or moves the caster, holds a cast or picks its own l
   assert.deepEqual([ready(undefined), ready({ ready: 'crouch' }), ready({ ready: ['undrawn', 'crouch'] }), ready({ ready: 'undrawn' })], ['ready', 'crouch', 'crouch', 'ready'], 'the first tag drawn, else the pose');
 });
 
+test('plan: a held charge stays raised while its loop plays, then winds straight up into the blow, in reach', () => {
+  const charge = hold => mod({ tags: ['aura'], loop: true, duration: 0.8, stage: { cast: 'knight', hold } });
+  const raised = hold => { const q = plan([{ mod: charge(hold) }]); return poseAt(q.keys, q.acts[0].end - 0.05).look; };
+  assert.deepEqual([raised(true), raised(false)], ['raise', 'idle'], 'raised until the loop ends');
+  const blow = mod({ tags: ['melee'], act: { windup: 0.2, hits: [{ t: 1 / 30 }] } });
+  const p = plan([{ mod: charge(true) }, { mod: blow }]), [a, b] = p.acts;
+  assert.equal(p.D, NEAR, 'a charge on the caster before a blow keeps the goblin in reach');
+  const ls = looks(p.keys).filter(l => l.t > a.start - 1e-9 && l.t < b.contact + 1e-9).map(l => l.look);
+  assert.deepEqual(ls, ['raise', 'ready', 'swing'], 'never idle between the charge and the blow');
+  assert.equal(plan([{ mod: charge(true) }, { mod: mod({ act: { hits: [{ t: 0 }] } }) }]).D, FAR, 'a cast after it still needs room');
+});
+
 test('createStage: an effect that waits stands on its first frame before it plays', () => {
   const drawn = waits => {
     let n = 0;
