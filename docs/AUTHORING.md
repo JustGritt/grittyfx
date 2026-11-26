@@ -52,7 +52,7 @@ effect must not be flipped).
 ### Ramps and palette indices
 
 Each name in `meta.ramps` is an option holding a ramp: a name from `PAL` in `src/core/color.js` (fire, ember, ice,
-water, electric, arcane, holy, heal, poison, shadow, blood, smoke, dust, gold, stone, leaf) or a list of colors.
+water, electric, arcane, holy, heal, poison, shadow, blood, smoke, dust, gold, stone, leaf, wind) or a list of colors.
 `createFx` resamples it to its step count (fewer steps pick existing colors, more interpolate), dark to bright, lays
 every ramp into one 256-entry palette table (index 0 is "nothing", `palette` first, the others in `meta.ramps`
 order), and hands the effect **arrays of indices**: `o.palette[0]` is the darkest step, `o.palette[7]` the brightest
