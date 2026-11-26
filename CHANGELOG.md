@@ -42,7 +42,7 @@
   frame, and play goes on from it.
 - **Props on the stage**: `meta.stage.scenery` names a set piece the stage draws behind a prop: the torch's flame
   sits on a wall sconce, the arc jumps between two terminal posts, the ripple spreads on a pool level with the floor
-  (in the effect's own colors). The arc and the ripple stand clear of the caster and no longer sink into the floor,
+  (in the effect's own colors), the wall slide scrapes down a brick wall (`wall`). The arc and the ripple stand clear of the caster and no longer sink into the floor,
   and props are there from the stage's first frame, without the 0.4 s an acted effect waits.
 - **`fire/torch` at the cast's scale**: the flame is 15 px tall, not 30 (a third of a 40 px character, not three
   quarters), on a 24x32 canvas instead of 32x48, its tongues, glow and embers scaled with it. The Unity demo keeps its

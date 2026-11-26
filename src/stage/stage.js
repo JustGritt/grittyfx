@@ -82,6 +82,14 @@ export const SCENERY = {
       }
     }
   },
+  // a brick wall for movement/wall-slide to scrape down: its face on the anchor's column (the scrape mark's), 12 px
+  // thick to the right, from the floor up past the canvas top (which crops it), lit along its face
+  wall: (put, a) => {
+    for (let y = -80; y < a.role.ground; y++) {
+      const v = a.role.ground - 1 - y, course = Math.floor(v / 6), joint = course % 2 ? 4 : 9;
+      for (let x = 0; x < 12; x++) put(x, y, INK[x === 0 || v % 6 === 5 || x === joint ? 'k' : x < 3 ? 'I' : 'i']);
+    }
+  },
 };
 const SHAKE = 0.2, JIGGLE = [[1, 0], [-1, 1], [1, -1], [-1, 0]]; // as in the gallery
 

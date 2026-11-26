@@ -12,7 +12,7 @@ export const meta = {
   views: ['side'],
   ramps: { palette: 8 },
   options: { palette: 'dust', seed: 1 },
-  stage: { at: 'aside', ground: 18, x: 16, cast: 'knight' }, // a hand on a wall beside the knight, its spray clear of him
+  stage: { at: 'aside', ground: 18, x: 16, cast: 'knight', scenery: 'wall' }, // a hand on a wall beside the knight, its spray clear of him
   sound: [
     { t: 0, kind: 'crackle', gain: 0.25, pitch: 2.6 }, // the grind
     { t: 0.15, kind: 'crack', gain: 0.06, pitch: 3.2 },
