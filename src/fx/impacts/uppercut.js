@@ -14,7 +14,7 @@ export const meta = {
   ramps: { palette: 8, dust: 5 },
   options: { palette: 'gold', dust: 'dust', seed: 1 },
   act: { windup: 0.15, hits: [{ t: 2 / 30, freeze: 0.08, shake: 2 }] },
-  stage: { x: -22 }, // the wielder, 22 px before the target
+  stage: { x: -22, pose: 'uppercut' }, // the wielder, 22 px before the target
   sound: [
     { t: 0, kind: 'whoosh', gain: 0.7, pitch: 1.8 }, // the scoop, loudest at the cut
     { t: 0, kind: 'crack', gain: 0.12, pitch: 3 }, // the blade scraping the floor

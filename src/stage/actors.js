@@ -24,11 +24,17 @@ export const CASTERS = {
   mage: { glow: true, look: { ready: 'gather', swing: 'cast', follow: 'cast', gather: 'gather', point: 'cast', raise: 'raise', crouch: 'gather' } },
   priest: { glow: true, look: { ready: 'gather', swing: 'cast', follow: 'cast', gather: 'gather', point: 'cast', raise: 'raise', crouch: 'gather' } },
   archer: { glow: false, look: { ready: 'draw', swing: 'release', follow: 'release', gather: 'draw', point: 'release', raise: 'draw', crouch: 'draw' } },
-  kunoichi: { glow: false, look: { ready: 'ready', swing: 'slash', follow: 'follow', gather: 'gather', point: 'throw', raise: 'seal', crouch: 'crouch', air: 'crouch' } },
+  kunoichi: { glow: false, look: { ready: 'ready', swing: 'slash', follow: 'follow', gather: 'gather', point: 'throw', raise: 'seal', crouch: 'crouch' } },
 };
 
-/** `who`'s frames for a pose, its run: its tag's, idle's when it has no drawing for the pose. */
-export const runOf = (who, pose) => CAST[who][CASTERS[who]?.look[pose] ?? pose] ?? CAST[who].idle;
+// The stage's newer poses, and the older one each falls back to for a caster with no drawing of its own.
+export const LIKE = { aim: 'ready', lunge: 'swing', low: 'crouch', rise: 'raise', spin: 'swing', kneel: 'crouch', open: 'raise', lift: 'raise', slam: 'crouch', dash: 'swing', high: 'air' };
+
+/** `who`'s frames for a pose, its run: its tag's, else the pose it is like's, else idle's. */
+export const runOf = (who, pose) => {
+  const tag = p => CAST[who][CASTERS[who]?.look[p] ?? p];
+  return tag(pose) ?? tag(LIKE[pose]) ?? CAST[who].idle;
+};
 
 /** `who`'s frame for a pose: its run's frame `i` (wrapping). */
 export const frameOf = (who, pose, i = 0) => {

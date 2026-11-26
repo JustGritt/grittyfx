@@ -13,7 +13,7 @@ export const meta = {
   top: { directions: 8 },
   ramps: { palette: 8 },
   options: { palette: 'dust', seed: 1 },
-  stage: { at: 'ground', ground: 14, cast: 'knight' }, // on the knight's body, the trail behind him
+  stage: { at: 'ground', ground: 12, cast: 'kunoichi', pose: 'dash' }, // on her body as she dashes, the trail behind her
   sound: [
     { t: 0, kind: 'whoosh', gain: 0.7, pitch: 1.3 }, // the burst
     { t: 0.02, kind: 'crack', gain: 0.1, pitch: 2.4 }, // grit kicked back

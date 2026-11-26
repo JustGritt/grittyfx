@@ -14,7 +14,7 @@ export const meta = {
   ramps: { palette: 8 },
   options: { palette: 'ice', seed: 1 },
   act: { windup: 0.15, hits: [{ t: 3 / 30, freeze: 0.04, shake: 1 }, { t: 9 / 30, freeze: 0.08, shake: 2 }] },
-  stage: { x: -26 }, // centred on the wielder, the target in reach in front
+  stage: { x: -26, pose: 'spin' }, // centred on the wielder, the target in reach in front
   sound: [
     { t: 0, kind: 'whoosh', gain: 0.6, pitch: 1.4 }, // a whoosh per turn, loudest as the blade passes in front
     { t: 0.2, kind: 'whoosh', gain: 0.8, pitch: 1.4 },

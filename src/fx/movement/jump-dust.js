@@ -13,7 +13,7 @@ export const meta = {
   top: { size: [48, 48] },
   ramps: { palette: 8 },
   options: { palette: 'dust', seed: 1 },
-  stage: { at: 'ground' }, // the knight takes off from it
+  stage: { at: 'ground', cast: 'kunoichi' }, // she takes off from it
   sound: [
     { t: 0, kind: 'whoosh', gain: 0.45, pitch: 1.5 }, // the push-off
     { t: 0, kind: 'thump', gain: 0.25, pitch: 1.6 },

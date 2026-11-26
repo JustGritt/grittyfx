@@ -12,16 +12,17 @@ const near = (a, b) => assert.ok(Math.abs(a - b) < 1e-9, `${a} is not ${b}`);
 
 test('role: tags place an effect, the category when no tag does, meta.stage over both', () => {
   const at = (tags, id, stage) => role({ tags, stage }, id);
-  assert.deepEqual(at(['fire', 'projectile']), { at: 'path', pose: 'point', cast: 'archer', x: 0, ground: HIT, speed: 200, scenery: undefined });
+  assert.deepEqual(at(['fire', 'projectile']), { at: 'path', pose: 'point', cast: 'archer', x: 0, ground: HIT, speed: 200, scenery: undefined, early: undefined });
   assert.equal(at(['heal', 'aura', 'status']).at, 'caster', 'the first tag with a role wins');
   assert.deepEqual([at(['buff']).at, at(['pickup']).at, at(['status']).at, at(['nova']).at, at(['ambient']).at], ['caster', 'caster', 'above', 'ground', 'aside']);
   assert.deepEqual([at([], 'projectiles/arrow').at, at([], 'status/x').at, at([], 'pickups/gem').at, at([], 'fire/x').at], ['path', 'above', 'caster', 'target']);
-  assert.deepEqual(at(['status'], '', { at: 'target', ground: 16, x: -3 }), { at: 'target', pose: 'point', cast: 'mage', x: -3, ground: 16, speed: 200, scenery: undefined });
+  assert.deepEqual(at(['status'], '', { at: 'target', ground: 16, x: -3 }), { at: 'target', pose: 'point', cast: 'mage', x: -3, ground: 16, speed: 200, scenery: undefined, early: undefined });
   assert.equal(at(['ambient']).pose, null, 'an ambient effect is not acted');
   assert.deepEqual([at(['slash']).pose, at(['impact', 'melee']).pose, at(['impact']).pose, at(['nova']).pose], ['strike', 'strike', 'point', 'raise']);
   assert.equal(at(['landing'], '', { at: 'ground' }).pose, 'hop');
   assert.deepEqual([at(['jump'], '', { at: 'ground' }).pose, at(['landing', 'jump'], '', { at: 'ground' }).pose], ['leap', 'hop'], 'a jump takes off, a landing lands in it');
   assert.equal(at(['landing', 'hit']).pose, 'point', 'only a landing on the ground under the caster hops');
+  assert.deepEqual([at(['impact'], '', { pose: 'raise' }).pose, at(['melee'], '', { pose: null }).pose], ['raise', null], 'meta.stage.pose over the tags');
   assert.deepEqual([at(['buff']).ground, at(['nova']).ground, at(['impact']).ground], [0, 0, HIT]);
   assert.equal(at(['status']).ground, -CAST.goblin.idle[0].y, "a status sits on top of the goblin's head");
 });
@@ -128,9 +129,10 @@ test('runs: each frame shows for its ms; a wind-up ends as the action comes in, 
   near(into(ls, 1.6, run), 0.1);
   for (const id of listIds()) {
     const mod = await loadEffect(id);
-    if (role(mod.meta, id).pose !== 'strike') continue;
+    const hits = { strike: 'swing', thrust: 'lunge', uppercut: 'rise', spin: 'spin' }[role(mod.meta, id).pose];
+    if (!hits) continue;
     const p = plan([{ mod, id }]);
-    near(looks(p.keys).find(l => l.look === 'swing').t, p.acts[0].contact); // the swing lands with the hit
+    near(looks(p.keys).find(l => l.look === hits).t, p.acts[0].contact); // the swing or lunge lands with the hit
   }
 });
 

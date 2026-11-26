@@ -283,6 +283,8 @@ staff's orb glowing in the spell's colors. In a move, the first acted step picks
 |---|---|
 | `at` | the place, over the role: `target`, `caster`, `ground`, `path`, `above` or `aside` |
 | `cast` | who acts it, over the tags: `knight`, `mage`, `priest`, `archer` or `kunoichi` |
+| `pose` | how it is acted, over the role's: `strike`, `thrust` (a level lunge), `uppercut` (from the blade by the floor up past the head), `spin` (two turns, a cut each), `point`, `raise`, `open` (kneel to it and lift a lid), `slam` (heave overhead, drive down at the feet), `dash` (crouch, then 32 px forward in 0.3 s, the effect going along), `hop`, `leap`, `double` (a jump, then a second from the air where the effect is), `run` (on the spot, looping from the stage's start), or `null` for nobody |
+| `early` | `true` shows the effect's first frame from the stage's start, before the caster acts on it (the chest he kneels to) |
 | `ground` | where the floor is in the effect's own coordinates, px below its anchor: how high the stage holds the anchor. `0` for an anchor on the floor (explosions, splashes, pillars, a status drawn from the feet), `14` for a hit drawn 14 px above its floor |
 | `x` | px toward the goblin from the place: the slash anchors at its wielder, so `x: -22`; the coin floats at the knight's side, `x: 16` |
 | `speed` | a looping projectile's, in px/s |
@@ -303,10 +305,12 @@ the canvas, a tag per pose, and a hidden `tip` layer with one pixel where the gl
 can be a run of frames, each shown for its Aseprite duration in whole stage frames (33, 67, 100 ms...): `idle` loops
 (at least two frames, a breath), a wind-up (`ready`, `gather`, `crouch`) ends its run as the action after it comes in,
 and any other pose starts its run with the look, a strike's on its contact, then holds its last frame. The knight
-draws `idle`, `ready`, `swing`, `follow`, `raise`, `crouch`; the mage and the priest `idle`, `gather`, `cast`,
-`raise`; the archer `idle`, `draw`, `release`; the kunoichi `idle`, `ready`, `slash`, `follow`, `gather`, `throw`,
-`crouch`, `seal`; the goblin `idle`, `hurt`, which plays from each hit for the 0.3 s he is hurt (`CASTERS` in
-`src/stage/actors.js` maps the stage's poses to them). After editing, `node tools/cast.mjs` writes `src/stage/cast.js`; a test fails while it is out of date.
+draws `idle`, `ready`, `swing`, `follow`, `raise`, `crouch`, `aim`, `lunge`, `low`, `rise`, `spin`, `run`, `kneel`,
+`open`; the mage `idle`, `gather`, `cast`, `raise`, `lift`, `slam`, and the priest the first four; the archer `idle`,
+`draw`, `release`; the kunoichi `idle`, `ready`, `slash`, `follow`, `gather`, `throw`, `crouch`, `seal`, `dash`, `air`,
+`lift`, `slam`; the goblin `idle`, `hurt`, which plays from each hit for the 0.3 s he is hurt (`CASTERS` in
+`src/stage/actors.js` maps the stage's poses to them, and a pose a caster hasn't drawn falls back to the one `LIKE`
+names, then to idle). After editing, `node tools/cast.mjs` writes `src/stage/cast.js`; a test fails while it is out of date.
 
 ## Sound
 
