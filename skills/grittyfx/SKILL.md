@@ -105,7 +105,7 @@ instance with the colors of a ramp from `src/core/color.js`. To bake a palette i
 
 **Brief.** Ask, in one short message, only what the request leaves open: role (hit, projectile, pickup, ambient
 prop...), view (side, or top-down too), size in px, length and loop, palette, glow, density, sound (synthesised
-from cues: thump, crack, whoosh, crackle, zap, chime). If they say "you pick", pick and state your picks.
+from cues: thump, crack, whoosh, crackle, zap, chime, shot). If they say "you pick", pick and state your picks.
 
 **Read** before drafting: `src/core/painter.js` and `src/core/sim.js` (short, documented), and the existing effect
 closest to yours. The contract:

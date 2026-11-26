@@ -37,12 +37,13 @@ test('role: the caster fits the effect, meta.stage.cast over it', () => {
   assert.deepEqual([cast(['buff'], 'holy/blessing'), cast(['projectile', 'magic'], 'holy/holy-bolt'), cast(['melee'], 'holy/smite')], ['priest', 'priest', 'knight'], "holy/ is the priest's, a strike still the knight's");
   assert.deepEqual([cast(['slash', 'melee']), cast(['projectile', 'thrown']), cast(['smoke', 'vanish']), cast(['nova', 'magic'], 'shadow/dark-nova'), cast(['ambient'], 'shadow/portal')], ['kunoichi', 'kunoichi', 'kunoichi', 'kunoichi', 'kunoichi'], 'the kunoichi slashes, throws, vanishes and does shadow/');
   assert.equal(cast(['slash'], '', { cast: 'mage' }), 'mage');
+  assert.deepEqual([cast(['firearm', 'military']), cast(['projectile', 'thrown', 'grenade', 'military']), cast(['projectile', 'rocket', 'military']), cast(['rocket'])], ['soldier', 'soldier', 'soldier', 'mage'], 'military: the soldier, rockets too, ahead of a thrown');
 });
 
 test('cast.js is up to date with the Aseprite files, and every caster draws every pose', () => {
   const file = readFileSync(new URL('../src/stage/cast.js', import.meta.url), 'utf8').replaceAll('\r\n', '\n'); // a CRLF checkout
   assert.equal(file, castModule(castFiles()), 'run node tools/cast.mjs');
-  for (const who of ['knight', 'mage', 'priest', 'archer', 'kunoichi']) {
+  for (const who of ['knight', 'mage', 'priest', 'archer', 'kunoichi', 'soldier']) {
     for (const pose of ['idle', 'ready', 'swing', 'follow', 'gather', 'point', 'raise', 'crouch', 'air']) assert.ok(frameOf(who, pose).rows.length, `${who} ${pose}`);
     assert.ok(frameOf(who, 'point').tip, `${who} shoots from a tip`);
     assert.ok(CAST[who].idle.length >= 2, `${who} breathes`);
