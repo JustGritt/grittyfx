@@ -12,7 +12,7 @@ export const meta = {
   views: ['side'],
   ramps: { palette: 8, wood: 6 },
   options: { palette: 'gold', wood: ['#1e1008', '#3a2010', '#5a3418', '#7c4a22', '#9c6230', '#c08048'], seed: 1 },
-  stage: { ground: 0, x: 20 }, // on the floor beside the knight
+  stage: { ground: 0, x: 20, waits: true, looks: { raise: ['open', 'crouch'] } }, // on the floor beside the knight, there before he opens it
   sound: [
     { t: 0.06, kind: 'crack', gain: 0.25, pitch: 1.4 }, // the lid rattles twice
     { t: 0.16, kind: 'crack', gain: 0.25, pitch: 1.2 },

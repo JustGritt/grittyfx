@@ -14,7 +14,7 @@ export const meta = {
   ramps: { palette: 8 },
   options: { palette: 'ice', seed: 1 },
   act: { windup: 0.12, hits: [{ t: 2 / 30, freeze: 0.06, shake: 1 }] },
-  stage: { x: -22 }, // the wielder, 22 px before the target
+  stage: { x: -22, looks: { ready: 'crouch', swing: 'thrust', follow: 'thrust' } }, // the wielder, 22 px before the target; from a low guard
   sound: [
     { t: 0, kind: 'whoosh', gain: 0.6, pitch: 2.4 }, // the lunge, short and high
     { t: 2 / 30, kind: 'crack', gain: 0.8, pitch: 2.6 }, // the point going in

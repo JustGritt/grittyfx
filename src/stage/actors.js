@@ -33,8 +33,8 @@ export function actorPalette(glow = 'holy', who = Object.keys(CAST), tint = {}) 
 }
 
 /**
- * How each caster shows the stage's poses (see POSES in stage.js): the tag drawn for each, and whether its tip glows
- * in the spell's colors. Every pose but idle falls back to idle.
+ * How each caster shows the stage's poses (see POSES in stage.js) it has no tag of the same name for: the tag drawn
+ * instead, and whether its tip glows in the spell's colors. Every pose but idle falls back to idle.
  */
 export const CASTERS = {
   knight: { glow: true, look: { ready: 'ready', swing: 'swing', follow: 'swing', gather: 'ready', point: 'swing', raise: 'raise', crouch: 'crouch', air: 'crouch' } },
@@ -44,9 +44,12 @@ export const CASTERS = {
   kunoichi: { glow: false, look: { ready: 'ready', swing: 'slash', follow: 'follow', gather: 'gather', point: 'throw', raise: 'seal', crouch: 'crouch', air: 'crouch' } },
 };
 
-/** `who`'s frame for a pose: its tag's frame `i` (wrapping), idle when it has no drawing for the pose. */
+/**
+ * `who`'s frame for a pose: frame `i` (wrapping) of its own tag of that name once drawn (a knight's `air`), else of the
+ * tag CASTERS stands in with, else of idle.
+ */
 export const frameOf = (who, pose, i = 0) => {
-  const tag = CAST[who][CASTERS[who]?.look[pose] ?? pose] ?? CAST[who].idle;
+  const tag = CAST[who][pose] ?? CAST[who][CASTERS[who]?.look[pose]] ?? CAST[who].idle;
   return tag[i % tag.length];
 };
 

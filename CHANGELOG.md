@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **The stage acts the new effects right**: `meta.stage` can hide the caster (`hide`: the kunoichi gone in her smoke
+  bomb, substitution and smoke puff), move them (`move`: the blink's 54 px, so Shadow step cuts the goblin as she
+  reappears, with a move step's `acted: true`), hold a cast while a beam lasts (`hold`), pick the caster's own tags
+  (`looks`, with stand-ins: the thrust from a low guard, the uppercut from a crouch up to a raised blade, the dash and
+  the chest in a crouch until `dash` and `open` are drawn), and show an effect before it plays (`waits`: the chest is
+  there before the knight opens it). A jump tagged `air` kicks off in mid-air (the double jump); the smoke puff plays
+  at the feet of whoever vanishes in it, not on the goblin. A pose takes a character's tag of the same name once drawn.
+
 - **A cast that fits**: the stage's code-drawn swordsman and dummy are replaced by characters drawn in Aseprite
   (`src/stage/cast/*.aseprite`, made into `src/stage/cast.js` by `tools/cast.mjs`): a knight acts melee, pickups
   and landings, a mage spells, statuses, auras and spell projectiles (the staff's orb glows in the spell's colors),

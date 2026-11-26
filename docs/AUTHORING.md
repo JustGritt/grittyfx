@@ -264,7 +264,7 @@ the target. Tag effects for what they are, and the stage follows:
 |---|---|---|---|---|
 | `projectile` | `projectiles` | `path` | from the caster's staff or bow to the goblin's chest, flying 200 px/s (a loop), arriving on its first hit, or at its end (a one-shot); a loop is removed on arrival | shoots |
 | `aura`, `buff`, `pickup` | `pickups` | `caster` | on the floor at the caster's feet | raises a sword or staff |
-| `nova` | | `ground` | on the floor at the caster's feet; a `landing` tag makes them hop and land in it, a `jump` tag take off from it | raises, hops or leaps |
+| `nova` | | `ground` | on the floor at the caster's feet; a `landing` tag makes them hop and land in it, a `jump` tag take off from it, `jump` with `air` kick off it in mid-air (a double jump) | raises, hops or leaps |
 | `status` | `status` | `above` | on top of the goblin's head | casts |
 | `ambient` (torches, portals, props) | | `aside` | on the floor next to the caster; nobody acts | idles |
 | anything else: impacts, explosions, beams, pillars | | `target` | on the goblin's chest, 14 px over the floor | strikes in sword's reach if it is tagged `melee` or `slash`, else casts |
@@ -287,6 +287,11 @@ staff's orb glowing in the spell's colors. In a move, the first acted step picks
 | `x` | px toward the goblin from the place: the slash anchors at its wielder, so `x: -22`; the coin floats at the knight's side, `x: 16` |
 | `speed` | a looping projectile's, in px/s |
 | `scenery` | the set the stage draws behind a prop, from its anchor: `sconce` (a wall torch's stick, for the torch's flame), `posts` (two terminals 18 px either side, down to the floor, for the arc), `pool` (water level with the floor, from the effect's first ramp, for the ripple), `cliff` (a rock face up to a ledge 58 px over the floor, for the waterfall) |
+| `hold` | `true`: a cast keeps pointing until the effect ends (a beam) |
+| `hide` | `[t0, t1]`, seconds into the effect: the caster is gone from `t0` to `t1`, or for good without `t1` (a vanish, a blink) |
+| `move` | `[t, dx]`: the caster steps `dx` px toward the goblin at `t` and stays there (a blink's 54 px) |
+| `looks` | `{ pose: tag }`: the caster's own tags for this effect, a list for stand-ins (`{ raise: ['dash', 'crouch'] }`: `dash` once drawn, `crouch` until then). Poses: `ready`, `swing`, `follow` (a strike), `gather`, `point` (a cast), `crouch`, `raise`, `air` |
+| `waits` | `true`: the effect stands on its first frame from the stage's start until it plays (the chest the knight opens) |
 
 `render --stage <id>` and the effect's preview page (its `stage` row) show where it lands. Each hit of an effect on
 the goblin (`target`, `path`, `above`) knocks it back, and so does a projectile without hits when it arrives; hits on
@@ -294,7 +299,8 @@ the caster's side still freeze and shake.
 
 **Moves** (`src/stage/moves.js`) chain effects: `{ name, desc, steps: [{ fx, on, opts, stage }] }`. A step plays once the
 one before it has ended, after its own wind-up; `on: 'hit'` plays it with the previous step's first hit instead (a
-spark on the slash's cut, the explosion where the fireball lands), and a step's `stage` places it over its effect's `meta.stage` (Frost nova's glints round the goblin), and coinciding hits freeze once, at the stronger
+spark on the slash's cut, the explosion where the fireball lands), the caster acting nothing for it unless `acted: true`
+(Shadow step's slash as she reappears), and a step's `stage` places it over its effect's `meta.stage` (Frost nova's glints round the goblin), and coinciding hits freeze once, at the stronger
 freeze and shake. `render --stage <move>` writes `records/moves/<move>/`; the gallery shows them on its Moves page
 (`?page=moves`).
 
@@ -303,7 +309,7 @@ the canvas, a tag per pose (`idle` has two frames, a breath), and a hidden `tip`
 sits and shots leave from. The knight draws `idle`, `ready`, `swing`, `raise`, `crouch`; the mage `idle`, `gather`,
 `cast`, `raise`; the archer `idle`, `draw`, `release`; the kunoichi `idle`, `ready`, `slash`, `follow`, `gather`,
 `throw`, `crouch`, `seal`; the goblin `idle`, `hurt` (`CASTERS` in `src/stage/actors.js` maps the stage's poses to
-them). After editing, `node tools/cast.mjs` writes `src/stage/cast.js`; a test fails while it is out of date.
+them; a tag named after a pose, such as a knight's `air`, is drawn for it as soon as it exists). After editing, `node tools/cast.mjs` writes `src/stage/cast.js`; a test fails while it is out of date.
 
 ## Sound
 

@@ -69,6 +69,32 @@ test('plan: a landing plays as the caster lands, a jump as they take off', () =>
   };
   assert.deepEqual([lift(['landing'], -0.15) > 0, lift(['landing'], 0)], [true, 0], 'in the air before, down on the effect');
   assert.deepEqual([lift(['jump'], -0.1), lift(['jump'], 0), lift(['jump'], 0.2)], [0, 0, 9], 'crouched, then up and away');
+  assert.deepEqual([lift(['jump', 'air'], 0), lift(['jump', 'air'], 0.2)], [9, 18], 'a jump tagged air: already up, kicking higher');
+});
+
+test('plan: an effect hides or moves the caster, holds a cast or picks its own looks; a step on hit acts if acted', () => {
+  const blink = mod({ tags: ['vanish'], act: { hits: [{ t: 0.1 }] }, stage: { at: 'caster', hide: [0, 0.1], move: [0.1, 54] } });
+  const cut = mod({ tags: ['slash'], act: { hits: [{ t: 0.05 }] } });
+  const p = plan([{ mod: blink }, { mod: cut, on: 'hit', acted: true }]), [a, b] = p.acts;
+  assert.deepEqual([p.hidden, p.moves], [[[a.start, a.start + 0.1]], [[a.start + 0.1, 54]]]);
+  assert.equal(poseAt(p.keys, b.contact).look, 'swing', 'she reappears swinging');
+  assert.equal(poseAt(plan([{ mod: blink }, { mod: cut, on: 'hit' }]).keys, b.contact).look, 'raise', 'not acted: still on the blink');
+
+  const ray = hold => { const q = plan([{ mod: mod({ duration: 0.8, stage: { hold } }) }]); return poseAt(q.keys, q.acts[0].start + 0.7).look; };
+  assert.deepEqual([ray(true), ray(false)], ['point', 'idle'], 'a held cast points while the beam lasts');
+
+  const ready = looks => { const q = plan([{ mod: mod({ tags: ['melee'], act: { hits: [{ t: 0.05 }] }, stage: { looks } }) }]); return poseAt(q.keys, q.acts[0].start).look; };
+  assert.deepEqual([ready(undefined), ready({ ready: 'crouch' }), ready({ ready: ['undrawn', 'crouch'] }), ready({ ready: 'undrawn' })], ['ready', 'crouch', 'crouch', 'ready'], 'the first tag drawn, else the pose');
+});
+
+test('createStage: an effect that waits stands on its first frame before it plays', () => {
+  const drawn = waits => {
+    let n = 0;
+    const st = createStage([{ mod: { ...mod({ tags: ['pickup'], stage: { waits } }), draw: () => n++ } }]);
+    st.draw(0, new Uint8ClampedArray(st.size[0] * st.size[1] * 4));
+    return n > 0;
+  };
+  assert.deepEqual([drawn(true), drawn(false)], [true, false]);
 });
 
 test('plan: on hit, a step lands with the previous one and their hits merge; otherwise it follows its end', () => {

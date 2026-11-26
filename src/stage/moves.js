@@ -1,6 +1,6 @@
 // Moves: effects chained and acted out on the stage, in the gallery and by `render --stage <move>`. A step plays once
-// the one before it has ended, after its own wind-up; `on: 'hit'` plays it with the previous step's first hit instead.
-// A step's `stage` places it over its effect's meta.stage.
+// the one before it has ended, after its own wind-up; `on: 'hit'` plays it with the previous step's first hit instead,
+// the caster acting nothing for it unless `acted: true`. A step's `stage` places it over its effect's meta.stage.
 export const MOVES = {
   'sword-combo': {
     name: 'Sword combo',
@@ -86,7 +86,7 @@ export const MOVES = {
   'shadow-step': {
     name: 'Shadow step',
     desc: 'A blink across the gap, cutting the goblin as she reappears',
-    steps: [{ fx: 'shadow/blink' }, { fx: 'impacts/slash', on: 'hit', opts: { palette: 'arcane' } }],
+    steps: [{ fx: 'shadow/blink' }, { fx: 'impacts/slash', on: 'hit', acted: true, opts: { palette: 'arcane' } }],
   },
   lunge: {
     name: 'Lunge',

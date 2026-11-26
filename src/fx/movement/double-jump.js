@@ -13,7 +13,7 @@ export const meta = {
   top: { size: [44, 44] },
   ramps: { palette: 8 },
   options: { palette: 'ice', seed: 1 },
-  stage: { at: 'ground' }, // the knight kicks off it
+  stage: { at: 'ground', ground: 9 }, // the knight kicks off it in mid-air, his feet at the air pose's height
   sound: [
     { t: 0, kind: 'whoosh', gain: 0.6, pitch: 1.9 }, // the kick, a short gust
     { t: 0, kind: 'chime', gain: 0.12, pitch: 1.5 },
