@@ -118,4 +118,9 @@ export const MOVES = {
     desc: 'A gust that shoves the goblin back, then a tornado that twists up round it',
     steps: [{ fx: 'wind/gust' }, { fx: 'wind/tornado' }],
   },
+  'charged-strike': {
+    name: 'Charged strike',
+    desc: 'The knight holds his blade up while a charge builds in it, then brings it down on the goblin in a crushing blow',
+    steps: [{ fx: 'magic/charge-up' }, { fx: 'impacts/heavy-hit', opts: { palette: 'gold' } }], // the blow in the charge's colors
+  },
 };
