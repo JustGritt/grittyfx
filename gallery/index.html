@@ -131,7 +131,7 @@
   .seg .sw { display: grid; place-items: center; width: 36px; height: 32px; padding: 0; }
   .seg .sw::before { content: ""; width: 16px; height: 16px; border-radius: 2px; background: var(--c); box-shadow: 0 0 0 1px oklch(1 0 0 / 0.16); }
   @media (max-width: 899px) { .sep { display: none; } }
-  @media (min-width: 720px) { .grid > .wide { grid-column: span 2; } } /* the grid has two columns from about here */
+  @media (min-width: 720px) { .grid > .wide { grid-column: span 2; } } /* the cast's grid has two columns from about here */
   @media (min-width: 900px) {
     .controls { position: sticky; top: 0; z-index: 2; }
     html { scroll-padding-top: 80px; } /* keep focused cards out from under the strip */
@@ -148,9 +148,10 @@
   .chips input:checked + span { color: var(--text); box-shadow: inset 0 -2px 0 var(--accent); }
   .chips input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-  /* The drawer: cells ruled by hairlines, no gaps, every card the same size (320: the widest stage fits at 2x, the zoom
-     every card shares, see relayout in gallery.js). */
-  .grid { list-style: none; margin: 1px 1px var(--space-4xl); padding: 0; display: grid; gap: 1px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); }
+  /* The drawer: cells ruled by hairlines, no gaps, every card the same size (400: most stages fit at 3x, the zoom
+     the cards share, see relayout in gallery.js; three columns at most in .wrap). The cast's sheets pack in four. */
+  .grid { list-style: none; margin: 1px 1px var(--space-4xl); padding: 0; display: grid; gap: 1px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 400px), 1fr)); }
+  .grid.cast { grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); }
   .card { position: relative; display: flex; flex-direction: column; background: var(--page); box-shadow: 0 0 0 1px var(--line); }
   /* the title's link covers the card; other links in it (a character's downloads) stay their own size */
   .card:has(h3 a:focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; z-index: 1; }
