@@ -1,14 +1,15 @@
 // node tools/render.mjs <id | category | glob>... [--all] [--sheet] [--html] [--aseprite <dir>] [--gif] [--mp4] [--zoom N]
 //   [--seed N] [--opts '<json>'] [--fps N] [--bg '#hex']
-// node tools/render.mjs --stage <move | id | category | glob>... [--all] [--gif] [--mp4] [--flip] [--zoom N] [--seed N]
-//   [--opts '<json>'] [--bg '#hex']
+// node tools/render.mjs --stage <move | id | category | glob>... [--all] [--gif] [--mp4] [--flip] [--foe slime]
+//   [--tint ramp|json] [--zoom N] [--seed N] [--opts '<json>'] [--bg '#hex']
 // Writes records/<id>/contact.png (sampled frames; --all for every frame), the bundle with --sheet (its .wav too when
 // the effect has sound), a page that plays it with --html (opens from disk), and a gif or mp4 through ffmpeg.
 // --aseprite <dir> writes <dir>/<name>.aseprite to edit by hand (the side view; export.mjs bundles it back), never over
 // an existing one: keep it with the game's art, as a plugin's copy of grittyfx is replaced on update. An
 // effect with a top view also gets contact_top.png (a row per direction) and its _top bundle. --stage acts the effect,
 // or a move from src/stage/moves.js, out with the cast (a knight, mage or archer, and a goblin if it strikes one), hit-stop and shake:
-// records/<id>/stage.png (and stage.gif, stage.mp4), records/moves/<move>/stage.png for a move.
+// records/<id>/stage.png (and stage.gif, stage.mp4), records/moves/<move>/stage.png for a move. --foe puts another
+// character in the goblin's place and --tint recolors it (see tinted() in src/stage/actors.js): stage_<foe>_<tint>.png.
 import { parseArgs } from 'node:util';
 import { existsSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
@@ -23,18 +24,21 @@ const { values: a, positionals } = parseArgs({
   allowPositionals: true,
   options: {
     all: { type: 'boolean' }, sheet: { type: 'boolean' }, html: { type: 'boolean' }, aseprite: { type: 'string' }, gif: { type: 'boolean' }, mp4: { type: 'boolean' },
-    stage: { type: 'boolean' }, flip: { type: 'boolean' },
+    stage: { type: 'boolean' }, flip: { type: 'boolean' }, foe: { type: 'string' }, tint: { type: 'string' },
     zoom: { type: 'string' }, seed: { type: 'string' }, opts: { type: 'string' }, fps: { type: 'string' },
     bg: { type: 'string', default: '#1b1d26' },
   },
 });
 if (!positionals.length) {
   console.error('usage: node tools/render.mjs <id | category | glob>... [--all] [--sheet] [--html] [--aseprite <dir>] [--gif] [--mp4] [--zoom N] [--seed N] [--opts json] [--fps N] [--bg #hex]');
-  console.error(`       node tools/render.mjs --stage <move | id>... [--all] [--gif] [--mp4] [--flip] [--zoom N] [--seed N] [--opts json] [--bg #hex] (moves: ${Object.keys(MOVES).join(', ')})`);
+  console.error(`       node tools/render.mjs --stage <move | id>... [--all] [--gif] [--mp4] [--flip] [--foe slime] [--tint ramp|json] [--zoom N] [--seed N] [--opts json] [--bg #hex] (moves: ${Object.keys(MOVES).join(', ')})`);
   process.exit(1);
 }
 const zoom = Number(a.zoom ?? (a.stage ? 2 : 3)), fps = a.fps && Number(a.fps);
 const opts = { ...(a.opts && JSON.parse(a.opts)), ...(a.seed && { seed: Number(a.seed) }) };
+// who takes the hits and its tint (a PAL name, or JSON: colors or { ramp, swap }); the file is named after both
+const foe = a.foe ?? 'goblin', tint = a.tint && (/^[[{]/.test(a.tint) ? JSON.parse(a.tint) : a.tint);
+const stageName = ['stage', a.foe, a.tint && (typeof tint === 'string' ? tint : 'tint')].filter(Boolean).join('_');
 
 // Sampled RGBA images of w x h, at most `max`; with several directions, one row per direction (n images each).
 function contact(images, w, h, all, n = images.length, max = 12) {
@@ -64,7 +68,7 @@ function video(dir, images, w, h, rate, ext, name = 'anim') {
 
 // The stage as a game shows it: frames in real time, held on hits, the whole view shaken.
 async function stage(dir, steps) {
-  const st = createStage(await Promise.all(steps.map(async s => ({ ...s, id: s.fx, mod: await loadEffect(s.fx) }))), opts);
+  const st = createStage(await Promise.all(steps.map(async s => ({ ...s, id: s.fx, mod: await loadEffect(s.fx) }))), opts, {}, { foe, tint: tint ? { [foe]: tint } : {} });
   const [w, h] = st.size, bg = hex(a.bg), still = new Uint8ClampedArray(w * h * 4);
   const images = realtime(st.hits, st.duration).map(({ t, dx, dy }) => {
     st.draw(t, still, bg, a.flip);
@@ -78,10 +82,10 @@ async function stage(dir, steps) {
     return img;
   });
   mkdirSync(dir, { recursive: true });
-  writeFileSync(join(dir, 'stage.png'), contact(images, w, h, a.all, images.length, 24));
-  console.log(join(dir, 'stage.png'));
-  if (a.gif) video(dir, images, w, h, FPS, 'gif', 'stage');
-  if (a.mp4) video(dir, images, w, h, FPS, 'mp4', 'stage');
+  writeFileSync(join(dir, `${stageName}.png`), contact(images, w, h, a.all, images.length, 24));
+  console.log(join(dir, `${stageName}.png`));
+  if (a.gif) video(dir, images, w, h, FPS, 'gif', stageName);
+  if (a.mp4) video(dir, images, w, h, FPS, 'mp4', stageName);
 }
 
 if (a.stage) {
