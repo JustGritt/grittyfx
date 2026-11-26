@@ -118,4 +118,9 @@ export const MOVES = {
     desc: 'A gust that shoves the goblin back, then a tornado that twists up round it',
     steps: [{ fx: 'wind/gust' }, { fx: 'wind/tornado' }],
   },
+  flurry: {
+    name: 'Flurry',
+    desc: 'Two punches to the goblin\'s chest, then a roundhouse kick that knocks it back',
+    steps: [{ fx: 'impacts/punch' }, { fx: 'impacts/punch', opts: { seed: 2 } }, { fx: 'impacts/kick' }],
+  },
 };
