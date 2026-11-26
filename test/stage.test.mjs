@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
-import { role, plan, poseAt, looks, into, targetAt, realtime, createStage, HIT, NEAR, FAR, FPS } from '../src/stage/stage.js';
+import { role, plan, poseAt, looks, into, targetAt, realtime, createStage, along, heading, HIT, NEAR, FAR, FPS } from '../src/stage/stage.js';
 import { CAST, BODY, frameOf, frameAt, tinted } from '../src/stage/actors.js';
 import { PALETTES } from '../src/stage/cast.js';
 import { fit } from '../src/core/index.js';
@@ -52,6 +52,27 @@ test('cast.js is up to date with the Aseprite files, and every caster draws ever
     const n = (f.ms / 1000) * FPS; // a frame between two of the stage's would show for one or two of them unevenly
     assert.ok(Math.round(n) >= 1 && Math.abs(n - Math.round(n)) * (1000 / FPS) < 1, `${who} ${pose} frame ${i + 1} lasts ${f.ms} ms: make it 33, 67, 100...`);
   });
+});
+
+test('plan: an arcing projectile leaves the tip, peaks at its middle and lands where and when a straight one does', () => {
+  const shot = stage => plan([{ mod: mod({ tags: ['projectile'], loop: true, stage }) }]).acts[0];
+  const flat = shot(), lob = shot({ arc: 20 });
+  assert.deepEqual([along(lob, 0), along(lob, 1)], [lob.from, lob.to]);
+  near(along(lob, 0.5)[1], (lob.from[1] + lob.to[1]) / 2 - 20);
+  assert.deepEqual(along(flat, 0.5), [(flat.from[0] + flat.to[0]) / 2, (flat.from[1] + flat.to[1]) / 2], 'no arc: a straight line');
+  near(lob.contact, flat.contact);
+  const st = createStage([{ mod: mod({ tags: ['projectile'], loop: true, stage: { arc: 40 } }), id: 'x' }]), act = st.plan.acts[0];
+  assert.ok(-st.floor <= along(act, 0.5)[1] - act.mod.meta.origin[1], 'the canvas holds the effect at its peak');
+});
+
+test('plan: a projectile points where it flies, down its line to the chest, or climbing then falling over its arc', () => {
+  const shot = stage => plan([{ mod: mod({ tags: ['projectile'], loop: true, stage }) }]).acts[0];
+  const flat = shot(), lob = shot({ arc: 20 }), [dx, dy] = [flat.to[0] - flat.from[0], flat.to[1] - flat.from[1]];
+  assert.ok(dy > 0, 'the tip is above the chest');
+  near(heading(flat, 0), Math.atan2(dy, dx));
+  near(heading(flat, 1), heading(flat, 0));
+  assert.ok(heading(lob, 0) < 0 && heading(lob, 1) > 0, 'a lob climbs, then falls');
+  near(heading(lob, 0.5), Math.atan2(dy, dx));
 });
 
 test('plan: the wind-up comes before the effect, its hits land after its start, on a frame', () => {
