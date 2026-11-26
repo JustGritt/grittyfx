@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **Wind**, a new `wind/` category and a `wind` palette (pale teal to mint white): `gust` (air drawn into the staff,
+  then a cone of curling lines that shoves the goblin back, dust kicked off the floor), `tornado` (a funnel twisting up
+  round the goblin, grinding it three times, then unwinding and flinging out the dust and leaves it carried),
+  `air-blade` (a crescent of air the kunoichi throws, streaks curling off its tips) and `updraft` (a buff loop, streaks
+  and leaves spiralling up round the caster over a ring of air). Top views for all but the updraft. The Tempest move
+  pairs the gust and the tornado.
 - **The stage acts the new effects right**: `meta.stage` can hide the caster (`hide`: the kunoichi gone in her smoke
   bomb, substitution and smoke puff), move them (`move`: the blink's 54 px, so Shadow step cuts the goblin as she
   reappears, with a move step's `acted: true`), hold a cast while a beam lasts (`hold`), pick the caster's own tags

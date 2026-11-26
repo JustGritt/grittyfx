@@ -1,6 +1,6 @@
 # Catalog
 
-70 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
+74 effects. Generated from each effect's `meta` by `node tools/catalog.mjs`: don't edit by hand.
 Ramps read `option: default (steps)`; pass another ramp name or a list of colors to recolor.
 
 ## earth
@@ -142,3 +142,12 @@ Ramps read `option: default (steps)`; pass another ramp name or a list of colors
 | `water/splash` | one-shot | side, top | 84x56 | 1.2 s | palette: water (8) | water, splash, impact, hit, landing, droplets | Something hits the water: a white burst, a crown of water thrown up that collapses into a foam ring, a jet from the middle, droplets that arc out and ripple where they land |
 | `water/water-bolt` | loop | side, top (8 headings) | 48x26 | 0.5 s | palette: water (8) | water, projectile, magic, bolt | A flying ball of churning water: swirling bands under a glinting skin, a foam bow wave, a wake of spray that breaks up behind and droplets shed as it goes |
 | `water/waterfall` | loop | side | 48x72 | 1 s | palette: water (8) | water, waterfall, cascade, ambient, prop | A narrow fall of water: it curls over a lip, pours down in streaks that race past, and churns into foam and drifting mist on a pool at its foot |
+
+## wind
+
+| effect | kind | views | size | duration | ramps | tags | description |
+|---|---|---|---|---|---|---|---|
+| `wind/air-blade` | loop | side, top (8 headings) | 36x30 | 0.4 s | palette: wind (8), dust: dust (6) | projectile, thrown, wind, air, blade, crescent, ninja | A crescent of pressed air flying edge first: a thin bright leading edge that shimmers, streaks peeling off its tips and curling as they fade, dust caught in its wake |
+| `wind/gust` | one-shot | side, top (8 headings) | 88x48 | 0.8 s | palette: wind (8), dust: dust (6), leaf: leaf (4) | wind, air, gust, magic, spell, push | A blast of air from the hand: wisps are sucked into the staff tip, then a widening cone of curling lines streams out to the target, its front slapping into it and splitting round it, dust and leaves kicked up from the floor below, the lines thinning and curling away |
+| `wind/tornado` | one-shot | side, top | 72x84 | 1.7 s | palette: wind (8), dust: dust (6), leaf: leaf (4) | wind, air, tornado, whirlwind, magic, spell | A twist on the floor shoots up into a spinning funnel round the target, bands of air and dust and leaves wound up it; it grinds three times, then unwinds upward and flings what it carried |
+| `wind/updraft` | loop | side | 48x64 | 1.6 s | palette: wind (8), leaf: leaf (5) | wind, air, updraft, buff, aura, levitate | A wind buff on its caster: a breathing ring of air at the feet, streaks spiralling up round the body and curling off, a few leaves riding up |

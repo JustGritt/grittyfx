@@ -113,4 +113,9 @@ export const MOVES = {
     desc: 'An ice orb that locks the goblin in a crust of ice',
     steps: [{ fx: 'projectiles/energy-orb', opts: { palette: 'ice' } }, { fx: 'status/frozen', on: 'hit' }],
   },
+  tempest: {
+    name: 'Tempest',
+    desc: 'A gust that shoves the goblin back, then a tornado that twists up round it',
+    steps: [{ fx: 'wind/gust' }, { fx: 'wind/tornado' }],
+  },
 };
