@@ -118,4 +118,14 @@ export const MOVES = {
     desc: 'A gust that shoves the goblin back, then a tornado that twists up round it',
     steps: [{ fx: 'wind/gust' }, { fx: 'wind/tornado' }],
   },
+  'fire-arrow': {
+    name: 'Fire arrow',
+    desc: 'A burning arrow loosed from the bow that sets the goblin alight where it strikes',
+    steps: [{ fx: 'projectiles/fire-arrow' }, { fx: 'status/burning', on: 'hit' }],
+  },
+  'arrow-rain': {
+    name: 'Arrow rain',
+    desc: 'Arrows loosed high out of the frame, then the volley falling across the goblin and thudding into the floor round it',
+    steps: [{ fx: 'projectiles/sky-shot' }, { fx: 'projectiles/arrow-rain' }],
+  },
 };
