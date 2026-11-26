@@ -13,9 +13,9 @@ export const meta = {
   ramps: { palette: 8, smoke: 6, dust: 6 },
   options: { palette: 'fire', smoke: 'smoke', dust: 'dust', seed: 1 },
   act: { hits: [{ t: 0, freeze: 0, shake: 2 }] },
-  // The anchor is the back of a kneeling gunner's tube as he fires (his tip, the tube's mouth, is 24 px ahead of
-  // it, 15 px over the floor); it blows out to the left, behind him.
-  stage: { at: 'caster', pose: 'point', x: -11, ground: 15 },
+  // The anchor is the back of the kneeling gunner's tube as he fires (his tip, the tube's mouth, is 22 px ahead of
+  // it, 18 px over the floor); it blows out to the left, behind him.
+  stage: { at: 'caster', pose: 'point', x: -9, ground: 18 },
   sound: [
     { t: 0, kind: 'thump', gain: 0.8, pitch: 0.5 }, // the low thump of the motor lighting
     { t: 0, kind: 'crack', gain: 0.35, pitch: 0.6 }, // its pop
@@ -23,7 +23,7 @@ export const meta = {
   ],
 };
 
-const FLOOR = 15; // the floor, below the tube's axis at y 0.5
+const FLOOR = meta.stage.ground; // the floor, below the tube's axis at y 0.5
 const SPREAD = 0.3; // the cone's half-width per px back
 const TILT = 0.12; // its axis dips this much per px back, toward the floor
 const clamp01 = v => Math.max(0, Math.min(1, v));

@@ -138,7 +138,7 @@ export const MOVES = {
     desc: 'Arrows loosed high out of the frame, then the volley falling across the goblin and thudding into the floor round it',
     steps: [{ fx: 'projectiles/sky-shot' }, { fx: 'projectiles/arrow-rain' }],
   },
-  // military, acted by the soldier
+  // military, acted by the soldier and the gunner
   'rifle-burst': {
     name: 'Rifle burst',
     desc: 'Three quick shots from the soldier\'s rifle, a bullet striking the goblin with each',
@@ -154,6 +154,12 @@ export const MOVES = {
     desc: 'One aimed round, its tracer streaking across to strike the goblin',
     steps: [{ fx: 'firearms/tracer' }, { fx: 'firearms/bullet-hit', on: 'hit' }],
   },
+  rocket: {
+    name: 'Rocket',
+    desc: 'The gunner kneels and fires, the backblast roaring out behind him, the rocket blowing up under the goblin',
+    // the backblast is acted and the rocket rides it: both leave the tube at once
+    steps: [{ fx: 'explosions/backblast' }, { fx: 'projectiles/rocket', on: 'hit' }, { fx: 'explosions/rocket-blast', on: 'hit' }],
+  },
   grenade: {
     name: 'Grenade',
     desc: 'A frag grenade lobbed at the goblin, bursting at its feet in a flash and a spray of shrapnel',
@@ -163,6 +169,17 @@ export const MOVES = {
     name: 'Smoke screen',
     desc: 'A smoke grenade lobbed at the goblin, its cloud billowing up and swallowing it',
     steps: [{ fx: 'projectiles/grenade' }, { fx: 'explosions/smoke-grenade', on: 'hit', stage: { at: 'target', x: -16, ground: 0 } }], // the canister lands at its feet, the front of the cloud over it
+  },
+  'rocket-salvo': {
+    name: 'Rocket salvo',
+    desc: 'The gunner fires three rockets one after another, each blowing up on the goblin as the next leaves the tube',
+    // a step on hit plays at the step before's first hit, and a rocket's is its arrival: each backblast (acted, so he
+    // stays down firing) rides the blast before it and its rocket rides it, so a rocket leaves as the last one lands
+    steps: [
+      { fx: 'explosions/backblast' }, { fx: 'projectiles/rocket', on: 'hit' }, { fx: 'explosions/rocket-blast', on: 'hit' },
+      { fx: 'explosions/backblast', on: 'hit', acted: true, opts: { seed: 2 } }, { fx: 'projectiles/rocket', on: 'hit', opts: { seed: 2 } }, { fx: 'explosions/rocket-blast', on: 'hit', opts: { seed: 2 }, stage: { x: -9 } },
+      { fx: 'explosions/backblast', on: 'hit', acted: true, opts: { seed: 3 } }, { fx: 'projectiles/rocket', on: 'hit', opts: { seed: 3 } }, { fx: 'explosions/rocket-blast', on: 'hit', opts: { seed: 3 }, stage: { x: 7 } },
+    ],
   },
   molotov: {
     name: 'Molotov',

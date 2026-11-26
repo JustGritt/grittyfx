@@ -251,7 +251,7 @@ timing is data, the game decides.
 ## Stage
 
 An effect reads best acted out. The stage (`src/stage/`) has a cast drawn in Aseprite: a caster that fits the effect
-(a knight, a mage, a priest, an archer, a kunoichi or a soldier) winds up for `act.windup` (0.15 s for a strike, 0.3 s for a cast when left out), the
+(a knight, a mage, a priest, an archer, a kunoichi, a soldier or a gunner) winds up for `act.windup` (0.15 s for a strike, 0.3 s for a cast when left out), the
 effect plays where its role puts it, the game freezes and shakes on each hit while a goblin flashes white and is
 knocked back, then both recover. The gallery acts every effect out this way (its Caster and Target toggles switch
 either character off; a top view in its View plays the effects that have one on their own), and `render --stage`
@@ -273,7 +273,7 @@ The goblin only stands in for effects that strike it (`target`, `path`, `above`)
 plays with the caster alone, a prop `aside` standing next to them, and the canvas fits.
 
 **Who acts it.** The soldier acts every `military` effect, aiming and shooting, or throwing where its `looks` say so
-(`gather: 'windup', point: 'throw'`). The kunoichi slashes, throws and vanishes (`slash`, `thrown`, `vanish`) and acts every `shadow/`
+(`gather: 'windup', point: 'throw'`), but a `rocket`, which the gunner kneels to fire. The kunoichi slashes, throws and vanishes (`slash`, `thrown`, `vanish`) and acts every `shadow/`
 effect; the knight strikes, hops and picks things up (`melee`, `pickup` and the `pickups` category); the priest acts
 `holy/`; the archer shoots projectiles that aren't tagged `magic` or `spell`; the mage casts everything else, the
 staff's orb glowing in the spell's colors. In a move, the first acted step picks.
@@ -283,7 +283,7 @@ staff's orb glowing in the spell's colors. In a move, the first acted step picks
 | field | meaning |
 |---|---|
 | `at` | the place, over the role: `target`, `caster`, `ground`, `path`, `above` or `aside` |
-| `cast` | who acts it, over the tags: `knight`, `mage`, `priest`, `archer`, `kunoichi` or `soldier` |
+| `cast` | who acts it, over the tags: `knight`, `mage`, `priest`, `archer`, `kunoichi`, `soldier` or `gunner` |
 | `pose` | how it is acted, over the role's: `strike`, `thrust` (a level lunge), `uppercut` (from the blade by the floor up past the head), `spin` (two turns, a cut each), `point`, `raise`, `open` (kneel to it and lift a lid), `slam` (heave overhead, drive down at the feet), `dash` (crouch, then 32 px forward in 0.3 s, the effect going along), `hop`, `leap`, `airjump` (a jump, then a second from the air where the effect is: a `jump` tagged `air` gets it), `run` (on the spot, looping from the stage's start), `cling` (10 px up a wall to the right, hand on it 13 px ahead of the feet and 19 up, looping like `run`: the wall slide puts its anchor there), or `null` for nobody |
 | `ground` | where the floor is in the effect's own coordinates, px below its anchor: how high the stage holds the anchor. `0` for an anchor on the floor (explosions, splashes, pillars, a status drawn from the feet), `14` for a hit drawn 14 px above its floor |
 | `x` | px toward the goblin from the place: the slash anchors at its wielder, so `x: -22`; the coin floats at the knight's side, `x: 16` |
@@ -317,7 +317,7 @@ and any other pose starts its run with the look, a strike's on its contact, then
 draws `idle`, `ready`, `swing`, `follow`, `raise`, `crouch`, `aim`, `lunge`, `low`, `rise`, `spin`, `run`, `kneel`,
 `open`; the mage `idle`, `gather`, `cast`, `raise`, `lift`, `slam`, and the priest the first four; the archer `idle`,
 `draw`, `release`; the kunoichi `idle`, `ready`, `slash`, `follow`, `gather`, `throw`, `crouch`, `seal`, `dash`, `air`,
-`lift`, `slam`, `cling`; the soldier `idle`, `aim`, `shoot`, `windup`, `throw`, one frame each but idle; the goblin `idle`, `hurt`, which plays from each hit for the 0.3 s he is hurt. A tag named
+`lift`, `slam`, `cling`; the soldier `idle`, `aim`, `shoot`, `windup`, `throw`, one frame each but idle; the gunner `idle`, `kneel`, `fire`; the goblin `idle`, `hurt`, which plays from each hit for the 0.3 s he is hurt. A tag named
 after a stage pose is drawn for it as soon as it exists; else `CASTERS` in `src/stage/actors.js` maps the pose to one
 of the caster's tags, else it falls back to the pose `LIKE` names, then to idle. After editing, `node tools/cast.mjs`
 writes `src/stage/cast.js`; a test fails while it is out of date.

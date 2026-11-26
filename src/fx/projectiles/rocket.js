@@ -40,7 +40,8 @@ const BODY = [
   '32....................',
 ];
 
-export function draw(p, t, o) {
+// all behind the cast: on the stage it slides out of the gunner's tube, and into the goblin as it blows up
+export function drawBack(p, t, o) {
   const C = o.palette, S = o.smoke, M = o.metal, P = o.paint, s = o.seed, ph = t / meta.duration;
   const len = FLICKER[Math.floor(ph * FLICKER.length) % FLICKER.length], rise = o.view === 'top' ? 0 : 2.5;
 
