@@ -123,4 +123,9 @@ export const MOVES = {
     desc: 'Two punches to the goblin\'s chest, then a roundhouse kick that knocks it back',
     steps: [{ fx: 'impacts/punch' }, { fx: 'impacts/punch', opts: { seed: 2 } }, { fx: 'impacts/kick' }],
   },
+  'charged-strike': {
+    name: 'Charged strike',
+    desc: 'The knight holds his blade up while a charge builds in it, then brings it down on the goblin in a crushing blow',
+    steps: [{ fx: 'magic/charge-up' }, { fx: 'impacts/heavy-hit', opts: { palette: 'gold' } }], // the blow in the charge's colors
+  },
 };

@@ -140,7 +140,7 @@ const ACTING = {
     const k = Math.max(c + 0.15, s + 0.35, h);
     return [[s - w * 0.6, 'gather', OUT], [Math.max(s - w * 0.6, s - 1 / FPS), 'gather'], [s, 'point', LINEAR], [k, 'point'], [k + 0.4, 'idle', IO]];
   },
-  raise: (s, c, w) => [[s - w * 0.6, 'crouch', OUT], [Math.max(s - w * 0.6, s - 1 / FPS), 'crouch'], [s, 'raise', LINEAR], [Math.max(c, s + 0.3) + 0.2, 'raise'], [Math.max(c, s + 0.3) + 0.6, 'idle', IO]],
+  raise: (s, c, w, h = 0) => [[s - w * 0.6, 'crouch', OUT], [Math.max(s - w * 0.6, s - 1 / FPS), 'crouch'], [s, 'raise', LINEAR], [Math.max(c, s + 0.3, h - 0.2) + 0.2, 'raise'], [Math.max(c, s + 0.3, h - 0.2) + 0.6, 'idle', IO]],
   hop: (s, c, w) => [[s - w * 0.8, 'crouch', OUT], [s - w * 0.4, 'air', OUT], [s, 'crouch', IN], [s + 0.15, 'crouch'], [s + 0.45, 'idle', IO]],
   leap: (s, c, w) => [[s - w * 0.7, 'crouch', OUT], [s, 'crouch'], [s + 0.14, 'air', OUT], [s + 0.28, 'air'], [s + 0.42, 'crouch', IN], [s + 0.55, 'crouch'], [s + 0.85, 'idle', IO]],
   // up off the floor in the wind-up, at the air pose's height on the effect, kicking higher off it, then down
@@ -200,7 +200,7 @@ export function into(ls, t, run) {
  * contact }], hits [{ t, freeze, shake }] merged where they coincide, the goblin's flinches [{ t, k }], the caster's
  * pose keys, hidden [[t0, t1]] (spans the caster is out of sight) and moves [[t, dx]] (px the caster steps forward at
  * t, for good). A projectile leaves from the caster's tip as it shoots. A step on hit acts nothing unless `acted`.
- * meta.stage acting fields, in the effect's seconds: hold (true: a cast keeps pointing to the effect's end), hide
+ * meta.stage acting fields, in the effect's seconds: hold (true: a cast keeps pointing, a raise stays up, to the effect's end), hide
  * ([t0, t1]: the caster is gone from t0 to t1, or for good), move ([t, dx]), looks ({ pose: tag or [tag, stand-in...] }:
  * the caster's own tags for this effect, the first it has drawn); waits (true: createStage shows its first frame from the stage's start until
  * it plays, the chest standing there).
@@ -209,7 +209,8 @@ export function plan(steps) {
   const roles = steps.map(s => role(s.stage ? { ...s.mod.meta, stage: { ...s.mod.meta.stage, ...s.stage } } : s.mod.meta, s.id));
   const acting = roles.filter((r, i) => r.pose && !(i && steps[i].on === 'hit'));
   const foe = roles.some(r => STRUCK.includes(r.at));
-  const D = !foe || (acting.length && acting.every(r => MELEE.includes(r.pose))) ? NEAR : FAR;
+  // in a sword's reach for blows, and for a charge or a buff on the caster before one
+  const D = !foe || (acting.some(r => MELEE.includes(r.pose)) && acting.every(r => MELEE.includes(r.pose) || !STRUCK.includes(r.at))) ? NEAR : FAR;
   const who = (acting[0] ?? roles[0]).cast, tip = frameOf(who, 'point').tip;
   const acts = [], hits = [], flinches = [], keys = [], hidden = [], moves = [];
   steps.forEach((s, i) => {

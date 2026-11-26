@@ -288,7 +288,7 @@ staff's orb glowing in the spell's colors. In a move, the first acted step picks
 | `x` | px toward the goblin from the place: the slash anchors at its wielder, so `x: -22`; the coin floats at the knight's side, `x: 16` |
 | `speed` | a looping projectile's, in px/s |
 | `scenery` | the set the stage draws behind a prop, from its anchor: `sconce` (a wall torch's stick, for the torch's flame), `posts` (two terminals 18 px either side, down to the floor, for the arc), `pool` (water level with the floor, from the effect's first ramp, for the ripple), `cliff` (a rock face up to a ledge 58 px over the floor, for the waterfall), `wall` (bricks from the floor up out of the frame, their face on the anchor, for the wall slide) |
-| `hold` | `true`: a cast keeps pointing until the effect ends (a beam) |
+| `hold` | `true`: a cast keeps pointing, or a raise stays up, until the effect ends (a beam; a charge held while its loop plays, so a move's next step winds up straight from it) |
 | `hide` | `[t0, t1]`, seconds into the effect: the caster is gone from `t0` to `t1`, or for good without `t1` (a vanish, a blink) |
 | `move` | `[t, dx]`: the caster steps `dx` px toward the goblin at `t` and stays there (a blink's 54 px) |
 | `looks` | `{ pose: tag }`: the caster's own tags for this effect, a list for stand-ins (`{ raise: ['dash', 'crouch'] }`: `dash` once drawn, `crouch` until then). Any of the stage's poses: `ready`, `swing`, `follow` (a strike), `gather`, `point` (a cast), `crouch`, `raise`, `air`, and the ones the acts above use |
@@ -302,7 +302,9 @@ the caster's side still freeze and shake.
 one before it has ended, after its own wind-up; `on: 'hit'` plays it with the previous step's first hit instead (a
 spark on the slash's cut, the explosion where the fireball lands), the caster acting nothing for it unless `acted: true`
 (Shadow step's slash as she reappears), and a step's `stage` places it over its effect's `meta.stage` (Frost nova's glints round the goblin), and coinciding hits freeze once, at the stronger
-freeze and shake. `render --stage <move>` writes `records/moves/<move>/`; the gallery shows them on its Moves page
+freeze and shake. A looping step plays at least 1.6 s, then fades over 0.3 s as the next step winds up. The goblin
+stands in a sword's reach when the move strikes in melee and its other acted steps play on the caster (Charged strike's
+charge). `render --stage <move>` writes `records/moves/<move>/`; the gallery shows them on its Moves page
 (`?page=moves`).
 
 **The cast's art** is in `src/stage/cast/<name>.aseprite`, one file per character: the feet at the bottom center of
