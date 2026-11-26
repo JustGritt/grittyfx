@@ -20,7 +20,7 @@ export function actorPalette(glow = 'holy', who = Object.keys(CAST)) {
  * in the spell's colors. Every pose but idle falls back to idle.
  */
 export const CASTERS = {
-  knight: { glow: true, look: { ready: 'ready', swing: 'swing', follow: 'swing', gather: 'ready', point: 'swing', raise: 'raise', crouch: 'crouch', air: 'crouch' } },
+  knight: { glow: true, look: { ready: 'ready', swing: 'swing', follow: 'follow', gather: 'ready', point: 'swing', raise: 'raise', crouch: 'crouch', air: 'crouch' } },
   mage: { glow: true, look: { ready: 'gather', swing: 'cast', follow: 'cast', gather: 'gather', point: 'cast', raise: 'raise', crouch: 'gather' } },
   priest: { glow: true, look: { ready: 'gather', swing: 'cast', follow: 'cast', gather: 'gather', point: 'cast', raise: 'raise', crouch: 'gather' } },
   archer: { glow: false, look: { ready: 'draw', swing: 'release', follow: 'release', gather: 'draw', point: 'release', raise: 'draw', crouch: 'draw' } },
