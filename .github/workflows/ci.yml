@@ -23,7 +23,8 @@ jobs:
       - run: node --test
       - run: node tools/check.mjs
         env:
-          GRITTYFX_BUDGET_MS: 4
+          # LTS holds the line; Node 18 (end of life, an older V8) draws the heaviest effects ~3x slower than a desk
+          GRITTYFX_BUDGET_MS: ${{ matrix.node == 18 && 8 || 4 }}
 
   pages:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

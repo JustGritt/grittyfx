@@ -30,8 +30,11 @@ const PELLETS = 9, TRAIL = 14; // px of streak behind each pellet
 // long. The bore's axis runs along pixel row 0. heat(u, v) picks the step from u (0 at the base, 1 at the tip) and v (0
 // on the axis, 1 at the edge).
 function petal(p, a, r0, len, w, heat) {
-  const ca = Math.cos(a), sa = Math.sin(a), R = Math.ceil(r0 + len + w);
-  p.shade(-R, -R, 2 * R, 2 * R, (x, y) => {
+  const ca = Math.cos(a), sa = Math.sin(a), hw = w / 2 + 0.15; // hw: the widest the leaf gets, either side of its axis
+  // shade only the leaf's own box: a square round the muzzle is mostly behind it, and too slow on Node 18
+  const xs = [r0, r0 + len].flatMap(r => [r * ca - hw * sa, r * ca + hw * sa]), ys = [r0, r0 + len].flatMap(r => [r * sa - hw * ca, r * sa + hw * ca]);
+  const x0 = Math.floor(Math.min(...xs)) - 1, y0 = Math.floor(Math.min(...ys)) - 1;
+  p.shade(x0, y0, Math.ceil(Math.max(...xs)) + 2 - x0, Math.ceil(Math.max(...ys)) + 2 - y0, (x, y) => {
     const X = x + 0.5, u = (X * ca + y * sa - r0) / len;
     if (u < 0 || u > 1) return 0;
     const hw = (w / 2) * (u < 0.3 ? 0.6 + (0.4 * u) / 0.3 : ((1 - u) / 0.7) ** 0.8) + 0.15, d = Math.abs(y * ca - X * sa);
